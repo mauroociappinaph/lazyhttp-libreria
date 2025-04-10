@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.http = void 0;
+exports.initialize = exports.getAccessToken = exports.getAuthenticatedUser = exports.isAuthenticated = exports.logout = exports.login = exports.configureAuth = exports.del = exports.patch = exports.put = exports.post = exports.getById = exports.getAll = exports.get = exports.request = exports.http = void 0;
 const http_helpers_1 = require("./http-helpers");
 const http_auth_1 = require("./http-auth");
 const DEFAULT_TIMEOUT = 10000; // 10 segundos
@@ -99,5 +99,25 @@ exports.http = {
     _removeToken(key) {
         (0, http_auth_1.removeToken)(key);
     },
-    initialize: http_helpers_1.initialize
+    async initialize() {
+        return (0, http_helpers_1.initialize)();
+    }
 };
+// Exportar las funciones individuales para un uso más directo
+exports.request = exports.http.request.bind(exports.http);
+exports.get = exports.http.get.bind(exports.http);
+exports.getAll = exports.http.getAll.bind(exports.http);
+exports.getById = exports.http.getById.bind(exports.http);
+exports.post = exports.http.post.bind(exports.http);
+exports.put = exports.http.put.bind(exports.http);
+exports.patch = exports.http.patch.bind(exports.http);
+exports.del = exports.http.delete.bind(exports.http); // 'delete' es palabra reservada en JavaScript
+// Exportar las funciones de autenticación
+exports.configureAuth = exports.http.configureAuth.bind(exports.http);
+exports.login = exports.http.login.bind(exports.http);
+exports.logout = exports.http.logout.bind(exports.http);
+exports.isAuthenticated = exports.http.isAuthenticated.bind(exports.http);
+exports.getAuthenticatedUser = exports.http.getAuthenticatedUser.bind(exports.http);
+exports.getAccessToken = exports.http.getAccessToken.bind(exports.http);
+// Exportar initialize
+exports.initialize = exports.http.initialize.bind(exports.http);
