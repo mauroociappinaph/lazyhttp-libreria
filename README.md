@@ -275,6 +275,58 @@ LazyHTTP soporta varias estrategias de caché para diferentes casos de uso:
 - 🔄 **Invalidación inteligente**: Invalidación automática de caché en operaciones de escritura (POST/PUT/PATCH/DELETE)
 - 🏷️ **Sistema de tags**: Permite agrupar e invalidar entradas de caché relacionadas
 
+### Sistema de Tags e Invalidación
+
+El sistema de caché de LazyHTTP ofrece un mecanismo avanzado de tags para agrupar entradas de caché relacionadas, facilitando su invalidación selectiva:
+
+```typescript
+// Realizar una petición con tags
+const categoriesResponse = await http.get("/api/categories", {
+  cache: {
+    tags: ["category", "list", "public"], // Asociar múltiples tags
+  },
+});
+
+// Posteriormente, invalidar todas las entradas con el tag 'category'
+http.invalidateCacheByTags(["category"]);
+```
+
+#### Funcionamiento interno
+
+Cuando asignas tags a una petición cacheada:
+
+1. Los tags se incorporan directamente en la clave de caché, creando un identificador único
+2. Cuando se solicita invalidar por tag, el sistema busca todas las entradas cuya clave contenga ese tag
+3. Solo las entradas que coincidan con al menos uno de los tags especificados son invalidadas
+
+Esta implementación garantiza que:
+
+- La invalidación por tags es eficiente y precisa
+- Se pueden usar múltiples tags para crear categorías superpuestas de datos
+- Solo se invalidan las entradas específicas, manteniendo intactas las demás
+
+#### Ejemplo práctico
+
+```typescript
+// Estas entradas se almacenarán con claves diferentes
+await http.get("/api/news", { cache: { tags: ["news", "public"] } });
+await http.get("/api/categories", { cache: { tags: ["category", "public"] } });
+await http.get("/api/admin/stats", { cache: { tags: ["admin", "stats"] } });
+
+// Esto invalidará la primera y segunda entrada, pero no la tercera
+http.invalidateCacheByTags(["public"]);
+
+// Esto solo invalidará la tercera entrada
+http.invalidateCacheByTags(["admin"]);
+```
+
+#### Cuándo usar tags
+
+- Para agrupar recursos relacionados que deben invalidarse juntos
+- Cuando múltiples endpoints devuelven datos superpuestos
+- Para implementar invalidación selectiva basada en roles o permisos
+- Para crear capas de caché con diferentes políticas de expiración
+
 ## Sistema de Sugerencias Inteligentes
 
 LazyHTTP incorpora un sistema de sugerencias inteligentes para ayudar a los usuarios a resolver errores comunes:

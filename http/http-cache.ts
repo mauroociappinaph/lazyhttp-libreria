@@ -63,7 +63,13 @@ export function generateCacheKey(endpoint: string, options?: RequestOptions): st
   // Incluir método en la clave (por defecto es GET)
   const method = options?.method || 'GET';
 
-  return `${method}:${normalizedEndpoint}`;
+  // Incluir tags en la clave si existen
+  let tagsString = '';
+  if (options?.cache?.tags && options.cache.tags.length > 0) {
+    tagsString = `:tags=${options.cache.tags.sort().join(',')}`;
+  }
+
+  return `${method}:${normalizedEndpoint}${tagsString}`;
 }
 
 /**

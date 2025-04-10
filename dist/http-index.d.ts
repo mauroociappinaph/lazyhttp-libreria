@@ -1,5 +1,9 @@
-import { HttpImplementation, RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo } from './http.types';
-export declare const http: HttpImplementation;
+import { HttpImplementation, RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, CacheConfig } from './http.types';
+export declare const http: HttpImplementation & {
+    configureCaching: (config: CacheConfig) => void;
+    invalidateCache: (pattern: string) => void;
+    invalidateCacheByTags: (tags: string[]) => void;
+};
 export declare const request: <T>(endpoint: string, options?: RequestOptions) => Promise<ApiResponse<T>>;
 export declare const get: <T>(endpoint: string, options?: Omit<RequestOptions, "method" | "body">) => Promise<ApiResponse<T>>;
 export declare const getAll: <T>(endpoint: string, options?: Omit<RequestOptions, "method" | "body">) => Promise<ApiResponse<T>>;
@@ -14,4 +18,13 @@ export declare const logout: () => Promise<void>;
 export declare const isAuthenticated: () => boolean;
 export declare const getAuthenticatedUser: () => Promise<any | null>;
 export declare const getAccessToken: () => string | null;
-export declare const initialize: () => Promise<void>;
+export declare const configureCaching: ((config: CacheConfig) => void) & ((config: CacheConfig) => void);
+export declare const invalidateCache: ((pattern: string) => void) & ((pattern: string) => void);
+export declare const invalidateCacheByTags: ((tags: string[]) => void) & ((tags: string[]) => void);
+export declare const initialize: (config?: {
+    suggestionService?: {
+        enabled: boolean;
+        url: string;
+    };
+    cache?: CacheConfig;
+}) => Promise<void>;
