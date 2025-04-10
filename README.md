@@ -12,6 +12,7 @@ Una biblioteca HTTP fácil de usar para aplicaciones JavaScript y TypeScript, co
 - 🧩 Totalmente tipado con TypeScript
 - 📝 Logging avanzado con diferentes niveles
 - 🔧 Configuración flexible
+- 🧠 Sistema inteligente de sugerencias para errores (experimental)
 
 ## Instalación
 
@@ -157,6 +158,54 @@ interface RequestOptions {
 ## Ejemplos
 
 Consulta el directorio `/examples` para ver ejemplos completos de uso.
+
+## Sistema de Sugerencias Inteligentes
+
+LazyHTTP incorpora un sistema de sugerencias inteligentes para ayudar a los usuarios a resolver errores comunes:
+
+```typescript
+// Las sugerencias se generan automáticamente cuando ocurre un error
+if (response.error) {
+  // Obtener una sugerencia inteligente para el error
+  const suggestion = await HttpError.getSmartSuggestion(
+    response.error,
+    request
+  );
+  console.log("Sugerencia:", suggestion);
+
+  // Proporcionar feedback sobre la sugerencia
+  await HttpError.provideSuggestionFeedback(
+    response.error,
+    request,
+    suggestion,
+    true // true si fue útil, false si no
+  );
+}
+```
+
+El sistema de sugerencias utiliza aprendizaje automático para mejorar con el tiempo basado en el feedback de los usuarios.
+
+### Ejemplo en consola
+
+Así se ve el sistema de sugerencias en la consola:
+
+```
+> npm run example:http
+
+Making GET request to https://api.example.com/users…
+❌ Error: Failed to connect to the server
+
+💡 Suggestion: Check your internet connection and make sure the server is up and running
+Was this suggestion helpful? (y/n): y
+✅ Thank you for your feedback
+
+Making POST request to https://api.example.com/login…
+❌ Error: Authentication failed
+
+💡 Suggestion: Ensure your credentials are correct or try resetting your password
+Was this suggestion helpful? (y/n): n
+📝 Feedback recorded. We’ll work on improving our suggestions.
+```
 
 ## Licencia
 
