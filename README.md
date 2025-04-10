@@ -12,6 +12,7 @@ Una biblioteca HTTP fácil de usar para aplicaciones JavaScript y TypeScript, co
 - 🧩 Totalmente tipado con TypeScript
 - 📝 Logging avanzado con diferentes niveles
 - 🔧 Configuración flexible
+- 📊 Caché inteligente con estrategias personalizables
 - 🧠 Sistema inteligente de sugerencias para errores (experimental)
 
 ## Instalación
