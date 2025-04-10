@@ -42,6 +42,35 @@ export const http: HttpImplementation = {
     return this.request<T>(endpoint, { ...options, method: 'GET' });
   },
 
+  async getAll<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
+    const page = options?.params?.page || 1;
+    const limit = options?.params?.limit || 100;
+
+    const response = await this.request<T>(endpoint, {
+      ...options,
+      method: 'GET',
+      params: {
+        ...options?.params,
+        page,
+        limit
+      }
+    });
+
+    // Agregar metadatos de paginación a la respuesta
+    if (response.data && Array.isArray(response.data)) {
+      response.meta = {
+        currentPage: page,
+        totalItems: response.data.length
+      };
+    }
+
+    return response;
+  },
+
+  async getById<T>(endpoint: string, id: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { ...options, method: 'GET', params: { id } });
+  },
+
   async post<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, { ...options, method: 'POST', body });
   },
