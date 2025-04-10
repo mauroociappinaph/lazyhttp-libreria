@@ -451,3 +451,25 @@ export interface AuthResponse {
    */
   expires_in?: number;
 }
+
+export class HttpError extends Error {
+  suggestion?: string;
+
+  static ERROR_MESSAGES: Record<string, string> = {
+    TIMEOUT: 'La solicitud ha excedido el tiempo de espera',
+    NETWORK: 'Error de conexión con el servidor',
+    UNKNOWN: 'Error desconocido',
+    ABORTED: 'La solicitud fue cancelada por timeout',
+    SESSION_EXPIRED: 'La sesión ha expirado',
+    AXIOS_ERROR: 'Error de conexión con AxiosError',
+  };
+}
+
+
+export interface ErrorInfo {
+  error_type: string;
+  status_code?: number;
+  url_pattern?: string;
+  method?: string;
+  message?: string;
+}

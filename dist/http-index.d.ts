@@ -1,2 +1,17 @@
-import { HttpImplementation } from './http.types';
+import { HttpImplementation, RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo } from './http.types';
 export declare const http: HttpImplementation;
+export declare const request: <T>(endpoint: string, options?: RequestOptions) => Promise<ApiResponse<T>>;
+export declare const get: <T>(endpoint: string, options?: Omit<RequestOptions, "method" | "body">) => Promise<ApiResponse<T>>;
+export declare const getAll: <T>(endpoint: string, options?: Omit<RequestOptions, "method" | "body">) => Promise<ApiResponse<T>>;
+export declare const getById: <T>(endpoint: string, id: string, options?: Omit<RequestOptions, "method" | "body">) => Promise<ApiResponse<T>>;
+export declare const post: <T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, "method" | "body">) => Promise<ApiResponse<T>>;
+export declare const put: <T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, "method" | "body">) => Promise<ApiResponse<T>>;
+export declare const patch: <T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, "method" | "body">) => Promise<ApiResponse<T>>;
+export declare const del: <T>(endpoint: string, options?: Omit<RequestOptions, "method">) => Promise<ApiResponse<T>>;
+export declare const configureAuth: (config: AuthConfig) => void;
+export declare const login: (credentials: UserCredentials) => Promise<AuthInfo>;
+export declare const logout: () => Promise<void>;
+export declare const isAuthenticated: () => boolean;
+export declare const getAuthenticatedUser: () => Promise<any | null>;
+export declare const getAccessToken: () => string | null;
+export declare const initialize: () => Promise<void>;

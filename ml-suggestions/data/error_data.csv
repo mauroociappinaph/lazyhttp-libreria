@@ -1,0 +1,7 @@
+error_type,status_code,url_pattern,method,message,suggestion,was_helpful
+HttpTimeoutError,408,/api/products,GET,Timeout error,El servidor está tardando demasiado en responder. Intenta más tarde cuando haya menos tráfico.,True
+HttpAuthError,401,/api/auth/login,POST,Authentication failed,Las credenciales proporcionadas no son correctas. Verifica tu nombre de usuario y contraseña.,True
+HttpNetworkError,0,/api/users,GET,Network error,Verifica tu conexión a internet. Es posible que estés desconectado.,True
+HttpAxiosError,404,/api/products/123,GET,Not found,El recurso solicitado no existe. Verifica la URL e ID del producto.,True
+HttpUnknownError,500,/api/checkout,POST,Server error,Ocurrió un error en el servidor. Contacta al soporte técnico si persiste.,True
+HttpNetworkError,0,/api/users,GET,Network error,Verifica tu conexión a internet,True
