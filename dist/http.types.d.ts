@@ -364,3 +364,14 @@ export interface AuthResponse {
      */
     expires_in?: number;
 }
+export declare class HttpError extends Error {
+    suggestion?: string;
+    static ERROR_MESSAGES: Record<string, string>;
+}
+export interface ErrorInfo {
+    error_type: string;
+    status_code?: number;
+    url_pattern?: string;
+    method?: string;
+    message?: string;
+}

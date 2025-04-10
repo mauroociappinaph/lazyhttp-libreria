@@ -141,6 +141,14 @@ await http.initialize();
 - `http.getAuthenticatedUser()`: Obtiene información del usuario autenticado
 - `http.getAccessToken()`: Obtiene el token de acceso actual
 
+### Métodos Helper
+
+- `http.getAll<T>(endpoint, options?)`: Obtiene una lista paginada de recursos
+- `http.getById<T>(endpoint, id, options?)`: Obtiene un recurso específico por su ID
+- `http.create<T>(endpoint, data, options?)`: Alias mejorado para crear recursos
+- `http.update<T>(endpoint, id, data, options?)`: Actualiza un recurso existente
+- `http.remove(endpoint, id, options?)`: Elimina un recurso por su ID
+
 ### Opciones
 
 ```typescript
@@ -158,6 +166,22 @@ interface RequestOptions {
 ## Ejemplos
 
 Consulta el directorio `/examples` para ver ejemplos completos de uso.
+
+## Ejemplos Avanzados
+
+### Interceptores de Peticiones
+
+Puedes interceptar cualquier petición antes de que se envíe al servidor, por ejemplo para agregar headers dinámicos:
+
+```typescript
+http.addRequestInterceptor((config) => {
+  config.headers = {
+    ...config.headers,
+    "X-Custom-Header": "LazyRocks",
+  };
+  return config;
+});
+```
 
 ## Sistema de Sugerencias Inteligentes
 
@@ -185,6 +209,22 @@ if (response.error) {
 
 El sistema de sugerencias utiliza aprendizaje automático para mejorar con el tiempo basado en el feedback de los usuarios.
 
+> **Nota**: El sistema de sugerencias inteligentes funciona automáticamente en modo degradado (usando sugerencias estáticas) si el servicio de ML no está disponible. No se requiere configuración adicional para usar las sugerencias básicas.
+
+### Configuración del Servicio de Sugerencias (Opcional)
+
+Para habilitar las sugerencias basadas en ML, puedes configurar la URL del servicio:
+
+```typescript
+// Configurar la URL del servicio de sugerencias (opcional)
+await http.initialize({
+  suggestionService: {
+    enabled: true,
+    url: "http://tu-servidor-de-sugerencias.com", // URL personalizada
+  },
+});
+```
+
 ### Ejemplo en consola
 
 Así se ve el sistema de sugerencias en la consola:
@@ -204,7 +244,7 @@ Making POST request to https://api.example.com/login…
 
 💡 Suggestion: Ensure your credentials are correct or try resetting your password
 Was this suggestion helpful? (y/n): n
-📝 Feedback recorded. We’ll work on improving our suggestions.
+📝 Feedback recorded. We'll work on improving our suggestions.
 ```
 
 ## Licencia
