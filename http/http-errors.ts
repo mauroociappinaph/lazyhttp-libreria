@@ -1,3 +1,8 @@
+import { SuggestionService } from './suggestion-service-IA';
+
+// Create the suggestion service instance
+const suggestionService = new SuggestionService();
+
 export class HttpError extends Error {
   suggestion?: string;
 
@@ -9,6 +14,21 @@ export class HttpError extends Error {
     SESSION_EXPIRED: 'La sesión ha expirado',
     AXIOS_ERROR: 'Error de conexión con AxiosError',
   };
+
+  // Método para obtener sugerencia avanzada
+  static async getSmartSuggestion(error: HttpError, request?: Request): Promise<string> {
+    return await suggestionService.getSuggestion(error, request);
+  }
+
+  // Proporcionar feedback sobre una sugerencia
+  static async provideSuggestionFeedback(
+    error: HttpError,
+    request: Request | undefined,
+    suggestion: string,
+    wasHelpful: boolean
+  ): Promise<void> {
+    await suggestionService.provideFeedback(error, request, suggestion, wasHelpful);
+  }
 }
 
 export class HttpTimeoutError extends HttpError {
@@ -58,5 +78,3 @@ export class HttpAuthError extends HttpError {
     this.suggestion = 'Verifica tu conexión a internet y vuelve a intentarlo';
   }
 }
-
-

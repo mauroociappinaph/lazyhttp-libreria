@@ -1,4 +1,6 @@
 import { ErrorInfo } from './http.types';
+
+
 export class SuggestionService {
   private serviceUrl: string = 'http://localhost:5000';
   private enabled: boolean = false;
