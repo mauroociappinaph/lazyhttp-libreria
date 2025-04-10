@@ -2,7 +2,7 @@ import { ErrorInfo } from './http.types';
 
 
 export class SuggestionService {
-  private serviceUrl: string = 'http://localhost:5000';
+  private serviceUrl: string = 'http://localhost:8000';
   private enabled: boolean = false;
 
   constructor(serviceUrl?: string) {
