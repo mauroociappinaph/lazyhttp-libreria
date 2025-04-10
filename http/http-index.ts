@@ -1,4 +1,4 @@
-import { HttpImplementation, RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo } from './http.types';
+import { HttpImplementation, RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, CacheConfig } from './http.types';
 import {
   retryHandler,
   errorHandler,
@@ -23,11 +23,17 @@ import {
   getToken as getTokenHelper,
   removeToken as removeTokenHelper
 } from './http-auth';
+import { cacheManager } from './http-cache';
+import { executeWithCacheStrategy } from './http-cache-strategies';
 
 const DEFAULT_TIMEOUT = 10000; // 10 segundos
 const DEFAULT_RETRIES = 0;
 
-export const http: HttpImplementation = {
+export const http: HttpImplementation & {
+  configureCaching: (config: CacheConfig) => void;
+  invalidateCache: (pattern: string) => void;
+  invalidateCacheByTags: (tags: string[]) => void;
+} = {
   async request<T>(endpoint: string, options: RequestOptions = {}): Promise<ApiResponse<T>> {
     const {
       method = 'GET',
@@ -36,17 +42,55 @@ export const http: HttpImplementation = {
       withAuth = false,
       timeout = DEFAULT_TIMEOUT,
       retries = DEFAULT_RETRIES,
+      cache: cacheOptions
     } = options;
+
     try {
+      // Comprobar si debemos usar la caché
+      if (cacheManager.shouldUseCache(method, options)) {
+        const cacheKey = cacheManager.generateCacheKey(endpoint, options);
+
+        return await executeWithCacheStrategy<T>(
+          cacheKey,
+          async () => {
+            const requestHeaders = prepareHeaders(headers, withAuth);
+            const response = await retryHandler.executeWithRetry(
+              endpoint,
+              method,
+              requestHeaders,
+              body,
+              timeout,
+              retries
+            ) as ApiResponse<T>;
+
+            // Invalidar caché automáticamente para métodos de escritura
+            if (method !== 'GET') {
+              cacheManager.invalidateByMethod(method, endpoint);
+            }
+
+            return response;
+          },
+          options
+        );
+      }
+
+      // Petición sin caché
       const requestHeaders = prepareHeaders(headers, withAuth);
-      return await retryHandler.executeWithRetry(
+      const response = await retryHandler.executeWithRetry(
         endpoint,
         method,
         requestHeaders,
         body,
         timeout,
         retries
-      );
+      ) as ApiResponse<T>;
+
+      // Invalidar caché automáticamente para métodos de escritura
+      if (method !== 'GET') {
+        cacheManager.invalidateByMethod(method, endpoint);
+      }
+
+      return response;
     } catch (error) {
       return errorHandler.handleError(error);
     }
@@ -158,8 +202,26 @@ export const http: HttpImplementation = {
     removeTokenHelper(key);
   },
 
-  async initialize(): Promise<void> {
+  async initialize(config?: { suggestionService?: { enabled: boolean, url: string }, cache?: CacheConfig }): Promise<void> {
+    // Inicializar caché si está configurado
+    if (config?.cache) {
+      this.configureCaching(config.cache);
+    }
+
     return initializeHelper();
+  },
+
+  // Métodos adicionales para caché
+  configureCaching(config: CacheConfig): void {
+    cacheManager.configure(config);
+  },
+
+  invalidateCache(pattern: string): void {
+    cacheManager.invalidate(pattern);
+  },
+
+  invalidateCacheByTags(tags: string[]): void {
+    cacheManager.invalidateByTags(tags);
   }
 };
 
@@ -180,6 +242,11 @@ export const logout = http.logout.bind(http);
 export const isAuthenticated = http.isAuthenticated.bind(http);
 export const getAuthenticatedUser = http.getAuthenticatedUser.bind(http);
 export const getAccessToken = http.getAccessToken.bind(http);
+
+// Exportar caché
+export const configureCaching = http.configureCaching.bind(http);
+export const invalidateCache = http.invalidateCache.bind(http);
+export const invalidateCacheByTags = http.invalidateCacheByTags.bind(http);
 
 // Exportar initialize
 export const initialize = http.initialize.bind(http);
