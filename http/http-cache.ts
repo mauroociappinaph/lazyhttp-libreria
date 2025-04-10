@@ -209,16 +209,16 @@ function evictOldEntries(): void {
 
 // Exportar todo en un objeto para mantener compatibilidad con la API anterior
 export const cacheManager = {
-  configureCache: configure,
-  isCacheEnabled: isEnabled,
-  generateCacheKey: generateCacheKey,
-  getCache: get,
-  setCache: set,
-  deleteCache: remove, // Renombrar para evitar colisión con keyword
-  clearCache: clear,
-  invalidateCache: invalidate,
-  invalidateByTagsCache: invalidateByTags,
-  invalidateByMethodCache: invalidateByMethod,
-  shouldUseCacheCache: shouldUseCache,
-  getStrategyCache: getStrategy
+  configure,
+  isEnabled,
+  generateCacheKey,
+  get,
+  set,
+  delete: remove, // Renombrar para evitar colisión con keyword
+  clear,
+  invalidate,
+  invalidateByTags,
+  invalidateByMethod,
+  shouldUseCache,
+  getStrategy
 };

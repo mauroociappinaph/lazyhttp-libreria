@@ -129,8 +129,12 @@ export interface HttpClient {
 
   /**
    * Inicializa el cliente HTTP
+   * @param config Configuración opcional
    */
-  initialize(): Promise<void>;
+  initialize(config?: {
+    suggestionService?: { enabled: boolean, url: string },
+    cache?: CacheConfig
+  }): Promise<void>;
 
   /**
    * Configura el sistema de autenticación
@@ -167,6 +171,24 @@ export interface HttpClient {
    * @returns Token de acceso o `null` si no está autenticado
    */
   getAccessToken(): string | null;
+
+  /**
+   * Configura el sistema de caché
+   * @param config Configuración de caché
+   */
+  configureCaching(config: CacheConfig): void;
+
+  /**
+   * Invalida entradas de caché que coincidan con un patrón
+   * @param pattern Patrón para invalidar (se puede usar * como comodín)
+   */
+  invalidateCache(pattern: string): void;
+
+  /**
+   * Invalida entradas de caché con ciertos tags
+   * @param tags Tags para invalidar
+   */
+  invalidateCacheByTags(tags: string[]): void;
 }
 
 /**
