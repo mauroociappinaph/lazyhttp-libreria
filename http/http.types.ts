@@ -50,6 +50,11 @@ export interface RequestOptions {
    * Parámetros de la petición
    */
   params?: Record<string, string | number>;
+
+  /**
+   * Configuración de caché para la petición
+   */
+  cache?: CacheOptions;
 }
 
 /**
@@ -124,8 +129,12 @@ export interface HttpClient {
 
   /**
    * Inicializa el cliente HTTP
+   * @param config Configuración opcional
    */
-  initialize(): Promise<void>;
+  initialize(config?: {
+    suggestionService?: { enabled: boolean, url: string },
+    cache?: CacheConfig
+  }): Promise<void>;
 
   /**
    * Configura el sistema de autenticación
@@ -162,6 +171,24 @@ export interface HttpClient {
    * @returns Token de acceso o `null` si no está autenticado
    */
   getAccessToken(): string | null;
+
+  /**
+   * Configura el sistema de caché
+   * @param config Configuración de caché
+   */
+  configureCaching(config: CacheConfig): void;
+
+  /**
+   * Invalida entradas de caché que coincidan con un patrón
+   * @param pattern Patrón para invalidar (se puede usar * como comodín)
+   */
+  invalidateCache(pattern: string): void;
+
+  /**
+   * Invalida entradas de caché con ciertos tags
+   * @param tags Tags para invalidar
+   */
+  invalidateCacheByTags(tags: string[]): void;
 }
 
 /**
@@ -472,4 +499,117 @@ export interface ErrorInfo {
   url_pattern?: string;
   method?: string;
   message?: string;
+}
+
+/**
+ * Estrategias de caché soportadas
+ */
+export type CacheStrategy =
+  | 'cache-first'           // Intenta usar caché, si no existe o expiró va a la red
+  | 'network-first'         // Intenta usar la red, si falla usa caché
+  | 'stale-while-revalidate' // Usa caché mientras refresca en segundo plano
+  | 'network-only'          // Solo usa la red, nunca la caché
+  | 'cache-only';           // Solo usa la caché, nunca la red
+
+/**
+ * Modos de almacenamiento de caché
+ */
+export type CacheStorageType = 'memory' | 'localStorage' | 'indexedDB';
+
+/**
+ * Opciones de caché para una petición
+ */
+export interface CacheOptions {
+  /**
+   * Indica si se debe usar la caché para esta petición
+   * @default true si la caché global está habilitada
+   */
+  enabled?: boolean;
+
+  /**
+   * Estrategia de caché a utilizar
+   * @default La estrategia global configurada
+   */
+  strategy?: CacheStrategy;
+
+  /**
+   * Tiempo de vida de la entrada en caché (en milisegundos)
+   * @default El TTL global configurado
+   */
+  ttl?: number;
+
+  /**
+   * Clave de caché personalizada (por defecto se genera a partir del endpoint y parámetros)
+   */
+  key?: string;
+
+  /**
+   * Tags para agrupar entradas de caché para invalidación
+   */
+  tags?: string[];
+}
+
+/**
+ * Configuración global del sistema de caché
+ */
+export interface CacheConfig {
+  /**
+   * Indica si la caché está habilitada globalmente
+   * @default false
+   */
+  enabled: boolean;
+
+  /**
+   * Estrategia de caché por defecto
+   * @default 'cache-first'
+   */
+  defaultStrategy?: CacheStrategy;
+
+  /**
+   * Tiempo de vida por defecto (en milisegundos)
+   * @default 5 * 60 * 1000 (5 minutos)
+   */
+  defaultTTL?: number;
+
+  /**
+   * Tipo de almacenamiento para la caché
+   * @default 'memory'
+   */
+  storage?: CacheStorageType;
+
+  /**
+   * Tamaño máximo de la caché (número de entradas)
+   * @default 100
+   */
+  maxSize?: number;
+}
+
+/**
+ * Entrada de caché
+ */
+export interface CacheEntry<T> {
+  /**
+   * Valor almacenado en caché
+   */
+  value: ApiResponse<T>;
+
+  /**
+   * Timestamp de expiración
+   */
+  expiresAt: number;
+
+  /**
+   * Timestamp de creación
+   */
+  createdAt: number;
+
+  /**
+   * Timestamp de último acceso
+   */
+  lastAccessed: number;
+
+  /**
+   * Tags asociados
+   */
+  tags?: string[];
 }

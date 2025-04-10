@@ -12,6 +12,7 @@ Una biblioteca HTTP fácil de usar para aplicaciones JavaScript y TypeScript, co
 - 🧩 Totalmente tipado con TypeScript
 - 📝 Logging avanzado con diferentes niveles
 - 🔧 Configuración flexible
+- 📊 Caché inteligente con estrategias personalizables
 - 🧠 Sistema inteligente de sugerencias para errores (experimental)
 
 ## Instalación
@@ -117,8 +118,23 @@ La biblioteca puede ser inicializada con configuración personalizada:
 ```typescript
 import { http } from "lazyhttp";
 
-// Inicializar la biblioteca
-await http.initialize();
+// Inicializar la biblioteca con configuración avanzada
+await http.initialize({
+  // Configuración del sistema de sugerencias inteligentes (opcional)
+  suggestionService: {
+    enabled: true,
+    url: "http://tu-servidor-de-sugerencias.com",
+  },
+
+  // Configuración del sistema de caché (opcional)
+  cache: {
+    enabled: true,
+    defaultStrategy: "cache-first",
+    defaultTTL: 5 * 60 * 1000, // 5 minutos
+    storage: "memory",
+    maxSize: 100,
+  },
+});
 ```
 
 ## API
@@ -149,6 +165,12 @@ await http.initialize();
 - `http.update<T>(endpoint, id, data, options?)`: Actualiza un recurso existente
 - `http.remove(endpoint, id, options?)`: Elimina un recurso por su ID
 
+### Métodos de Caché
+
+- `http.configureCaching(config)`: Configura el sistema de caché
+- `http.invalidateCache(pattern)`: Invalida entradas de caché que coincidan con un patrón
+- `http.invalidateCacheByTags(tags)`: Invalida entradas de caché con ciertos tags
+
 ### Opciones
 
 ```typescript
@@ -160,6 +182,18 @@ interface RequestOptions {
   timeout?: number;
   retries?: number;
   params?: Record<string, string | number>;
+  cache?: {
+    enabled?: boolean;
+    strategy?:
+      | "cache-first"
+      | "network-first"
+      | "stale-while-revalidate"
+      | "network-only"
+      | "cache-only";
+    ttl?: number;
+    key?: string;
+    tags?: string[];
+  };
 }
 ```
 
@@ -182,6 +216,116 @@ http.addRequestInterceptor((config) => {
   return config;
 });
 ```
+
+### Sistema de Caché Inteligente
+
+LazyHTTP incluye un potente sistema de caché que mejora significativamente el rendimiento y la experiencia del usuario:
+
+```typescript
+// Configurar el sistema de caché globalmente
+await http.initialize({
+  cache: {
+    enabled: true, // Habilitar caché
+    defaultStrategy: "cache-first", // Estrategia por defecto
+    defaultTTL: 5 * 60 * 1000, // Tiempo de vida: 5 minutos
+    storage: "memory", // Tipo de almacenamiento
+    maxSize: 100, // Número máximo de entradas
+  },
+});
+
+// Petición que usa la caché con la estrategia por defecto
+const response = await http.get("/users");
+
+// Petición con estrategia personalizada
+const response2 = await http.get("/frequently-changing-data", {
+  cache: {
+    strategy: "network-first", // Priorizar la red
+    ttl: 30 * 1000, // TTL personalizado: 30 segundos
+    tags: ["users", "list"], // Tags para invalidación selectiva
+  },
+});
+
+// Petición que omite la caché
+const response3 = await http.get("/no-cache-data", {
+  cache: { enabled: false },
+});
+
+// Invalidar entradas de caché por patrón
+http.invalidateCache("GET:/users*");
+
+// Invalidar entradas de caché por tags
+http.invalidateCacheByTags(["users"]);
+```
+
+#### Estrategias de caché disponibles
+
+LazyHTTP soporta varias estrategias de caché para diferentes casos de uso:
+
+- **cache-first**: Intenta usar caché primero, si no existe o expiró va a la red. Ideal para datos que cambian poco.
+- **network-first**: Intenta obtener datos frescos de la red, pero usa caché como respaldo si la red falla. Bueno para datos que cambian con frecuencia.
+- **stale-while-revalidate**: Devuelve datos de caché inmediatamente mientras actualiza la caché en segundo plano. Perfecto para interfaces de usuario muy responsivas.
+- **network-only**: Solo usa la red, nunca la caché (aunque sí almacena la respuesta). Útil para datos críticos que deben ser siempre actuales.
+- **cache-only**: Solo usa la caché, nunca la red. Útil para modo offline.
+
+#### Beneficios del sistema de caché
+
+- 🚀 **Rendimiento mejorado**: Reduce las peticiones de red innecesarias
+- 📱 **Soporte parcial offline**: Funciona cuando la red no está disponible usando datos en caché
+- ⚡ **Experiencia de usuario más fluida**: Respuestas instantáneas desde caché mientras se actualizan datos en segundo plano
+- 🔄 **Invalidación inteligente**: Invalidación automática de caché en operaciones de escritura (POST/PUT/PATCH/DELETE)
+- 🏷️ **Sistema de tags**: Permite agrupar e invalidar entradas de caché relacionadas
+
+### Sistema de Tags e Invalidación
+
+El sistema de caché de LazyHTTP ofrece un mecanismo avanzado de tags para agrupar entradas de caché relacionadas, facilitando su invalidación selectiva:
+
+```typescript
+// Realizar una petición con tags
+const categoriesResponse = await http.get("/api/categories", {
+  cache: {
+    tags: ["category", "list", "public"], // Asociar múltiples tags
+  },
+});
+
+// Posteriormente, invalidar todas las entradas con el tag 'category'
+http.invalidateCacheByTags(["category"]);
+```
+
+#### Funcionamiento interno
+
+Cuando asignas tags a una petición cacheada:
+
+1. Los tags se incorporan directamente en la clave de caché, creando un identificador único
+2. Cuando se solicita invalidar por tag, el sistema busca todas las entradas cuya clave contenga ese tag
+3. Solo las entradas que coincidan con al menos uno de los tags especificados son invalidadas
+
+Esta implementación garantiza que:
+
+- La invalidación por tags es eficiente y precisa
+- Se pueden usar múltiples tags para crear categorías superpuestas de datos
+- Solo se invalidan las entradas específicas, manteniendo intactas las demás
+
+#### Ejemplo práctico
+
+```typescript
+// Estas entradas se almacenarán con claves diferentes
+await http.get("/api/news", { cache: { tags: ["news", "public"] } });
+await http.get("/api/categories", { cache: { tags: ["category", "public"] } });
+await http.get("/api/admin/stats", { cache: { tags: ["admin", "stats"] } });
+
+// Esto invalidará la primera y segunda entrada, pero no la tercera
+http.invalidateCacheByTags(["public"]);
+
+// Esto solo invalidará la tercera entrada
+http.invalidateCacheByTags(["admin"]);
+```
+
+#### Cuándo usar tags
+
+- Para agrupar recursos relacionados que deben invalidarse juntos
+- Cuando múltiples endpoints devuelven datos superpuestos
+- Para implementar invalidación selectiva basada en roles o permisos
+- Para crear capas de caché con diferentes políticas de expiración
 
 ## Sistema de Sugerencias Inteligentes
 

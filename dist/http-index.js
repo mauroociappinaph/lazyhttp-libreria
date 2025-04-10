@@ -1,16 +1,37 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.initialize = exports.getAccessToken = exports.getAuthenticatedUser = exports.isAuthenticated = exports.logout = exports.login = exports.configureAuth = exports.del = exports.patch = exports.put = exports.post = exports.getById = exports.getAll = exports.get = exports.request = exports.http = void 0;
+exports.initialize = exports.invalidateCacheByTags = exports.invalidateCache = exports.configureCaching = exports.getAccessToken = exports.getAuthenticatedUser = exports.isAuthenticated = exports.logout = exports.login = exports.configureAuth = exports.del = exports.patch = exports.put = exports.post = exports.getById = exports.getAll = exports.get = exports.request = exports.http = void 0;
 const http_helpers_1 = require("./http-helpers");
 const http_auth_1 = require("./http-auth");
+const http_cache_1 = require("./http-cache");
+const http_cache_strategies_1 = require("./http-cache-strategies");
 const DEFAULT_TIMEOUT = 10000; // 10 segundos
 const DEFAULT_RETRIES = 0;
 exports.http = {
     async request(endpoint, options = {}) {
-        const { method = 'GET', headers = {}, body, withAuth = false, timeout = DEFAULT_TIMEOUT, retries = DEFAULT_RETRIES, } = options;
+        const { method = 'GET', headers = {}, body, withAuth = false, timeout = DEFAULT_TIMEOUT, retries = DEFAULT_RETRIES, cache: cacheOptions } = options;
         try {
+            // Comprobar si debemos usar la caché
+            if (http_cache_1.cacheManager.shouldUseCache(method, options)) {
+                const cacheKey = http_cache_1.cacheManager.generateCacheKey(endpoint, options);
+                return await (0, http_cache_strategies_1.executeWithCacheStrategy)(cacheKey, async () => {
+                    const requestHeaders = (0, http_helpers_1.prepareHeaders)(headers, withAuth);
+                    const response = await http_helpers_1.retryHandler.executeWithRetry(endpoint, method, requestHeaders, body, timeout, retries);
+                    // Invalidar caché automáticamente para métodos de escritura
+                    if (method !== 'GET') {
+                        http_cache_1.cacheManager.invalidateByMethod(method, endpoint);
+                    }
+                    return response;
+                }, options);
+            }
+            // Petición sin caché
             const requestHeaders = (0, http_helpers_1.prepareHeaders)(headers, withAuth);
-            return await http_helpers_1.retryHandler.executeWithRetry(endpoint, method, requestHeaders, body, timeout, retries);
+            const response = await http_helpers_1.retryHandler.executeWithRetry(endpoint, method, requestHeaders, body, timeout, retries);
+            // Invalidar caché automáticamente para métodos de escritura
+            if (method !== 'GET') {
+                http_cache_1.cacheManager.invalidateByMethod(method, endpoint);
+            }
+            return response;
         }
         catch (error) {
             return http_helpers_1.errorHandler.handleError(error);
@@ -99,8 +120,22 @@ exports.http = {
     _removeToken(key) {
         (0, http_auth_1.removeToken)(key);
     },
-    async initialize() {
+    async initialize(config) {
+        // Inicializar caché si está configurado
+        if (config === null || config === void 0 ? void 0 : config.cache) {
+            this.configureCaching(config.cache);
+        }
         return (0, http_helpers_1.initialize)();
+    },
+    // Métodos adicionales para caché
+    configureCaching(config) {
+        http_cache_1.cacheManager.configure(config);
+    },
+    invalidateCache(pattern) {
+        http_cache_1.cacheManager.invalidate(pattern);
+    },
+    invalidateCacheByTags(tags) {
+        http_cache_1.cacheManager.invalidateByTags(tags);
     }
 };
 // Exportar las funciones individuales para un uso más directo
@@ -119,5 +154,9 @@ exports.logout = exports.http.logout.bind(exports.http);
 exports.isAuthenticated = exports.http.isAuthenticated.bind(exports.http);
 exports.getAuthenticatedUser = exports.http.getAuthenticatedUser.bind(exports.http);
 exports.getAccessToken = exports.http.getAccessToken.bind(exports.http);
+// Exportar caché
+exports.configureCaching = exports.http.configureCaching.bind(exports.http);
+exports.invalidateCache = exports.http.invalidateCache.bind(exports.http);
+exports.invalidateCacheByTags = exports.http.invalidateCacheByTags.bind(exports.http);
 // Exportar initialize
 exports.initialize = exports.http.initialize.bind(exports.http);
