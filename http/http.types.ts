@@ -464,3 +464,12 @@ export class HttpError extends Error {
     AXIOS_ERROR: 'Error de conexión con AxiosError',
   };
 }
+
+
+export interface ErrorInfo {
+  error_type: string;
+  status_code?: number;
+  url_pattern?: string;
+  method?: string;
+  message?: string;
+}
