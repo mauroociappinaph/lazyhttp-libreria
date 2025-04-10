@@ -1,6 +1,6 @@
 {
   "name": "httplazy",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Una librería HTTP fácil de usar con manejo de errores, reintentos, interceptores, y más",
   "main": "dist/http-index.js",
   "types": "dist/http-index.d.ts",
