@@ -45,6 +45,11 @@ export interface RequestOptions {
    * @default 0
    */
   retries?: number;
+
+  /**
+   * Parámetros de la petición
+   */
+  params?: Record<string, string | number>;
 }
 
 /**
@@ -65,6 +70,11 @@ export interface ApiResponse<T> {
    * Código de estado HTTP
    */
   status: number;
+
+  /**
+   * Metadatos adicionales de la respuesta
+   */
+  meta?: Record<string, any>;
 }
 
 /**
@@ -81,6 +91,16 @@ export interface HttpClient {
    * Realiza una petición GET
    */
   get<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
+
+  /**
+   * Realiza una petición GET para obtener todos los elementos de una colección
+   */
+  getAll<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
+
+  /**
+   * Realiza una petición GET para obtener un elemento por su ID
+   */
+  getById<T>(endpoint: string, id: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
 
   /**
    * Realiza una petición POST
@@ -186,4 +206,18 @@ export interface HttpRetryHandler {
  */
 export interface HttpErrorHandler {
   handleError(error: unknown): ApiResponse<never>;
+}
+
+
+export interface PaginationMeta {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export interface ApiResponseWithPagination<T> extends ApiResponse<T> {
+  pagination: PaginationMeta | null;
 }
