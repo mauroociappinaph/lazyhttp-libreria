@@ -1,13 +1,28 @@
-import { HttpImplementation, RequestOptions, ApiResponse } from './http.types';
+import { HttpImplementation, RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo } from './http.types';
 import {
   retryHandler,
   errorHandler,
   prepareHeaders,
   setupInterceptors,
-  refreshToken,
-  handleRefreshTokenFailure,
+  refreshToken as refreshTokenHelper,
+  handleRefreshTokenFailure as handleRefreshTokenFailureHelper,
   initialize
 } from './http-helpers';
+import {
+  configureAuth as configureAuthHelper,
+  login as loginHelper,
+  logout as logoutHelper,
+  isAuthenticated as isAuthenticatedHelper,
+  getAuthenticatedUser as getAuthenticatedUserHelper,
+  getAccessToken as getAccessTokenHelper,
+  refreshToken as refreshTokenAuthHelper,
+  handleRefreshTokenFailure as handleRefreshTokenFailureAuthHelper,
+  decodeToken as decodeTokenHelper,
+  isTokenExpired as isTokenExpiredHelper,
+  storeToken as storeTokenHelper,
+  getToken as getTokenHelper,
+  removeToken as removeTokenHelper
+} from './http-auth';
 
 const DEFAULT_TIMEOUT = 10000; // 10 segundos
 const DEFAULT_RETRIES = 0;
@@ -87,9 +102,61 @@ export const http: HttpImplementation = {
     return this.request<T>(endpoint, { ...options, method: 'DELETE' });
   },
 
-  // Métodos de autenticación
+  // Métodos de autenticación avanzada
+  configureAuth(config: AuthConfig): void {
+    configureAuthHelper(config);
+  },
+
+  async login(credentials: UserCredentials): Promise<AuthInfo> {
+    return loginHelper(credentials);
+  },
+
+  async logout(): Promise<void> {
+    return logoutHelper();
+  },
+
+  isAuthenticated(): boolean {
+    return isAuthenticatedHelper();
+  },
+
+  async getAuthenticatedUser(): Promise<any | null> {
+    return getAuthenticatedUserHelper();
+  },
+
+  getAccessToken(): string | null {
+    return getAccessTokenHelper();
+  },
+
+  // Métodos internos para la implementación
   _setupInterceptors: setupInterceptors,
-  _refreshToken: refreshToken,
-  _handleRefreshTokenFailure: handleRefreshTokenFailure,
+
+  async _refreshToken(): Promise<string> {
+    return refreshTokenAuthHelper();
+  },
+
+  async _handleRefreshTokenFailure(): Promise<void> {
+    return handleRefreshTokenFailureAuthHelper();
+  },
+
+  _decodeToken(token: string): any {
+    return decodeTokenHelper(token);
+  },
+
+  _isTokenExpired(token: string | number): boolean {
+    return isTokenExpiredHelper(token);
+  },
+
+  _storeToken(key: string, value: string): void {
+    storeTokenHelper(key, value);
+  },
+
+  _getToken(key: string): string | null {
+    return getTokenHelper(key);
+  },
+
+  _removeToken(key: string): void {
+    removeTokenHelper(key);
+  },
+
   initialize
 };

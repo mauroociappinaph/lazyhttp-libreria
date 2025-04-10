@@ -192,9 +192,20 @@ export function prepareHeaders(headers: Record<string, string>, withAuth: boolea
   };
 
   if (withAuth) {
-    const token = localStorage.getItem('token');
-    if (token) {
-      defaultHeaders['Authorization'] = `Bearer ${token}`;
+    try {
+      // Intentar importar dinámicamente para evitar dependencias circulares
+      const auth = require('./http-auth');
+      const token = auth.getAccessToken();
+
+      if (token) {
+        defaultHeaders['Authorization'] = `Bearer ${token}`;
+      }
+    } catch (error) {
+      // Fallback al comportamiento anterior
+      const token = localStorage.getItem('token');
+      if (token) {
+        defaultHeaders['Authorization'] = `Bearer ${token}`;
+      }
     }
   }
 
@@ -315,7 +326,60 @@ export const retryHandler: HttpRetryHandler = {
 
 // ===== Métodos de autenticación =====
 export function setupInterceptors(): void {
-  // Implementación inicial vacía
+  // Importar axios explícitamente para configurar los interceptores
+  const axios = require('axios').default;
+
+  // Interceptor para solicitudes
+  axios.interceptors.request.use(
+    (config: any) => {
+      // No hacer nada, el token se agregará en prepareHeaders
+      return config;
+    },
+    (error: any) => {
+      return Promise.reject(error);
+    }
+  );
+
+  // Interceptor para respuestas
+  axios.interceptors.response.use(
+    (response: any) => {
+      return response;
+    },
+    async (error: any) => {
+      // Si el error es de autenticación (401)
+      if (error.response && error.response.status === 401) {
+        try {
+          // Intentar refrescar el token
+          const auth = require('./http-auth');
+
+          // Verificar si hay token de refresco y si el sistema está configurado
+          if (auth.authState.refreshToken && auth.currentAuthConfig.endpoints.refresh) {
+            try {
+              // Intentar refrescar el token
+              const newToken = await auth.refreshToken();
+
+              // Si se obtuvo un nuevo token, reintentar la solicitud original
+              if (newToken) {
+                const originalRequest = error.config;
+                originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
+                return axios(originalRequest);
+              }
+            } catch (refreshError) {
+              // Si falla el refresco, manejar el error
+              await auth.handleRefreshTokenFailure();
+            }
+          } else {
+            // No hay token de refresco, manejar el error
+            await auth.handleRefreshTokenFailure();
+          }
+        } catch (authError) {
+          console.warn('Error al manejar token expirado', authError);
+        }
+      }
+
+      return Promise.reject(error);
+    }
+  );
 }
 
 export async function refreshToken(): Promise<string> {
@@ -329,7 +393,21 @@ export async function handleRefreshTokenFailure(): Promise<void> {
 }
 
 export async function initialize(): Promise<void> {
+  // Configurar interceptores para tokens
   setupInterceptors();
+
+  // Cargar configuración de autenticación desde localStorage si existe
+  try {
+    const savedConfig = localStorage.getItem('auth_config');
+    if (savedConfig) {
+      const auth = require('./http-auth');
+      const parsedConfig = JSON.parse(savedConfig);
+      auth.configureAuth(parsedConfig);
+    }
+  } catch (error) {
+    console.warn('Error al cargar configuración de autenticación', error);
+  }
+
   return Promise.resolve();
 }
 
