@@ -325,94 +325,39 @@ export interface ApiResponseWithPagination<T> extends ApiResponse<T> {
 export type AuthType = 'jwt' | 'oauth2' | 'basic' | 'session';
 
 /**
- * Opciones para el almacenamiento de tokens
+ * Opciones para la configuración de cookies
  */
-export type StorageType = 'localStorage' | 'sessionStorage' | 'secureStorage' | 'memory';
+export interface CookieOptions {
+  maxAge?: number;
+  expires?: Date;
+  domain?: string;
+  path?: string;
+  secure?: boolean;
+  httpOnly?: boolean;
+  sameSite?: 'Strict' | 'Lax' | 'None';
+}
 
 /**
- * Configuración del sistema de autenticación
+ * Tipo de almacenamiento para los tokens de autenticación
+ */
+export type StorageType = 'cookie' | 'localStorage' | 'sessionStorage';
+
+/**
+ * Configuración de autenticación
  */
 export interface AuthConfig {
-  /**
-   * Tipo de autenticación a utilizar
-   * @default 'jwt'
-   */
-  type: AuthType;
-
-  /**
-   * Endpoints para la autenticación
-   */
-  endpoints: {
-    /**
-     * Endpoint para obtener token (login)
-     */
-    token: string;
-
-    /**
-     * Endpoint para refrescar token
-     */
-    refresh?: string;
-
-    /**
-     * Endpoint para cerrar sesión
-     */
-    logout?: string;
-
-    /**
-     * Endpoint para obtener información del usuario
-     */
-    userInfo?: string;
-  };
-
-  /**
-   * ID de cliente (para OAuth2)
-   */
-  clientId?: string;
-
-  /**
-   * Secreto de cliente (para OAuth2)
-   */
-  clientSecret?: string;
-
-  /**
-   * Tipo de almacenamiento para tokens
-   * @default 'localStorage'
-   */
+  baseURL: string;
+  loginEndpoint: string;
+  logoutEndpoint: string;
+  userInfoEndpoint?: string;
+  refreshEndpoint?: string;
+  tokenKey: string;
+  refreshTokenKey: string;
   storage: StorageType;
-
-  /**
-   * Nombres de las claves para almacenar tokens
-   */
-  tokenKeys: {
-    /**
-     * Clave para el token de acceso
-     * @default 'token'
-     */
-    accessToken: string;
-
-    /**
-     * Clave para el token de refresco
-     * @default 'refreshToken'
-     */
-    refreshToken?: string;
-  };
-
-  /**
-   * Refrescar automáticamente el token antes de que expire
-   * @default true
-   */
-  autoRefresh: boolean;
-
-  /**
-   * Margen de tiempo (en segundos) antes de la expiración para refrescar el token
-   * @default 60
-   */
-  refreshMargin?: number;
-
-  /**
-   * Callback a ejecutar en caso de error de autenticación
-   */
-  onAuthError?: (error: any) => void;
+  cookieOptions?: CookieOptions;
+  onLogin?: (response: AuthResponse) => void;
+  onLogout?: () => void;
+  onError?: (error: any) => void;
 }
 
 /**
