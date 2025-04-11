@@ -1,8 +1,22 @@
-import { HttpImplementation, RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, CacheConfig } from './http.types';
+import { HttpImplementation, RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, CacheConfig, MetricsConfig } from './http.types';
 export declare const http: HttpImplementation & {
     configureCaching: (config: CacheConfig) => void;
     invalidateCache: (pattern: string) => void;
     invalidateCacheByTags: (tags: string[]) => void;
+    configureMetrics: (config: MetricsConfig) => void;
+    trackActivity: (type: string) => void;
+    getCurrentMetrics: () => any;
+    _baseUrl?: string;
+    _frontendUrl?: string;
+    _defaultTimeout?: number;
+    _defaultRetries?: number;
+    _defaultHeaders?: Record<string, string>;
+    _requestInterceptors: Array<(config: any) => any>;
+    _responseInterceptors: Array<(response: any) => any>;
+    _setupInterceptors: {
+        (): void;
+        (interceptor?: any, type?: 'request' | 'response'): void;
+    };
 };
 export declare const request: <T>(endpoint: string, options?: RequestOptions) => Promise<ApiResponse<T>>;
 export declare const get: <T>(endpoint: string, options?: Omit<RequestOptions, "method" | "body">) => Promise<ApiResponse<T>>;
@@ -28,3 +42,6 @@ export declare const initialize: (config?: {
     };
     cache?: CacheConfig;
 }) => Promise<void>;
+export declare const configureMetrics: (config: MetricsConfig) => void;
+export declare const trackActivity: (type: string) => void;
+export declare const getCurrentMetrics: () => any;

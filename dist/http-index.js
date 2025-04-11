@@ -1,22 +1,47 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.initialize = exports.invalidateCacheByTags = exports.invalidateCache = exports.configureCaching = exports.getAccessToken = exports.getAuthenticatedUser = exports.isAuthenticated = exports.logout = exports.login = exports.configureAuth = exports.del = exports.patch = exports.put = exports.post = exports.getById = exports.getAll = exports.get = exports.request = exports.http = void 0;
+exports.getCurrentMetrics = exports.trackActivity = exports.configureMetrics = exports.initialize = exports.invalidateCacheByTags = exports.invalidateCache = exports.configureCaching = exports.getAccessToken = exports.getAuthenticatedUser = exports.isAuthenticated = exports.logout = exports.login = exports.configureAuth = exports.del = exports.patch = exports.put = exports.post = exports.getById = exports.getAll = exports.get = exports.request = exports.http = void 0;
 const http_helpers_1 = require("./http-helpers");
 const http_auth_1 = require("./http-auth");
 const http_cache_1 = require("./http-cache");
 const http_cache_strategies_1 = require("./http-cache-strategies");
+const http_metrics_index_1 = require("./metrics/http-metrics-index");
 const DEFAULT_TIMEOUT = 10000; // 10 segundos
 const DEFAULT_RETRIES = 0;
 exports.http = {
+    _baseUrl: undefined,
+    _frontendUrl: undefined,
+    _defaultTimeout: DEFAULT_TIMEOUT,
+    _defaultRetries: DEFAULT_RETRIES,
+    _defaultHeaders: {},
+    _requestInterceptors: [],
+    _responseInterceptors: [],
+    _setupInterceptors(interceptor, type) {
+        // If no parameters were provided, initialize the arrays
+        if (!interceptor && !type) {
+            this._requestInterceptors = [];
+            this._responseInterceptors = [];
+            return;
+        }
+        // Add the interceptor to the appropriate array
+        if (type === 'request') {
+            this._requestInterceptors.push(interceptor);
+        }
+        else if (type === 'response') {
+            this._responseInterceptors.push(interceptor);
+        }
+    },
     async request(endpoint, options = {}) {
         const { method = 'GET', headers = {}, body, withAuth = false, timeout = DEFAULT_TIMEOUT, retries = DEFAULT_RETRIES, cache: cacheOptions } = options;
         try {
+            // Registrar la petición en métricas
+            http_metrics_index_1.metricsManager.trackRequest(endpoint);
             // Comprobar si debemos usar la caché
             if (http_cache_1.cacheManager.shouldUseCache(method, options)) {
                 const cacheKey = http_cache_1.cacheManager.generateCacheKey(endpoint, options);
                 return await (0, http_cache_strategies_1.executeWithCacheStrategy)(cacheKey, async () => {
                     const requestHeaders = (0, http_helpers_1.prepareHeaders)(headers, withAuth);
-                    const response = await http_helpers_1.retryHandler.executeWithRetry(endpoint, method, requestHeaders, body, timeout, retries);
+                    const response = await http_helpers_1.retryHandler.executeWithRetry(this._baseUrl ? `${this._baseUrl}${endpoint}` : endpoint, method, requestHeaders, body, timeout || this._defaultTimeout || DEFAULT_TIMEOUT, retries !== undefined ? retries : this._defaultRetries !== undefined ? this._defaultRetries : DEFAULT_RETRIES);
                     // Invalidar caché automáticamente para métodos de escritura
                     if (method !== 'GET') {
                         http_cache_1.cacheManager.invalidateByMethod(method, endpoint);
@@ -26,7 +51,7 @@ exports.http = {
             }
             // Petición sin caché
             const requestHeaders = (0, http_helpers_1.prepareHeaders)(headers, withAuth);
-            const response = await http_helpers_1.retryHandler.executeWithRetry(endpoint, method, requestHeaders, body, timeout, retries);
+            const response = await http_helpers_1.retryHandler.executeWithRetry(this._baseUrl ? `${this._baseUrl}${endpoint}` : endpoint, method, requestHeaders, body, timeout || this._defaultTimeout || DEFAULT_TIMEOUT, retries !== undefined ? retries : this._defaultRetries !== undefined ? this._defaultRetries : DEFAULT_RETRIES);
             // Invalidar caché automáticamente para métodos de escritura
             if (method !== 'GET') {
                 http_cache_1.cacheManager.invalidateByMethod(method, endpoint);
@@ -83,9 +108,20 @@ exports.http = {
         (0, http_auth_1.configureAuth)(config);
     },
     async login(credentials) {
-        return (0, http_auth_1.login)(credentials);
+        const authInfo = await (0, http_auth_1.login)(credentials);
+        // Iniciar seguimiento de métricas si la autenticación fue exitosa
+        if (authInfo.isAuthenticated) {
+            http_metrics_index_1.metricsManager.startTracking();
+        }
+        return authInfo;
     },
     async logout() {
+        // Finalizar sesión de métricas y enviar datos
+        const metrics = await http_metrics_index_1.metricsManager.stopTracking();
+        // Si hay métricas y debug está activado, mostrar resumen
+        if (metrics) {
+            console.log(`[HTTP] Sesión finalizada - Tiempo activo: ${Math.round(metrics.activeTime / 1000)}s, Peticiones: ${metrics.requestCount}`);
+        }
         return (0, http_auth_1.logout)();
     },
     isAuthenticated() {
@@ -98,7 +134,6 @@ exports.http = {
         return (0, http_auth_1.getAccessToken)();
     },
     // Métodos internos para la implementación
-    _setupInterceptors: http_helpers_1.setupInterceptors,
     async _refreshToken() {
         return (0, http_auth_1.refreshToken)();
     },
@@ -121,9 +156,31 @@ exports.http = {
         (0, http_auth_1.removeToken)(key);
     },
     async initialize(config) {
+        // Set base URL if provided
+        if (config === null || config === void 0 ? void 0 : config.baseUrl) {
+            this._baseUrl = config.baseUrl;
+        }
+        // Store frontend URL if provided
+        if (config === null || config === void 0 ? void 0 : config.frontendUrl) {
+            this._frontendUrl = config.frontendUrl;
+        }
+        // Set global defaults if provided
+        if ((config === null || config === void 0 ? void 0 : config.timeout) !== undefined) {
+            this._defaultTimeout = config.timeout;
+        }
+        if ((config === null || config === void 0 ? void 0 : config.retries) !== undefined) {
+            this._defaultRetries = config.retries;
+        }
+        if (config === null || config === void 0 ? void 0 : config.headers) {
+            this._defaultHeaders = { ...this._defaultHeaders, ...config.headers };
+        }
         // Inicializar caché si está configurado
         if (config === null || config === void 0 ? void 0 : config.cache) {
             this.configureCaching(config.cache);
+        }
+        // Inicializar métricas si está configurado
+        if (config === null || config === void 0 ? void 0 : config.metrics) {
+            this.configureMetrics(config.metrics);
         }
         return (0, http_helpers_1.initialize)();
     },
@@ -136,6 +193,16 @@ exports.http = {
     },
     invalidateCacheByTags(tags) {
         http_cache_1.cacheManager.invalidateByTags(tags);
+    },
+    // Métodos para métricas
+    configureMetrics(config) {
+        http_metrics_index_1.metricsManager.configure(config);
+    },
+    trackActivity(type) {
+        http_metrics_index_1.metricsManager.trackActivity(type);
+    },
+    getCurrentMetrics() {
+        return http_metrics_index_1.metricsManager.getCurrentMetrics();
     }
 };
 // Exportar las funciones individuales para un uso más directo
@@ -160,3 +227,7 @@ exports.invalidateCache = exports.http.invalidateCache.bind(exports.http);
 exports.invalidateCacheByTags = exports.http.invalidateCacheByTags.bind(exports.http);
 // Exportar initialize
 exports.initialize = exports.http.initialize.bind(exports.http);
+// Exportar funciones de métricas
+exports.configureMetrics = exports.http.configureMetrics.bind(exports.http);
+exports.trackActivity = exports.http.trackActivity.bind(exports.http);
+exports.getCurrentMetrics = exports.http.getCurrentMetrics.bind(exports.http);
