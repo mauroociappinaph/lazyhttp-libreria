@@ -59,19 +59,28 @@ LazyHTTP incluye un sistema completo de autenticación:
 ```typescript
 // Configuración del sistema de autenticación
 http.configureAuth({
-  type: "jwt",
-  endpoints: {
-    token: "/auth/login",
-    refresh: "/auth/refresh",
-    logout: "/auth/logout",
-    userInfo: "/auth/me",
+  baseURL: "https://api.ejemplo.com",
+  loginEndpoint: "/auth/login",
+  logoutEndpoint: "/auth/logout",
+  userInfoEndpoint: "/auth/me", // Opcional
+  refreshEndpoint: "/auth/refresh", // Opcional
+  tokenKey: "token",
+  refreshTokenKey: "refreshToken",
+  storage: "localStorage", // o 'sessionStorage' o 'cookie'
+  cookieOptions: {
+    secure: true,
+    httpOnly: true,
+    sameSite: "Strict",
   },
-  storage: "localStorage",
-  tokenKeys: {
-    accessToken: "token",
-    refreshToken: "refreshToken",
+  onLogin: (response) => {
+    console.log("Usuario autenticado:", response);
   },
-  autoRefresh: true,
+  onLogout: () => {
+    console.log("Usuario desconectado");
+  },
+  onError: (error) => {
+    console.error("Error de autenticación:", error);
+  },
 });
 
 // Iniciar sesión
