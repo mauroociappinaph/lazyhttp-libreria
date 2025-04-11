@@ -134,8 +134,106 @@ await http.initialize({
     storage: "memory",
     maxSize: 100,
   },
+
+  // Configuración del sistema de métricas (opcional)
+  metrics: {
+    enabled: true, // Activar métricas
+    endpoint: "https://tu-api.com/metrics", // URL para enviar métricas (opcional)
+    reportingInterval: 60000, // Enviar cada minuto (ms)
+    trackRoutes: true, // Registrar rutas visitadas
+    trackEvents: ["click", "form_submit"], // Eventos a rastrear
+    onMetricsUpdate: (metrics) => {
+      // Callback al actualizar (opcional)
+      console.log("Tiempo activo:", metrics.activeTime);
+    },
+  },
 });
 ```
+
+## Inicialización Avanzada
+
+LazyHTTP ofrece múltiples opciones de configuración que puedes establecer durante la inicialización:
+
+```typescript
+// Inicializar la biblioteca con configuración avanzada
+await http.initialize({
+  // URLs base para backend y frontend (opcional)
+  baseUrl: "https://api.tuservicio.com", // URL base para peticiones API
+  frontendUrl: "https://tuaplicacion.com", // URL base para redirecciones frontend
+
+  // Configuración global de peticiones (opcional)
+  timeout: 15000, // Timeout global en ms (15 segundos)
+  retries: 2, // Número de reintentos por defecto
+  headers: {
+    // Headers por defecto para todas las peticiones
+    "Accept-Language": "es-ES",
+    "X-App-Version": "1.0.0",
+  },
+
+  // Configuración del sistema de sugerencias inteligentes (opcional)
+  suggestionService: {
+    enabled: true,
+    url: "http://tu-servidor-de-sugerencias.com",
+  },
+
+  // Configuración del sistema de caché (opcional)
+  cache: {
+    enabled: true,
+    defaultStrategy: "cache-first",
+    defaultTTL: 5 * 60 * 1000, // 5 minutos
+    storage: "memory",
+    maxSize: 100,
+  },
+
+  // Configuración del sistema de métricas (opcional)
+  metrics: {
+    enabled: true, // Activar métricas
+    endpoint: "https://tu-api.com/metrics", // URL para enviar métricas (opcional)
+    reportingInterval: 60000, // Enviar cada minuto (ms)
+    trackRoutes: true, // Registrar rutas visitadas
+    trackEvents: ["click", "form_submit"], // Eventos a rastrear
+    onMetricsUpdate: (metrics) => {
+      // Callback al actualizar (opcional)
+      console.log("Tiempo activo:", metrics.activeTime);
+    },
+  },
+});
+```
+
+### Opciones de Configuración
+
+#### URLs Base
+
+- **baseUrl**: URL base para todas las peticiones API. Se añadirá automáticamente a cada endpoint.
+- **frontendUrl**: URL base para redirecciones a páginas frontend, útil para integraciones OAuth o navegación.
+
+#### Configuración Global
+
+- **timeout**: Tiempo máximo en milisegundos para esperar una respuesta (sobrescribible por petición).
+- **retries**: Número de reintentos automáticos ante fallos de red (sobrescribible por petición).
+- **headers**: Headers HTTP que se incluirán en todas las peticiones.
+
+#### Sistema de Sugerencias
+
+- **suggestionService.enabled**: Activa/desactiva el sistema de sugerencias inteligentes.
+- **suggestionService.url**: URL del servidor de sugerencias para el procesamiento.
+
+#### Sistema de Caché
+
+- **cache.enabled**: Activa/desactiva la caché de respuestas HTTP.
+- **cache.defaultStrategy**: Estrategia de caché por defecto (`cache-first`, `network-first`, etc).
+- **cache.defaultTTL**: Tiempo de vida por defecto de los elementos en caché.
+- **cache.storage**: Tipo de almacenamiento (`memory`, `local-storage`, `session-storage`).
+- **cache.maxSize**: Tamaño máximo de la caché (número de elementos).
+
+#### Sistema de Métricas
+
+- **metrics.enabled**: Activa/desactiva la recopilación de métricas.
+- **metrics.endpoint**: URL donde enviar las métricas recopiladas.
+- **metrics.reportingInterval**: Intervalo en ms para el envío periódico de métricas.
+- **metrics.trackRoutes**: Activa el seguimiento automático de rutas visitadas.
+- **metrics.trackEvents**: Lista de eventos DOM a rastrear automáticamente.
+- **metrics.onMetricsUpdate**: Callback que se ejecuta cuando se actualizan las métricas.
 
 ## API
 
@@ -389,6 +487,76 @@ Making POST request to https://api.example.com/login…
 💡 Suggestion: Ensure your credentials are correct or try resetting your password
 Was this suggestion helpful? (y/n): n
 📝 Feedback recorded. We'll work on improving our suggestions.
+```
+
+## Sistema de Métricas de Usuario
+
+LazyHTTP incluye un potente sistema de métricas que te permite registrar y analizar el comportamiento del usuario. Las métricas se recopilan automáticamente durante una sesión y pueden enviarse a un servidor para análisis o utilizarse localmente.
+
+### Características principales
+
+- 🔍 **Seguimiento automático**: Registra solicitudes HTTP, tiempo activo y navegación sin configuración adicional
+- 📊 **Métricas personalizables**: Define qué eventos rastrear y cómo procesarlos
+- 🌐 **Envío a servidor**: Configura un endpoint para enviar datos periódicamente
+- 📱 **Funciona offline**: Almacena métricas localmente y envía cuando haya conexión
+- 🔄 **Callbacks en vivo**: Recibe actualizaciones en tiempo real para mostrar en UI
+
+### Configuración básica
+
+```typescript
+// Al inicializar la biblioteca
+await http.initialize({
+  metrics: {
+    enabled: true,
+    endpoint: "https://analytics.miapp.com/metrics",
+    reportingInterval: 5 * 60 * 1000, // Cada 5 minutos
+  },
+});
+```
+
+### Registro de eventos personalizados
+
+```typescript
+// Registrar una actividad específica
+http.trackActivity("boton_confirmacion_clickeado");
+http.trackActivity("formulario_enviado");
+```
+
+### Obtener métricas actuales
+
+```typescript
+// Obtener las métricas de la sesión actual
+const metrics = http.getCurrentMetrics();
+console.log(`Tiempo activo: ${metrics.activeTime / 1000} segundos`);
+console.log(`Peticiones realizadas: ${metrics.requestCount}`);
+```
+
+### Callbacks en tiempo real
+
+```typescript
+await http.initialize({
+  metrics: {
+    enabled: true,
+    onMetricsUpdate: (metrics) => {
+      // Actualizar componentes de UI con las métricas actuales
+      updateDashboard(metrics);
+    },
+  },
+});
+```
+
+### Integración con sistemas de analítica
+
+```typescript
+await http.initialize({
+  metrics: {
+    enabled: true,
+    onMetricsUpdate: (metrics) => {
+      // Integrar con Google Analytics, MixPanel, etc.
+      sendToAnalytics(metrics);
+    },
+  },
+});
 ```
 
 ## Licencia

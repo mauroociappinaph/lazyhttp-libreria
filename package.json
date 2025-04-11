@@ -5,7 +5,7 @@
   "main": "dist/http-index.js",
   "types": "dist/http-index.d.ts",
   "bin": {
-    "lazyhttp": "./bin/lazyhttp.js"
+    "lazyhttp": "bin/lazyhttp.js"
   },
   "scripts": {
     "build": "tsc",
