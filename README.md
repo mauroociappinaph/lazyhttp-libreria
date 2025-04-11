@@ -569,6 +569,61 @@ await http.initialize({
 });
 ```
 
+## Manejo de Cookies
+
+LazyHTTP proporciona un sistema robusto de manejo de cookies a través del `CookieManager`:
+
+```typescript
+import { CookieManager } from "lazyhttp";
+
+// Configurar una cookie
+CookieManager.set("miCookie", "valor", {
+  maxAge: 3600, // Duración en segundos (1 hora)
+  expires: new Date(), // Fecha de expiración
+  domain: ".ejemplo.com", // Dominio
+  path: "/", // Ruta
+  secure: true, // Solo HTTPS
+  httpOnly: true, // No accesible por JavaScript
+  sameSite: "Strict", // Política cross-site
+});
+
+// Obtener una cookie
+const valor = CookieManager.get("miCookie");
+
+// Eliminar una cookie
+CookieManager.remove("miCookie", {
+  path: "/",
+  domain: ".ejemplo.com",
+});
+```
+
+#### Opciones de Cookies
+
+```typescript
+interface CookieOptions {
+  maxAge?: number; // Duración en segundos
+  expires?: Date; // Fecha de expiración
+  domain?: string; // Dominio de la cookie
+  path?: string; // Ruta de la cookie
+  secure?: boolean; // Solo HTTPS
+  httpOnly?: boolean; // No accesible por JavaScript
+  sameSite?: "Strict" | "Lax" | "None"; // Política cross-site
+}
+```
+
+#### Cookies de Autenticación
+
+El sistema de autenticación utiliza dos cookies principales:
+
+- **Token de Acceso**: Almacena el JWT para autenticar peticiones
+- **Token de Refresco**: Almacena el token para renovar la sesión
+
+Estas cookies se configuran automáticamente con opciones de seguridad por defecto:
+
+- `secure: true` - Solo se envían por HTTPS
+- `httpOnly: true` - No son accesibles por JavaScript
+- `sameSite: 'Strict'` - Solo se envían en solicitudes del mismo sitio
+
 ## Licencia
 
 MIT
