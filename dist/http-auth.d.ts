@@ -1,4 +1,4 @@
-import { AuthConfig, AuthInfo, UserCredentials } from './http.types';
+import { AuthConfig, AuthInfo, AuthResponse } from './http.types';
 /**
  * Configuración por defecto de autenticación
  */
@@ -21,7 +21,10 @@ export declare function configureAuth(config: Partial<AuthConfig>): void;
  * @param credentials Credenciales del usuario
  * @returns Información de autenticación
  */
-export declare function login(credentials: UserCredentials): Promise<AuthInfo>;
+export declare function login(credentials: {
+    username: string;
+    password: string;
+}): Promise<AuthResponse>;
 /**
  * Cierra la sesión actual
  */
@@ -71,7 +74,7 @@ export declare function storeToken(key: string, value: string): void;
 /**
  * Obtiene un token del almacenamiento configurado
  * @param key Clave del token
- * @returns Token almacenado o `null` si no existe
+ * @returns Valor del token o null si no existe
  */
 export declare function getToken(key: string): string | null;
 /**

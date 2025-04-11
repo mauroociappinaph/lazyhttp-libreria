@@ -194,7 +194,13 @@ export const http: HttpImplementation & {
   },
 
   async login(credentials: UserCredentials): Promise<AuthInfo> {
-    const authInfo = await loginHelper(credentials);
+    const response = await loginHelper(credentials);
+
+    const authInfo: AuthInfo = {
+      accessToken: response.access_token,
+      isAuthenticated: true,
+      refreshToken: response.refresh_token
+    };
 
     // Iniciar seguimiento de métricas si la autenticación fue exitosa
     if (authInfo.isAuthenticated) {

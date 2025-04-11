@@ -108,7 +108,12 @@ exports.http = {
         (0, http_auth_1.configureAuth)(config);
     },
     async login(credentials) {
-        const authInfo = await (0, http_auth_1.login)(credentials);
+        const response = await (0, http_auth_1.login)(credentials);
+        const authInfo = {
+            accessToken: response.access_token,
+            isAuthenticated: true,
+            refreshToken: response.refresh_token
+        };
         // Iniciar seguimiento de métricas si la autenticación fue exitosa
         if (authInfo.isAuthenticated) {
             http_metrics_index_1.metricsManager.startTracking();

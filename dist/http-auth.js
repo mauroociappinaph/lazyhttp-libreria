@@ -19,24 +19,19 @@ exports.getToken = getToken;
 exports.removeToken = removeToken;
 const http_config_1 = require("./http-config");
 const axios_1 = __importDefault(require("axios"));
+const cookie_manager_1 = require("./cookie-manager");
 /**
  * Configuración por defecto de autenticación
  */
 exports.DEFAULT_AUTH_CONFIG = {
-    type: 'jwt',
-    endpoints: {
-        token: '/auth/login',
-        refresh: '/auth/refresh',
-        logout: '/auth/logout',
-        userInfo: '/auth/me'
-    },
-    storage: 'localStorage',
-    tokenKeys: {
-        accessToken: 'token',
-        refreshToken: 'refreshToken'
-    },
-    autoRefresh: true,
-    refreshMargin: 60
+    baseURL: '',
+    loginEndpoint: '/auth/login',
+    logoutEndpoint: '/auth/logout',
+    userInfoEndpoint: '/auth/me',
+    refreshEndpoint: '/auth/refresh',
+    tokenKey: 'token',
+    refreshTokenKey: 'refreshToken',
+    storage: 'localStorage'
 };
 /**
  * Estado actual de autenticación
@@ -48,32 +43,31 @@ exports.authState = {
 /**
  * Configuración actual de autenticación
  */
-exports.currentAuthConfig = { ...exports.DEFAULT_AUTH_CONFIG };
+exports.currentAuthConfig = {
+    baseURL: '',
+    loginEndpoint: '/login',
+    logoutEndpoint: '/logout',
+    tokenKey: 'token',
+    refreshTokenKey: 'refreshToken',
+    storage: 'localStorage'
+};
 /**
  * Configura el sistema de autenticación
  * @param config Configuración personalizada
  */
 function configureAuth(config) {
     exports.currentAuthConfig = {
-        ...exports.DEFAULT_AUTH_CONFIG,
-        ...config,
-        endpoints: {
-            ...exports.DEFAULT_AUTH_CONFIG.endpoints,
-            ...config.endpoints
-        },
-        tokenKeys: {
-            ...exports.DEFAULT_AUTH_CONFIG.tokenKeys,
-            ...config.tokenKeys
-        }
+        ...exports.currentAuthConfig,
+        ...config
     };
     // Inicializar estado con tokens almacenados
-    const accessToken = getToken(exports.currentAuthConfig.tokenKeys.accessToken);
+    const accessToken = getToken(exports.currentAuthConfig.tokenKey);
     if (accessToken) {
         const tokenData = decodeToken(accessToken);
         const expiresAt = (tokenData === null || tokenData === void 0 ? void 0 : tokenData.exp) ? tokenData.exp * 1000 : undefined;
         // Solo consideramos válido si no está expirado
         if (!expiresAt || expiresAt > Date.now()) {
-            const refreshTokenKey = exports.currentAuthConfig.tokenKeys.refreshToken || '';
+            const refreshTokenKey = exports.currentAuthConfig.refreshTokenKey || '';
             const refreshToken = getToken(refreshTokenKey);
             exports.authState = {
                 accessToken,
@@ -84,9 +78,9 @@ function configureAuth(config) {
         }
         else {
             // Limpiar tokens expirados
-            removeToken(exports.currentAuthConfig.tokenKeys.accessToken);
-            if (exports.currentAuthConfig.tokenKeys.refreshToken) {
-                removeToken(exports.currentAuthConfig.tokenKeys.refreshToken);
+            removeToken(exports.currentAuthConfig.tokenKey);
+            if (exports.currentAuthConfig.refreshTokenKey) {
+                removeToken(exports.currentAuthConfig.refreshTokenKey);
             }
         }
     }
@@ -98,49 +92,26 @@ function configureAuth(config) {
  */
 async function login(credentials) {
     try {
-        const endpoint = `${http_config_1.API_URL}${exports.currentAuthConfig.endpoints.token}`;
-        const response = await axios_1.default.post(endpoint, credentials);
-        if (!response.data.access_token) {
-            throw new Error('No se recibió un token de acceso');
+        const response = await fetch(`${exports.currentAuthConfig.baseURL}${exports.currentAuthConfig.loginEndpoint}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(credentials)
+        });
+        if (!response.ok) {
+            throw new Error('Login failed');
         }
-        // Extraer datos de la respuesta
-        const { access_token, refresh_token, expires_in } = response.data;
-        // Calcular tiempo de expiración
-        const expiresAt = expires_in
-            ? Date.now() + (expires_in * 1000)
-            : undefined;
-        // Almacenar tokens
-        storeToken(exports.currentAuthConfig.tokenKeys.accessToken, access_token);
-        if (refresh_token && exports.currentAuthConfig.tokenKeys.refreshToken) {
-            storeToken(exports.currentAuthConfig.tokenKeys.refreshToken, refresh_token);
+        const data = await response.json();
+        storeToken(data.token, data.refreshToken);
+        if (exports.currentAuthConfig.onLogin) {
+            exports.currentAuthConfig.onLogin(data);
         }
-        // Actualizar estado
-        exports.authState = {
-            accessToken: access_token,
-            refreshToken: refresh_token,
-            expiresAt,
-            isAuthenticated: true
-        };
-        // Cargar información del usuario si está configurado
-        if (exports.currentAuthConfig.endpoints.userInfo) {
-            try {
-                const userResponse = await axios_1.default.get(`${http_config_1.API_URL}${exports.currentAuthConfig.endpoints.userInfo}`, {
-                    headers: {
-                        Authorization: `Bearer ${access_token}`
-                    }
-                });
-                exports.authState.user = userResponse.data;
-            }
-            catch (error) {
-                console.warn('No se pudo cargar la información del usuario');
-            }
-        }
-        return exports.authState;
+        return data;
     }
     catch (error) {
-        // Manejar error de autenticación
-        if (exports.currentAuthConfig.onAuthError) {
-            exports.currentAuthConfig.onAuthError(error);
+        if (exports.currentAuthConfig.onError) {
+            exports.currentAuthConfig.onError(error);
         }
         throw error;
     }
@@ -149,44 +120,35 @@ async function login(credentials) {
  * Cierra la sesión actual
  */
 async function logout() {
-    // Llamar al endpoint de logout si está configurado
-    if (exports.currentAuthConfig.endpoints.logout && exports.authState.accessToken) {
-        try {
-            await axios_1.default.post(`${http_config_1.API_URL}${exports.currentAuthConfig.endpoints.logout}`, null, {
+    try {
+        const token = getToken(exports.currentAuthConfig.tokenKey);
+        if (token) {
+            await fetch(`${exports.currentAuthConfig.baseURL}${exports.currentAuthConfig.logoutEndpoint}`, {
+                method: 'POST',
                 headers: {
-                    Authorization: `Bearer ${exports.authState.accessToken}`
+                    'Authorization': `Bearer ${token}`
                 }
             });
         }
-        catch (error) {
-            console.warn('Error al cerrar sesión en el servidor', error);
+    }
+    catch (error) {
+        if (exports.currentAuthConfig.onError) {
+            exports.currentAuthConfig.onError(error);
         }
     }
-    // Limpiar tokens almacenados
-    removeToken(exports.currentAuthConfig.tokenKeys.accessToken);
-    if (exports.currentAuthConfig.tokenKeys.refreshToken) {
-        removeToken(exports.currentAuthConfig.tokenKeys.refreshToken);
+    finally {
+        removeToken(exports.currentAuthConfig.tokenKey);
+        if (exports.currentAuthConfig.onLogout) {
+            exports.currentAuthConfig.onLogout();
+        }
     }
-    // Resetear estado
-    exports.authState = {
-        accessToken: '',
-        isAuthenticated: false
-    };
 }
 /**
  * Verifica si el usuario está autenticado
  * @returns `true` si está autenticado, `false` en caso contrario
  */
 function isAuthenticated() {
-    // Verificar si está autenticado y el token no ha expirado
-    if (!exports.authState.isAuthenticated || !exports.authState.accessToken) {
-        return false;
-    }
-    // Si hay expiración definida, verificar
-    if (exports.authState.expiresAt) {
-        return exports.authState.expiresAt > Date.now();
-    }
-    return true;
+    return !!getToken(exports.currentAuthConfig.tokenKey);
 }
 /**
  * Obtiene la información del usuario autenticado
@@ -201,9 +163,9 @@ async function getAuthenticatedUser() {
         return exports.authState.user;
     }
     // Si no, intentar cargarla
-    if (exports.currentAuthConfig.endpoints.userInfo) {
+    if (exports.currentAuthConfig.userInfoEndpoint) {
         try {
-            const response = await axios_1.default.get(`${http_config_1.API_URL}${exports.currentAuthConfig.endpoints.userInfo}`, {
+            const response = await axios_1.default.get(`${http_config_1.API_URL}${exports.currentAuthConfig.userInfoEndpoint}`, {
                 headers: {
                     Authorization: `Bearer ${exports.authState.accessToken}`
                 }
@@ -233,11 +195,11 @@ function getAccessToken() {
  * @returns El nuevo token de autenticación
  */
 async function refreshToken() {
-    if (!exports.currentAuthConfig.endpoints.refresh || !exports.authState.refreshToken) {
+    if (!exports.currentAuthConfig.refreshEndpoint || !exports.authState.refreshToken) {
         throw new Error('No hay configuración para refrescar token');
     }
     try {
-        const endpoint = `${http_config_1.API_URL}${exports.currentAuthConfig.endpoints.refresh}`;
+        const endpoint = `${http_config_1.API_URL}${exports.currentAuthConfig.refreshEndpoint}`;
         const response = await axios_1.default.post(endpoint, {
             refresh_token: exports.authState.refreshToken
         });
@@ -251,9 +213,9 @@ async function refreshToken() {
             ? Date.now() + (expires_in * 1000)
             : undefined;
         // Almacenar tokens
-        storeToken(exports.currentAuthConfig.tokenKeys.accessToken, access_token);
-        if (refresh_token && exports.currentAuthConfig.tokenKeys.refreshToken) {
-            storeToken(exports.currentAuthConfig.tokenKeys.refreshToken, refresh_token);
+        storeToken(exports.currentAuthConfig.tokenKey, access_token);
+        if (refresh_token && exports.currentAuthConfig.refreshTokenKey) {
+            storeToken(exports.currentAuthConfig.refreshTokenKey, refresh_token);
         }
         // Actualizar estado
         exports.authState = {
@@ -267,8 +229,8 @@ async function refreshToken() {
     }
     catch (error) {
         // Manejar error de refresco
-        if (exports.currentAuthConfig.onAuthError) {
-            exports.currentAuthConfig.onAuthError(error);
+        if (exports.currentAuthConfig.onError) {
+            exports.currentAuthConfig.onError(error);
         }
         throw error;
     }
@@ -278,9 +240,9 @@ async function refreshToken() {
  */
 async function handleRefreshTokenFailure() {
     // Limpiar tokens almacenados
-    removeToken(exports.currentAuthConfig.tokenKeys.accessToken);
-    if (exports.currentAuthConfig.tokenKeys.refreshToken) {
-        removeToken(exports.currentAuthConfig.tokenKeys.refreshToken);
+    removeToken(exports.currentAuthConfig.tokenKey);
+    if (exports.currentAuthConfig.refreshTokenKey) {
+        removeToken(exports.currentAuthConfig.refreshTokenKey);
     }
     // Resetear estado
     exports.authState = {
@@ -288,8 +250,8 @@ async function handleRefreshTokenFailure() {
         isAuthenticated: false
     };
     // Notificar error de autenticación
-    if (exports.currentAuthConfig.onAuthError) {
-        exports.currentAuthConfig.onAuthError(new Error('Falló el refresco del token'));
+    if (exports.currentAuthConfig.onError) {
+        exports.currentAuthConfig.onError(new Error('Falló el refresco del token'));
     }
 }
 /**
@@ -336,48 +298,38 @@ function isTokenExpired(token) {
  * @param value Valor del token
  */
 function storeToken(key, value) {
+    const cookieOptions = {
+        ...exports.currentAuthConfig.cookieOptions,
+        path: '/'
+    };
     switch (exports.currentAuthConfig.storage) {
+        case 'cookie':
+            cookie_manager_1.CookieManager.set(key, value, cookieOptions);
+            break;
         case 'localStorage':
             localStorage.setItem(key, value);
             break;
         case 'sessionStorage':
             sessionStorage.setItem(key, value);
             break;
-        case 'secureStorage':
-            // Implementación para almacenamiento seguro
-            // En un entorno real, se integraría con alguna biblioteca
-            // de almacenamiento seguro o encriptación
-            localStorage.setItem(`secure_${key}`, value);
-            break;
-        case 'memory':
-            // No hacer nada, ya se guarda en authState
-            break;
     }
 }
 /**
  * Obtiene un token del almacenamiento configurado
  * @param key Clave del token
- * @returns Token almacenado o `null` si no existe
+ * @returns Valor del token o null si no existe
  */
 function getToken(key) {
     switch (exports.currentAuthConfig.storage) {
+        case 'cookie':
+            return cookie_manager_1.CookieManager.get(key);
         case 'localStorage':
             return localStorage.getItem(key);
         case 'sessionStorage':
             return sessionStorage.getItem(key);
-        case 'secureStorage':
-            return localStorage.getItem(`secure_${key}`);
-        case 'memory':
-            // Para memory, depende del tipo de token
-            if (key === exports.currentAuthConfig.tokenKeys.accessToken) {
-                return exports.authState.accessToken;
-            }
-            else if (key === exports.currentAuthConfig.tokenKeys.refreshToken) {
-                return exports.authState.refreshToken || null;
-            }
+        default:
             return null;
     }
-    return null;
 }
 /**
  * Elimina un token del almacenamiento configurado
@@ -385,17 +337,14 @@ function getToken(key) {
  */
 function removeToken(key) {
     switch (exports.currentAuthConfig.storage) {
+        case 'cookie':
+            cookie_manager_1.CookieManager.remove(key, exports.currentAuthConfig.cookieOptions);
+            break;
         case 'localStorage':
             localStorage.removeItem(key);
             break;
         case 'sessionStorage':
             sessionStorage.removeItem(key);
-            break;
-        case 'secureStorage':
-            localStorage.removeItem(`secure_${key}`);
-            break;
-        case 'memory':
-            // No hacer nada, se limpiará en el estado
             break;
     }
 }
