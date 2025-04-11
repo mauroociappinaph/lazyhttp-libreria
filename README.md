@@ -14,6 +14,7 @@ Una biblioteca HTTP fácil de usar para aplicaciones JavaScript y TypeScript, co
 - 🔧 Configuración flexible
 - 📊 Caché inteligente con estrategias personalizables
 - 🧠 Sistema inteligente de sugerencias para errores (experimental)
+- 📈 Sistema de métricas para seguimiento de usuario y analíticas
 
 ## Instalación
 
