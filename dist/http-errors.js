@@ -2,14 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HttpAuthError = exports.HttpAbortedError = exports.HttpUnknownError = exports.HttpAxiosError = exports.HttpNetworkError = exports.HttpTimeoutError = exports.HttpError = void 0;
 const suggestion_service_IA_1 = require("./suggestion-service-IA");
-// Create the suggestion service instance
 const suggestionService = new suggestion_service_IA_1.SuggestionService();
 class HttpError extends Error {
-    // Método para obtener sugerencia avanzada
     static async getSmartSuggestion(error, request) {
         return await suggestionService.getSuggestion(error, request);
     }
-    // Proporcionar feedback sobre una sugerencia
     static async provideSuggestionFeedback(error, request, suggestion, wasHelpful) {
         await suggestionService.provideFeedback(error, request, suggestion, wasHelpful);
     }

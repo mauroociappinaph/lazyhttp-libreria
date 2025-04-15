@@ -1,19 +1,7 @@
 "use strict";
-/**
- * Módulo para manejo de cookies en LazyHTTP
- */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CookieManager = void 0;
-/**
- * Clase para manejar cookies en LazyHTTP
- */
 class CookieManager {
-    /**
-     * Establece una cookie
-     * @param name Nombre de la cookie
-     * @param value Valor de la cookie
-     * @param options Opciones de la cookie
-     */
     static set(name, value, options = {}) {
         let cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}`;
         if (options.maxAge !== undefined) {
@@ -39,11 +27,6 @@ class CookieManager {
         }
         document.cookie = cookie;
     }
-    /**
-     * Obtiene el valor de una cookie
-     * @param name Nombre de la cookie
-     * @returns Valor de la cookie o null si no existe
-     */
     static get(name) {
         const cookies = document.cookie.split(';');
         for (const cookie of cookies) {
@@ -54,11 +37,6 @@ class CookieManager {
         }
         return null;
     }
-    /**
-     * Elimina una cookie
-     * @param name Nombre de la cookie
-     * @param options Opciones adicionales para la eliminación
-     */
     static remove(name, options = {}) {
         this.set(name, '', {
             ...options,
@@ -66,18 +44,9 @@ class CookieManager {
             expires: new Date(0)
         });
     }
-    /**
-     * Verifica si una cookie existe
-     * @param name Nombre de la cookie
-     * @returns true si la cookie existe, false en caso contrario
-     */
     static exists(name) {
         return this.get(name) !== null;
     }
-    /**
-     * Obtiene todas las cookies como un objeto
-     * @returns Objeto con todas las cookies
-     */
     static getAll() {
         const cookies = {};
         if (document.cookie) {

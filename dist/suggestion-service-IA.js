@@ -53,7 +53,6 @@ class SuggestionService {
             }
         }
         catch (e) {
-            // Silenciar errores
         }
         return error.suggestion || "Verifica tu conexión a internet";
     }
@@ -77,10 +76,8 @@ class SuggestionService {
             });
         }
         catch (e) {
-            // Silenciar errores
         }
     }
 }
 exports.SuggestionService = SuggestionService;
-// Instancia global
 exports.suggestionService = new SuggestionService();

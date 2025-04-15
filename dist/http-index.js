@@ -1,18 +1,16 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getCurrentMetrics = exports.trackActivity = exports.configureMetrics = exports.initialize = exports.invalidateCacheByTags = exports.invalidateCache = exports.configureCaching = exports.getAccessToken = exports.getAuthenticatedUser = exports.isAuthenticated = exports.logout = exports.login = exports.configureAuth = exports.del = exports.patch = exports.put = exports.post = exports.getById = exports.getAll = exports.get = exports.request = exports.http = void 0;
+const tslib_1 = require("tslib");
 const http_helpers_1 = require("./http-helpers");
 const http_auth_1 = require("./http-auth");
 const http_cache_1 = require("./http-cache");
 const http_cache_strategies_1 = require("./http-cache-strategies");
 const http_metrics_index_1 = require("./metrics/http-metrics-index");
-const axios_1 = __importDefault(require("axios"));
+const axios_1 = tslib_1.__importDefault(require("axios"));
 const https_proxy_agent_1 = require("https-proxy-agent");
 const socks_proxy_agent_1 = require("socks-proxy-agent");
-const DEFAULT_TIMEOUT = 10000; // 10 segundos
+const DEFAULT_TIMEOUT = 10000;
 const DEFAULT_RETRIES = 0;
 exports.http = {
     _baseUrl: undefined,
@@ -25,13 +23,11 @@ exports.http = {
     _proxyConfig: undefined,
     _defaultStreamConfig: undefined,
     _setupInterceptors(interceptor, type) {
-        // If no parameters were provided, initialize the arrays
         if (!interceptor && !type) {
             this._requestInterceptors = [];
             this._responseInterceptors = [];
             return;
         }
-        // Add the interceptor to the appropriate array
         if (type === 'request') {
             this._requestInterceptors.push(interceptor);
         }
@@ -42,25 +38,20 @@ exports.http = {
     async request(endpoint, options = {}) {
         const { method = 'GET', headers = {}, body, withAuth = false, timeout = DEFAULT_TIMEOUT, retries = DEFAULT_RETRIES, cache: cacheOptions } = options;
         try {
-            // Registrar la petición en métricas
             http_metrics_index_1.metricsManager.trackRequest(endpoint);
-            // Comprobar si debemos usar la caché
             if (http_cache_1.cacheManager.shouldUseCache(method, options)) {
                 const cacheKey = http_cache_1.cacheManager.generateCacheKey(endpoint, options);
                 return await (0, http_cache_strategies_1.executeWithCacheStrategy)(cacheKey, async () => {
                     const requestHeaders = (0, http_helpers_1.prepareHeaders)(headers, withAuth);
                     const response = await http_helpers_1.retryHandler.executeWithRetry(this._baseUrl ? `${this._baseUrl}${endpoint}` : endpoint, method, requestHeaders, body, timeout || this._defaultTimeout || DEFAULT_TIMEOUT, retries !== undefined ? retries : this._defaultRetries !== undefined ? this._defaultRetries : DEFAULT_RETRIES);
-                    // Invalidar caché automáticamente para métodos de escritura
                     if (method !== 'GET') {
                         http_cache_1.cacheManager.invalidateByMethod(method, endpoint);
                     }
                     return response;
                 }, options);
             }
-            // Petición sin caché
             const requestHeaders = (0, http_helpers_1.prepareHeaders)(headers, withAuth);
             const response = await http_helpers_1.retryHandler.executeWithRetry(this._baseUrl ? `${this._baseUrl}${endpoint}` : endpoint, method, requestHeaders, body, timeout || this._defaultTimeout || DEFAULT_TIMEOUT, retries !== undefined ? retries : this._defaultRetries !== undefined ? this._defaultRetries : DEFAULT_RETRIES);
-            // Invalidar caché automáticamente para métodos de escritura
             if (method !== 'GET') {
                 http_cache_1.cacheManager.invalidateByMethod(method, endpoint);
             }
@@ -70,7 +61,6 @@ exports.http = {
             return http_helpers_1.errorHandler.handleError(error);
         }
     },
-    // Métodos HTTP simplificados
     async get(endpoint, options) {
         return this.request(endpoint, { ...options, method: 'GET' });
     },
@@ -87,7 +77,6 @@ exports.http = {
                 limit
             }
         });
-        // Agregar metadatos de paginación a la respuesta
         if (response.data && Array.isArray(response.data)) {
             response.meta = {
                 currentPage: page,
@@ -111,7 +100,6 @@ exports.http = {
     async delete(endpoint, options) {
         return this.request(endpoint, { ...options, method: 'DELETE' });
     },
-    // Métodos de autenticación avanzada
     configureAuth(config) {
         (0, http_auth_1.configureAuth)(config);
     },
@@ -122,16 +110,13 @@ exports.http = {
             isAuthenticated: true,
             refreshToken: response.refresh_token
         };
-        // Iniciar seguimiento de métricas si la autenticación fue exitosa
         if (authInfo.isAuthenticated) {
             http_metrics_index_1.metricsManager.startTracking();
         }
         return authInfo;
     },
     async logout() {
-        // Finalizar sesión de métricas y enviar datos
         const metrics = await http_metrics_index_1.metricsManager.stopTracking();
-        // Si hay métricas y debug está activado, mostrar resumen
         if (metrics) {
             console.log(`[HTTP] Sesión finalizada - Tiempo activo: ${Math.round(metrics.activeTime / 1000)}s, Peticiones: ${metrics.requestCount}`);
         }
@@ -146,7 +131,6 @@ exports.http = {
     getAccessToken() {
         return (0, http_auth_1.getAccessToken)();
     },
-    // Métodos internos para la implementación
     async _refreshToken() {
         return (0, http_auth_1.refreshToken)();
     },
@@ -169,15 +153,12 @@ exports.http = {
         (0, http_auth_1.removeToken)(key);
     },
     async initialize(config) {
-        // Set base URL if provided
         if (config === null || config === void 0 ? void 0 : config.baseUrl) {
             this._baseUrl = config.baseUrl;
         }
-        // Store frontend URL if provided
         if (config === null || config === void 0 ? void 0 : config.frontendUrl) {
             this._frontendUrl = config.frontendUrl;
         }
-        // Set global defaults if provided
         if ((config === null || config === void 0 ? void 0 : config.timeout) !== undefined) {
             this._defaultTimeout = config.timeout;
         }
@@ -187,17 +168,14 @@ exports.http = {
         if (config === null || config === void 0 ? void 0 : config.headers) {
             this._defaultHeaders = { ...this._defaultHeaders, ...config.headers };
         }
-        // Inicializar caché si está configurado
         if (config === null || config === void 0 ? void 0 : config.cache) {
             this.configureCaching(config.cache);
         }
-        // Inicializar métricas si está configurado
         if (config === null || config === void 0 ? void 0 : config.metrics) {
             this.configureMetrics(config.metrics);
         }
         return (0, http_helpers_1.initialize)();
     },
-    // Métodos adicionales para caché
     configureCaching(config) {
         http_cache_1.cacheManager.configure(config);
     },
@@ -207,7 +185,6 @@ exports.http = {
     invalidateCacheByTags(tags) {
         http_cache_1.cacheManager.invalidateByTags(tags);
     },
-    // Métodos para métricas
     configureMetrics(config) {
         http_metrics_index_1.metricsManager.configure(config);
     },
@@ -232,7 +209,6 @@ exports.http = {
         }
         const proxyConfig = options.proxy || this._proxyConfig;
         const httpsAgent = this._createProxyAgent(proxyConfig);
-        // Si se especifica rejectUnauthorized como false, desactivamos la verificación de certificados
         if ((proxyConfig === null || proxyConfig === void 0 ? void 0 : proxyConfig.rejectUnauthorized) === false) {
             process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
         }
@@ -242,7 +218,7 @@ exports.http = {
             responseType: 'stream',
             headers: this._prepareHeaders(options),
             timeout: options.timeout || this._defaultTimeout,
-            proxy: false, // Desactivamos el proxy de axios para usar nuestro propio agente
+            proxy: false,
             httpsAgent
         };
         try {
@@ -272,7 +248,6 @@ exports.http = {
             throw error;
         }
         finally {
-            // Restaurar la configuración de verificación de certificados
             if ((proxyConfig === null || proxyConfig === void 0 ? void 0 : proxyConfig.rejectUnauthorized) === false) {
                 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '1';
             }
@@ -288,24 +263,19 @@ exports.http = {
             proxyUrl.password = auth.password;
         }
         const proxyString = proxyUrl.toString();
-        // Para SOCKS, usamos la URL directamente
         if (protocol === 'socks') {
             return new socks_proxy_agent_1.SocksProxyAgent(proxyString);
         }
-        // Para HTTPS, configuramos las opciones específicas
         process.env.NODE_TLS_REJECT_UNAUTHORIZED = rejectUnauthorized ? '1' : '0';
         return new https_proxy_agent_1.HttpsProxyAgent(proxyString);
     },
     _buildUrl(endpoint) {
-        // Implement the logic to build the full URL based on the base URL and the endpoint
         return this._baseUrl ? `${this._baseUrl}${endpoint}` : endpoint;
     },
     _prepareHeaders(options) {
-        // Implement the logic to prepare the headers based on the options
         return (0, http_helpers_1.prepareHeaders)(options.headers || {}, options.withAuth || false);
     }
 };
-// Exportar las funciones individuales para un uso más directo
 exports.request = exports.http.request.bind(exports.http);
 exports.get = exports.http.get.bind(exports.http);
 exports.getAll = exports.http.getAll.bind(exports.http);
@@ -313,21 +283,17 @@ exports.getById = exports.http.getById.bind(exports.http);
 exports.post = exports.http.post.bind(exports.http);
 exports.put = exports.http.put.bind(exports.http);
 exports.patch = exports.http.patch.bind(exports.http);
-exports.del = exports.http.delete.bind(exports.http); // 'delete' es palabra reservada en JavaScript
-// Exportar las funciones de autenticación
+exports.del = exports.http.delete.bind(exports.http);
 exports.configureAuth = exports.http.configureAuth.bind(exports.http);
 exports.login = exports.http.login.bind(exports.http);
 exports.logout = exports.http.logout.bind(exports.http);
 exports.isAuthenticated = exports.http.isAuthenticated.bind(exports.http);
 exports.getAuthenticatedUser = exports.http.getAuthenticatedUser.bind(exports.http);
 exports.getAccessToken = exports.http.getAccessToken.bind(exports.http);
-// Exportar caché
 exports.configureCaching = exports.http.configureCaching.bind(exports.http);
 exports.invalidateCache = exports.http.invalidateCache.bind(exports.http);
 exports.invalidateCacheByTags = exports.http.invalidateCacheByTags.bind(exports.http);
-// Exportar initialize
 exports.initialize = exports.http.initialize.bind(exports.http);
-// Exportar funciones de métricas
 exports.configureMetrics = exports.http.configureMetrics.bind(exports.http);
 exports.trackActivity = exports.http.trackActivity.bind(exports.http);
 exports.getCurrentMetrics = exports.http.getCurrentMetrics.bind(exports.http);

@@ -1,33 +1,10 @@
 import { HttpMethod, ApiResponse, HttpResponseProcessor, HttpRequestExecutor, HttpRetryHandler, HttpErrorHandler } from './http.types';
 import { AxiosResponse } from 'axios';
 export declare const logger: {
-    /**
-     * Registra un mensaje con nivel de error
-     * @param message Mensaje principal
-     * @param data Datos adicionales para incluir en el log
-     */
     error(message: string, data?: unknown): void;
-    /**
-     * Registra un mensaje con nivel de advertencia
-     * @param message Mensaje principal
-     * @param data Datos adicionales para incluir en el log
-     */
     warn(message: string, data?: unknown): void;
-    /**
-     * Registra un mensaje con nivel de información
-     * @param message Mensaje principal
-     * @param data Datos adicionales para incluir en el log
-     */
     info(message: string, data?: unknown): void;
-    /**
-     * Registra un mensaje con nivel de depuración
-     * @param message Mensaje principal
-     * @param data Datos adicionales para incluir en el log
-     */
     debug(message: string, data?: unknown): void;
-    /**
-     * Método interno para registrar mensajes con formato
-     */
     _log(level: "error" | "warning" | "info" | "debug", message: string, data?: unknown): void;
 };
 export declare const errorHandler: HttpErrorHandler;

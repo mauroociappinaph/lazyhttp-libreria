@@ -44,8 +44,8 @@ class HttpLogger {
     }
     logFormattedError(errorInfo) {
         const { message, status, details } = errorInfo;
-        const prefix = this.config.colors ? '\x1b[31m' : ''; // Red color
-        const suffix = this.config.colors ? '\x1b[0m' : ''; // Reset color
+        const prefix = this.config.colors ? '\x1b[31m' : '';
+        const suffix = this.config.colors ? '\x1b[0m' : '';
         console.error(`${prefix}Error (${status}):${suffix} ${message}`);
         if (details) {
             console.error(`${prefix}Description:${suffix} ${details.description}`);

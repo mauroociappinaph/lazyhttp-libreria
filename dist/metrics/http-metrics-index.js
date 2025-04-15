@@ -2,12 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.metricsManager = void 0;
 const http_config_1 = require("../http-config");
-/**
- * Módulo de gestión de estado
- * Responsabilidad: Almacenar y proporcionar acceso al estado del sistema
- */
 const StateManager = (() => {
-    // Estado privado
     const state = {
         config: {
             enabled: false,
@@ -20,7 +15,6 @@ const StateManager = (() => {
             reporting: null
         }
     };
-    // API
     return {
         getConfig: () => state.config,
         setConfig: (config) => {
@@ -42,17 +36,9 @@ const StateManager = (() => {
         isEnabled: () => state.config.enabled && state.metrics !== null
     };
 })();
-/**
- * Módulo de generación de IDs
- * Responsabilidad: Generar identificadores únicos
- */
 const IdGenerator = {
     generateSessionId: () => Date.now().toString(36) + Math.random().toString(36).substring(2)
 };
-/**
- * Módulo de seguimiento de tiempo
- * Responsabilidad: Calcular y actualizar métricas de tiempo
- */
 const TimeTracker = {
     updateActivityTime: () => {
         StateManager.updateMetrics(metrics => {
@@ -62,10 +48,6 @@ const TimeTracker = {
         });
     }
 };
-/**
- * Módulo de actualización de UI
- * Responsabilidad: Notificar cambios en las métricas
- */
 const NotificationService = {
     notifyMetricsUpdate: () => {
         const config = StateManager.getConfig();
@@ -75,23 +57,17 @@ const NotificationService = {
         }
     }
 };
-/**
- * Módulo de seguimiento de actividad
- * Responsabilidad: Registrar interacciones del usuario
- */
 const ActivityTracker = {
     setupTracking: () => {
         var _a;
         if (typeof window === 'undefined')
             return;
-        // Eventos de actividad básica
         const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
         const trackActivity = () => {
             TimeTracker.updateActivityTime();
             NotificationService.notifyMetricsUpdate();
         };
         events.forEach(event => window.addEventListener(event, trackActivity));
-        // Eventos personalizados
         const config = StateManager.getConfig();
         if ((_a = config.trackEvents) === null || _a === void 0 ? void 0 : _a.length) {
             config.trackEvents.forEach(eventType => {
@@ -118,14 +94,9 @@ const ActivityTracker = {
             metrics.requestCount++;
             metrics.lastActivity = Date.now();
         });
-        // Registrar también como ruta si es apropiado
         RouteTracker.trackRouteVisit(endpoint);
     }
 };
-/**
- * Módulo de seguimiento de rutas
- * Responsabilidad: Registrar navegación entre páginas
- */
 const RouteTracker = {
     setupTracking: () => {
         if (typeof window === 'undefined')
@@ -138,9 +109,7 @@ const RouteTracker = {
                 RouteTracker.trackRouteVisit(window.location.pathname);
             }
         };
-        // Capturar ruta inicial
         trackRoute();
-        // Escuchar cambios de ruta
         window.addEventListener('popstate', trackRoute);
     },
     trackRouteVisit: (path) => {
@@ -156,18 +125,12 @@ const RouteTracker = {
         });
     }
 };
-/**
- * Módulo de envío de métricas
- * Responsabilidad: Comunicarse con el servidor
- */
 const MetricsReporter = {
     setupReporting: () => {
-        // Limpiar intervalo anterior si existe
         const currentInterval = StateManager.getReportingInterval();
         if (currentInterval) {
             clearInterval(currentInterval);
         }
-        // Configurar nuevo intervalo si está habilitado
         const config = StateManager.getConfig();
         if (config.enabled && config.reportingInterval && config.reportingInterval > 0) {
             const interval = setInterval(MetricsReporter.sendMetricsToServer, config.reportingInterval);
@@ -180,7 +143,6 @@ const MetricsReporter = {
         if (!config.enabled || !metrics || !config.endpoint)
             return;
         try {
-            // Actualizar tiempos antes de enviar
             TimeTracker.updateActivityTime();
             const response = await fetch(config.endpoint, {
                 method: 'POST',
@@ -199,16 +161,11 @@ const MetricsReporter = {
         }
     }
 };
-/**
- * Módulo de ciclo de vida de métricas
- * Responsabilidad: Iniciar y detener la sesión de métricas
- */
 const SessionManager = {
     startSession: () => {
         const config = StateManager.getConfig();
         if (!config.enabled)
             return;
-        // Inicializar métricas
         StateManager.setMetrics({
             loginTime: Date.now(),
             lastActivity: Date.now(),
@@ -218,7 +175,6 @@ const SessionManager = {
             visitedRoutes: [],
             sessionId: IdGenerator.generateSessionId()
         });
-        // Configurar seguimiento
         ActivityTracker.setupTracking();
         RouteTracker.setupTracking();
         if (http_config_1.debugConfig.logRequests) {
@@ -228,19 +184,15 @@ const SessionManager = {
     endSession: async () => {
         if (!StateManager.isEnabled())
             return null;
-        // Actualizar tiempos finales
         TimeTracker.updateActivityTime();
         StateManager.updateMetrics(metrics => {
             metrics.logoutTime = Date.now();
         });
-        // Guardar una copia antes de limpiar
         const finalMetrics = { ...StateManager.getMetrics() };
-        // Enviar al servidor
         await MetricsReporter.sendMetricsToServer();
         if (http_config_1.debugConfig.logRequests) {
             console.log('[HTTP:METRICS] Finalizado seguimiento de sesión', finalMetrics);
         }
-        // Limpiar estado
         StateManager.setMetrics(null);
         return finalMetrics;
     },
@@ -251,10 +203,6 @@ const SessionManager = {
         return { ...StateManager.getMetrics() };
     }
 };
-/**
- * Módulo principal - Punto de entrada API pública
- * Responsabilidad: Coordinar los demás módulos y exponer API
- */
 const MetricsController = {
     configure: (config) => {
         StateManager.setConfig(config);
@@ -279,7 +227,6 @@ const MetricsController = {
         ActivityTracker.trackSpecificActivity(type);
     }
 };
-// Exportación pública
 exports.metricsManager = {
     configure: MetricsController.configure,
     startTracking: MetricsController.startTracking,

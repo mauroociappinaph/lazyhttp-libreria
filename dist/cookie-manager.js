@@ -1,16 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CookieManager = void 0;
-/**
- * Clase para manejar cookies de forma segura
- */
 class CookieManager {
-    /**
-     * Establece una cookie con las opciones especificadas
-     * @param name Nombre de la cookie
-     * @param value Valor de la cookie
-     * @param options Opciones de la cookie
-     */
     static set(name, value, options = {}) {
         let cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}`;
         if (options.maxAge) {
@@ -36,11 +27,6 @@ class CookieManager {
         }
         document.cookie = cookie;
     }
-    /**
-     * Obtiene el valor de una cookie por su nombre
-     * @param name Nombre de la cookie
-     * @returns Valor de la cookie o null si no existe
-     */
     static get(name) {
         const cookies = document.cookie.split(';');
         for (const cookie of cookies) {
@@ -51,11 +37,6 @@ class CookieManager {
         }
         return null;
     }
-    /**
-     * Elimina una cookie por su nombre
-     * @param name Nombre de la cookie
-     * @param options Opciones de la cookie (necesarias para eliminar correctamente)
-     */
     static remove(name, options = {}) {
         const deleteOptions = {
             ...options,
@@ -64,11 +45,6 @@ class CookieManager {
         };
         this.set(name, '', deleteOptions);
     }
-    /**
-     * Verifica si una cookie existe
-     * @param name Nombre de la cookie
-     * @returns true si la cookie existe, false en caso contrario
-     */
     static exists(name) {
         return this.get(name) !== null;
     }
