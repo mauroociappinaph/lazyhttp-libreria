@@ -1,5 +1,7 @@
+import { ErrorDetails } from './http.types';
 export declare class HttpError extends Error {
     suggestion?: string;
+    details?: ErrorDetails;
     static ERROR_MESSAGES: Record<string, string>;
     static getSmartSuggestion(error: HttpError, request?: Request): Promise<string>;
     static provideSuggestionFeedback(error: HttpError, request: Request | undefined, suggestion: string, wasHelpful: boolean): Promise<void>;

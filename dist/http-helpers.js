@@ -112,61 +112,82 @@ exports.logger = {
 // ===== Implementación de HttpErrorHandler =====
 exports.errorHandler = {
     handleError(error) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d, _e, _f, _g, _h;
         // 1. Errores de timeout (más específico primero)
         if (error instanceof http_errors_1.HttpTimeoutError) {
-            exports.logger.error('Error de timeout', error);
+            exports.logger.error('Error de timeout', {
+                error,
+                details: error.details
+            });
             return {
                 data: null,
-                error: http_errors_1.HttpTimeoutError.ERROR_MESSAGES.TIMEOUT,
+                error: ((_a = error.details) === null || _a === void 0 ? void 0 : _a.description) || http_errors_1.HttpTimeoutError.ERROR_MESSAGES.TIMEOUT,
                 status: 408,
+                details: error.details
             };
         }
         // 2. Errores de Axios
         if ((0, axios_1.isAxiosError)(error)) {
             exports.logger.error('Error de Axios', {
-                status: (_a = error.response) === null || _a === void 0 ? void 0 : _a.status,
+                status: (_b = error.response) === null || _b === void 0 ? void 0 : _b.status,
                 message: http_errors_1.HttpAxiosError.ERROR_MESSAGES.AXIOS_ERROR,
-                response: (_b = error.response) === null || _b === void 0 ? void 0 : _b.data
+                response: (_c = error.response) === null || _c === void 0 ? void 0 : _c.data
             });
+            const axiosError = new http_errors_1.HttpAxiosError();
             return {
                 data: null,
-                error: http_errors_1.HttpAxiosError.ERROR_MESSAGES.AXIOS_ERROR,
-                status: ((_c = error.response) === null || _c === void 0 ? void 0 : _c.status) || 0,
+                error: ((_d = axiosError.details) === null || _d === void 0 ? void 0 : _d.description) || http_errors_1.HttpAxiosError.ERROR_MESSAGES.AXIOS_ERROR,
+                status: ((_e = error.response) === null || _e === void 0 ? void 0 : _e.status) || 0,
+                details: axiosError.details
             };
         }
         if (error instanceof http_errors_1.HttpAbortedError) {
-            exports.logger.warn('Petición abortada', error);
+            exports.logger.warn('Petición abortada', {
+                error,
+                details: error.details
+            });
             return {
                 data: null,
-                error: http_errors_1.HttpAbortedError.ERROR_MESSAGES.ABORTED,
+                error: ((_f = error.details) === null || _f === void 0 ? void 0 : _f.description) || http_errors_1.HttpAbortedError.ERROR_MESSAGES.ABORTED,
                 status: 0,
+                details: error.details
             };
         }
         // 3. Errores personalizados de sesión (ej: token expirado)
         if (error instanceof Error && error.message === 'TokenExpired') {
-            exports.logger.warn('Token expirado', error);
+            exports.logger.warn('Token expirado', {
+                error,
+                details: error.details
+            });
+            const authError = new http_errors_1.HttpAuthError();
             return {
                 data: null,
-                error: http_errors_1.HttpAuthError.ERROR_MESSAGES.SESSION_EXPIRED,
+                error: ((_g = authError.details) === null || _g === void 0 ? void 0 : _g.description) || http_errors_1.HttpAuthError.ERROR_MESSAGES.SESSION_EXPIRED,
                 status: 401,
+                details: authError.details
             };
         }
         // 4. Errores genéricos
         if (error instanceof Error) {
-            exports.logger.error('Error genérico', error);
+            exports.logger.error('Error genérico', {
+                error,
+                details: error.details
+            });
             return {
                 data: null,
                 error: error.message || http_errors_1.HttpNetworkError.ERROR_MESSAGES.NETWORK,
                 status: 0,
+                details: error.details
             };
         }
         // 5. Último recurso: error desconocido
         exports.logger.error('Error desconocido', error);
+        const unknownError = new http_errors_1.HttpUnknownError();
         return {
             data: null,
-            error: http_errors_1.HttpUnknownError.ERROR_MESSAGES.UNKNOWN,
+            error: ((_h = unknownError.details) === null || _h === void 0 ? void 0 : _h.description) || http_errors_1.HttpUnknownError.ERROR_MESSAGES.UNKNOWN,
             status: 0,
+            details: unknownError.details
         };
     }
 };

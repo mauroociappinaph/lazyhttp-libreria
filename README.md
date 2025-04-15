@@ -151,6 +151,40 @@ lazyhttp get https://example.com/stream --stream
 
 For detailed documentation, please visit our [documentation page](docs/README.md).
 
+### Error Handling
+
+LazyHTTP provides comprehensive error handling with detailed error messages that help you quickly identify and fix issues:
+
+```typescript
+try {
+  const response = await http.get("https://api.example.com/data");
+  // Process response
+} catch (error) {
+  if (error instanceof HttpTimeoutError) {
+    console.error("Timeout error:", error.details?.description);
+    console.log("Cause:", error.details?.cause);
+    console.log("Solution:", error.details?.solution);
+    console.log("Example:", error.details?.example);
+  }
+}
+```
+
+Each error includes:
+
+- **Description**: Clear explanation of what went wrong
+- **Cause**: Probable reason for the error
+- **Solution**: Steps to resolve the issue
+- **Example**: Code example showing how to avoid or handle the error
+
+Error types include:
+
+- `HttpTimeoutError`: Request exceeded the timeout limit
+- `HttpNetworkError`: Connection issues with the server
+- `HttpAuthError`: Authentication or authorization problems
+- `HttpAxiosError`: Issues with the Axios request
+- `HttpAbortedError`: Request was aborted before completion
+- `HttpUnknownError`: Unclassified or unexpected errors
+
 ## Español
 
 ### Descripción
@@ -295,6 +329,44 @@ lazyhttp get https://example.com/file.pdf --output file.pdf
 # Stream de respuesta
 lazyhttp get https://example.com/stream --stream
 ```
+
+### Documentación
+
+Para documentación detallada, por favor visite nuestra [página de documentación](docs/README.md).
+
+### Manejo de Errores
+
+LazyHTTP proporciona un manejo completo de errores con mensajes detallados que te ayudan a identificar y solucionar problemas rápidamente:
+
+```typescript
+try {
+  const response = await http.get("https://api.example.com/data");
+  // Procesar respuesta
+} catch (error) {
+  if (error instanceof HttpTimeoutError) {
+    console.error("Error de timeout:", error.details?.description);
+    console.log("Causa:", error.details?.cause);
+    console.log("Solución:", error.details?.solution);
+    console.log("Ejemplo:", error.details?.example);
+  }
+}
+```
+
+Cada error incluye:
+
+- **Descripción**: Explicación clara de lo que salió mal
+- **Causa**: Razón probable del error
+- **Solución**: Pasos para resolver el problema
+- **Ejemplo**: Ejemplo de código que muestra cómo evitar o manejar el error
+
+Los tipos de error incluyen:
+
+- `HttpTimeoutError`: La solicitud excedió el límite de tiempo
+- `HttpNetworkError`: Problemas de conexión con el servidor
+- `HttpAuthError`: Problemas de autenticación o autorización
+- `HttpAxiosError`: Problemas con la solicitud de Axios
+- `HttpAbortedError`: La solicitud fue abortada antes de completarse
+- `HttpUnknownError`: Errores no clasificados o inesperados
 
 ### Documentación
 
