@@ -1,4 +1,4 @@
-import { HttpImplementation, RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, CacheConfig, MetricsConfig } from './http.types';
+import { HttpImplementation, RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, CacheConfig, MetricsConfig, ProxyConfig, StreamConfig } from './http.types';
 export declare const http: HttpImplementation & {
     configureCaching: (config: CacheConfig) => void;
     invalidateCache: (pattern: string) => void;
@@ -17,6 +17,8 @@ export declare const http: HttpImplementation & {
         (): void;
         (interceptor?: any, type?: 'request' | 'response'): void;
     };
+    _proxyConfig?: ProxyConfig;
+    _defaultStreamConfig?: StreamConfig;
 };
 export declare const request: <T>(endpoint: string, options?: RequestOptions) => Promise<ApiResponse<T>>;
 export declare const get: <T>(endpoint: string, options?: Omit<RequestOptions, "method" | "body">) => Promise<ApiResponse<T>>;

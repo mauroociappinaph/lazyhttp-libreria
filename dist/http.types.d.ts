@@ -46,6 +46,14 @@ export interface RequestOptions {
      * Configuración de caché para la petición
      */
     cache?: CacheOptions;
+    /**
+     * Configuración de proxy para esta petición
+     */
+    proxy?: ProxyConfig;
+    /**
+     * Configuración de streaming para esta petición
+     */
+    stream?: StreamConfig;
 }
 /**
  * Respuesta genérica de la API
@@ -209,6 +217,36 @@ export interface HttpImplementation extends HttpClient {
      * @param key Clave del token
      */
     _removeToken(key: string): void;
+    /**
+     * Configura el proxy global para todas las peticiones
+     * @param config Configuración del proxy
+     */
+    configureProxy(config: ProxyConfig): void;
+    /**
+     * Realiza una petición con streaming
+     * @param endpoint Endpoint al que realizar la petición
+     * @param options Opciones de la petición
+     * @returns Stream de datos
+     */
+    stream<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ReadableStream<T>>;
+    /**
+     * Construye la URL completa basada en la URL base y el endpoint
+     * @param endpoint Endpoint a construir
+     * @returns URL completa
+     */
+    _buildUrl(endpoint: string): string;
+    /**
+     * Prepara las cabeceras HTTP para la petición
+     * @param options Opciones de la petición
+     * @returns Cabeceras HTTP preparadas
+     */
+    _prepareHeaders(options: RequestOptions): Record<string, string>;
+    /**
+     * Crea un agente de proxy basado en la configuración
+     * @param proxyConfig Configuración del proxy
+     * @returns Agente de proxy o undefined si no hay configuración
+     */
+    _createProxyAgent(proxyConfig?: ProxyConfig): any;
 }
 /**
  * Datos de respuesta de error de la API
@@ -515,4 +553,57 @@ export interface MetricsConfig {
      * Función a ejecutar cuando hay nuevas métricas
      */
     onMetricsUpdate?: (metrics: SessionMetrics) => void;
+}
+/**
+ * Configuración de proxy
+ */
+export interface ProxyConfig {
+    /**
+     * URL del proxy
+     */
+    url: string;
+    /**
+     * Credenciales del proxy (opcional)
+     */
+    auth?: {
+        username: string;
+        password: string;
+    };
+    /**
+     * Protocolo del proxy (http, https, socks)
+     * @default 'http'
+     */
+    protocol?: 'http' | 'https' | 'socks';
+    /**
+     * Si se debe ignorar el certificado SSL del proxy
+     * @default false
+     */
+    rejectUnauthorized?: boolean;
+}
+/**
+ * Configuración de streaming
+ */
+export interface StreamConfig {
+    /**
+     * Si se debe usar streaming para esta petición
+     * @default false
+     */
+    enabled?: boolean;
+    /**
+     * Tamaño del chunk en bytes
+     * @default 8192
+     */
+    chunkSize?: number;
+    /**
+     * Callback para procesar cada chunk de datos
+     */
+    onChunk?: (chunk: any) => void;
+    /**
+     * Callback para cuando el streaming ha terminado
+     */
+    onEnd?: () => void;
+    /**
+     * Callback para manejar errores durante el streaming
+     */
+    onError?: (error: Error) => void;
 }

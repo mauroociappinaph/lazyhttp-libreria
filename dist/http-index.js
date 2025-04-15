@@ -1,4 +1,7 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getCurrentMetrics = exports.trackActivity = exports.configureMetrics = exports.initialize = exports.invalidateCacheByTags = exports.invalidateCache = exports.configureCaching = exports.getAccessToken = exports.getAuthenticatedUser = exports.isAuthenticated = exports.logout = exports.login = exports.configureAuth = exports.del = exports.patch = exports.put = exports.post = exports.getById = exports.getAll = exports.get = exports.request = exports.http = void 0;
 const http_helpers_1 = require("./http-helpers");
@@ -6,6 +9,9 @@ const http_auth_1 = require("./http-auth");
 const http_cache_1 = require("./http-cache");
 const http_cache_strategies_1 = require("./http-cache-strategies");
 const http_metrics_index_1 = require("./metrics/http-metrics-index");
+const axios_1 = __importDefault(require("axios"));
+const https_proxy_agent_1 = require("https-proxy-agent");
+const socks_proxy_agent_1 = require("socks-proxy-agent");
 const DEFAULT_TIMEOUT = 10000; // 10 segundos
 const DEFAULT_RETRIES = 0;
 exports.http = {
@@ -16,6 +22,8 @@ exports.http = {
     _defaultHeaders: {},
     _requestInterceptors: [],
     _responseInterceptors: [],
+    _proxyConfig: undefined,
+    _defaultStreamConfig: undefined,
     _setupInterceptors(interceptor, type) {
         // If no parameters were provided, initialize the arrays
         if (!interceptor && !type) {
@@ -208,6 +216,77 @@ exports.http = {
     },
     getCurrentMetrics() {
         return http_metrics_index_1.metricsManager.getCurrentMetrics();
+    },
+    configureProxy(config) {
+        this._proxyConfig = config;
+    },
+    async stream(endpoint, options = {}) {
+        const streamConfig = {
+            enabled: true,
+            chunkSize: 8192,
+            ...this._defaultStreamConfig,
+            ...options.stream
+        };
+        if (!streamConfig.enabled) {
+            throw new Error('Streaming no está habilitado para esta petición');
+        }
+        const axiosConfig = {
+            method: 'GET',
+            url: this._buildUrl(endpoint),
+            responseType: 'stream',
+            headers: this._prepareHeaders(options),
+            timeout: options.timeout || this._defaultTimeout,
+            proxy: false, // Desactivamos el proxy de axios para usar nuestro propio agente
+            httpsAgent: this._createProxyAgent(options.proxy || this._proxyConfig)
+        };
+        try {
+            const response = await (0, axios_1.default)(axiosConfig);
+            const stream = response.data;
+            if (streamConfig.onChunk) {
+                stream.on('data', (chunk) => {
+                    streamConfig.onChunk(chunk);
+                });
+            }
+            if (streamConfig.onEnd) {
+                stream.on('end', () => {
+                    streamConfig.onEnd();
+                });
+            }
+            if (streamConfig.onError) {
+                stream.on('error', (error) => {
+                    streamConfig.onError(error);
+                });
+            }
+            return stream;
+        }
+        catch (error) {
+            if (streamConfig.onError) {
+                streamConfig.onError(error);
+            }
+            throw error;
+        }
+    },
+    _createProxyAgent(proxyConfig) {
+        if (!proxyConfig)
+            return undefined;
+        const { url, protocol = 'http', auth, rejectUnauthorized = false } = proxyConfig;
+        const proxyUrl = new URL(url);
+        if (auth) {
+            proxyUrl.username = auth.username;
+            proxyUrl.password = auth.password;
+        }
+        const proxyString = proxyUrl.toString();
+        return protocol === 'socks'
+            ? new socks_proxy_agent_1.SocksProxyAgent(proxyString)
+            : new https_proxy_agent_1.HttpsProxyAgent(proxyString);
+    },
+    _buildUrl(endpoint) {
+        // Implement the logic to build the full URL based on the base URL and the endpoint
+        return this._baseUrl ? `${this._baseUrl}${endpoint}` : endpoint;
+    },
+    _prepareHeaders(options) {
+        // Implement the logic to prepare the headers based on the options
+        return (0, http_helpers_1.prepareHeaders)(options.headers || {}, options.withAuth || false);
     }
 };
 // Exportar las funciones individuales para un uso más directo

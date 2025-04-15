@@ -1,4 +1,4 @@
-import { HttpImplementation, RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, CacheConfig, MetricsConfig } from './http.types';
+import { HttpImplementation, RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, CacheConfig, MetricsConfig, ProxyConfig, StreamConfig } from './http.types';
 import {
   retryHandler,
   errorHandler,
@@ -26,6 +26,9 @@ import {
 import { cacheManager } from './http-cache';
 import { executeWithCacheStrategy } from './http-cache-strategies';
 import { metricsManager } from './metrics/http-metrics-index';
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import { HttpsProxyAgent } from 'https-proxy-agent';
+import { SocksProxyAgent } from 'socks-proxy-agent';
 
 const DEFAULT_TIMEOUT = 10000; // 10 segundos
 const DEFAULT_RETRIES = 0;
@@ -48,6 +51,8 @@ export const http: HttpImplementation & {
     (): void;
     (interceptor?: any, type?: 'request' | 'response'): void;
   };
+  _proxyConfig?: ProxyConfig;
+  _defaultStreamConfig?: StreamConfig;
 } = {
   _baseUrl: undefined,
   _frontendUrl: undefined,
@@ -56,6 +61,8 @@ export const http: HttpImplementation & {
   _defaultHeaders: {},
   _requestInterceptors: [],
   _responseInterceptors: [],
+  _proxyConfig: undefined,
+  _defaultStreamConfig: undefined,
 
   _setupInterceptors(interceptor?: any, type?: 'request' | 'response'): void {
     // If no parameters were provided, initialize the arrays
@@ -333,6 +340,109 @@ export const http: HttpImplementation & {
 
   getCurrentMetrics(): any {
     return metricsManager.getCurrentMetrics();
+  },
+
+  configureProxy(config: ProxyConfig): void {
+    this._proxyConfig = config;
+  },
+
+  async stream<T>(endpoint: string, options: Omit<RequestOptions, 'method' | 'body'> = {}): Promise<ReadableStream<T>> {
+    const streamConfig: StreamConfig = {
+      enabled: true,
+      chunkSize: 8192,
+      ...this._defaultStreamConfig,
+      ...options.stream
+    };
+
+    if (!streamConfig.enabled) {
+      throw new Error('Streaming no está habilitado para esta petición');
+    }
+
+    const proxyConfig = options.proxy || this._proxyConfig;
+    const httpsAgent = this._createProxyAgent(proxyConfig);
+
+    // Si se especifica rejectUnauthorized como false, desactivamos la verificación de certificados
+    if (proxyConfig?.rejectUnauthorized === false) {
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    }
+
+    const axiosConfig: AxiosRequestConfig = {
+      method: 'GET',
+      url: this._buildUrl(endpoint),
+      responseType: 'stream',
+      headers: this._prepareHeaders(options),
+      timeout: options.timeout || this._defaultTimeout,
+      proxy: false, // Desactivamos el proxy de axios para usar nuestro propio agente
+      httpsAgent
+    };
+
+    try {
+      const response = await axios(axiosConfig);
+      const stream = response.data;
+
+      if (streamConfig.onChunk) {
+        stream.on('data', (chunk: any) => {
+          streamConfig.onChunk!(chunk);
+        });
+      }
+
+      if (streamConfig.onEnd) {
+        stream.on('end', () => {
+          streamConfig.onEnd!();
+        });
+      }
+
+      if (streamConfig.onError) {
+        stream.on('error', (error: Error) => {
+          streamConfig.onError!(error);
+        });
+      }
+
+      return stream;
+    } catch (error) {
+      if (streamConfig.onError) {
+        streamConfig.onError(error as Error);
+      }
+      throw error;
+    } finally {
+      // Restaurar la configuración de verificación de certificados
+      if (proxyConfig?.rejectUnauthorized === false) {
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = '1';
+      }
+    }
+  },
+
+  _createProxyAgent(proxyConfig?: ProxyConfig) {
+    if (!proxyConfig) return undefined;
+
+    const { url, protocol = 'http', auth, rejectUnauthorized = false } = proxyConfig;
+    const proxyUrl = new URL(url);
+
+    if (auth) {
+      proxyUrl.username = auth.username;
+      proxyUrl.password = auth.password;
+    }
+
+    const proxyString = proxyUrl.toString();
+
+    // Para SOCKS, usamos la URL directamente
+    if (protocol === 'socks') {
+      return new SocksProxyAgent(proxyString);
+    }
+
+    // Para HTTPS, configuramos las opciones específicas
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = rejectUnauthorized ? '1' : '0';
+    return new HttpsProxyAgent(proxyString);
+  },
+
+  _buildUrl(endpoint: string): string {
+    // Implement the logic to build the full URL based on the base URL and the endpoint
+    return this._baseUrl ? `${this._baseUrl}${endpoint}` : endpoint;
+  },
+
+  _prepareHeaders(options: RequestOptions): Record<string, string> {
+    // Implement the logic to prepare the headers based on the options
+    return prepareHeaders(options.headers || {}, options.withAuth || false);
   }
 };
 
