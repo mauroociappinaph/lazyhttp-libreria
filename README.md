@@ -153,64 +153,43 @@ For detailed documentation, please visit our [documentation page](docs/README.md
 
 ### Error Handling
 
-LazyHTTP provides a simple and consistent way to handle responses and errors. All methods return an object with `{ data, error, status }`:
+LazyHTTP provides a simple and consistent way to handle responses and errors. All methods return an object with `{ data, error, status }` and automatically log errors with detailed information:
 
 ```typescript
-// Simple GET request
-const response = await http.get("https://api.example.com/data");
-
-if (response.error) {
-  console.error("Error:", response.error);
-  console.log("Status:", response.status);
-  if (response.details) {
-    console.log("Description:", response.details.description);
-    console.log("Cause:", response.details.cause);
-    console.log("Solution:", response.details.solution);
-  }
-} else {
-  // Success! Use the data
-  console.log("Data:", response.data);
-}
-
-// Using destructuring for cleaner code
-const { data, error, status, details } = await http.get(
-  "https://api.example.com/data"
-);
+// Simple GET request - errors are automatically logged
+const { data, error } = await http.get("https://api.example.com/data");
 
 if (error) {
-  console.error(`Error (${status}):`, error);
-  if (details) {
-    console.log("How to fix:", details.solution);
-  }
-} else {
-  // Work with the data directly
-  const users = data as User[];
-  users.forEach((user) => console.log(user.name));
+  // Error already logged with details, just handle the error case
+  return;
 }
 
-// POST request with data
-const createResponse = await http.post("https://api.example.com/users", {
-  name: "John",
-  email: "john@example.com",
+// Work with the data
+console.log(data);
+
+// Configure logging (optional)
+http.configureLogging({
+  enabled: true,
+  format: "console", // or 'json'
+  colors: true,
 });
-
-if (createResponse.error) {
-  console.error("Failed to create user:", createResponse.error);
-} else {
-  console.log("User created:", createResponse.data);
-}
 ```
 
-Each response includes:
+The automatic error logging includes:
 
-- **data**: The response data or `null` if there was an error
-- **error**: Error message or `null` if the request was successful
-- **status**: HTTP status code
-- **details** (optional): Additional error information including:
-  - description: Clear explanation of what went wrong
-  - cause: Probable reason for the error
-  - solution: Steps to resolve the issue
-  - example: Code example showing how to avoid or handle the error
+- Error message and status code
+- Detailed description of what went wrong
+- Probable cause of the error
+- Suggested solution to fix the issue
+
+Example error output:
+
+```
+Error (404): Resource not found
+Description: The requested resource could not be found on the server
+Cause: The URL path is incorrect or the resource has been moved
+Solution: Verify the URL path and ensure the resource exists
+```
 
 Error types include:
 
@@ -372,64 +351,43 @@ Para documentación detallada, por favor visite nuestra [página de documentaci�
 
 ### Manejo de Errores
 
-LazyHTTP proporciona una forma simple y consistente de manejar respuestas y errores. Todos los métodos devuelven un objeto con `{ data, error, status }`:
+LazyHTTP proporciona una forma simple y consistente de manejar respuestas y errores. Todos los métodos devuelven un objeto con `{ data, error, status }` y automáticamente registran errores con información detallada:
 
 ```typescript
-// Solicitud GET simple
-const response = await http.get("https://api.example.com/data");
-
-if (response.error) {
-  console.error("Error:", response.error);
-  console.log("Estado:", response.status);
-  if (response.details) {
-    console.log("Descripción:", response.details.description);
-    console.log("Causa:", response.details.cause);
-    console.log("Solución:", response.details.solution);
-  }
-} else {
-  // ¡Éxito! Usar los datos
-  console.log("Datos:", response.data);
-}
-
-// Usando desestructuración para código más limpio
-const { data, error, status, details } = await http.get(
-  "https://api.example.com/data"
-);
+// Simple GET request - errors are automatically logged
+const { data, error } = await http.get("https://api.example.com/data");
 
 if (error) {
-  console.error(`Error (${status}):`, error);
-  if (details) {
-    console.log("Cómo solucionar:", details.solution);
-  }
-} else {
-  // Trabajar directamente con los datos
-  const usuarios = data as Usuario[];
-  usuarios.forEach((usuario) => console.log(usuario.nombre));
+  // Error already logged with details, just handle the error case
+  return;
 }
 
-// Solicitud POST con datos
-const createResponse = await http.post("https://api.example.com/users", {
-  name: "John",
-  email: "john@example.com",
+// Work with the data
+console.log(data);
+
+// Configure logging (optional)
+http.configureLogging({
+  enabled: true,
+  format: "console", // or 'json'
+  colors: true,
 });
-
-if (createResponse.error) {
-  console.error("Error al crear usuario:", createResponse.error);
-} else {
-  console.log("Usuario creado:", createResponse.data);
-}
 ```
 
-Cada respuesta incluye:
+El registro automático de errores incluye:
 
-- **data**: Los datos de la respuesta o `null` si hubo un error
-- **error**: Mensaje de error o `null` si la solicitud fue exitosa
-- **status**: Código de estado HTTP
-- **details** (opcional): Información adicional del error incluyendo:
-  - description: Explicación clara de lo que salió mal
-  - cause: Razón probable del error
-  - solution: Pasos para resolver el problema
-  - example: Ejemplo de código que muestra cómo evitar o manejar el error
+- Mensaje de error y código de estado
+- Descripción detallada de lo que salió mal
+- Causa probable del error
+- Paso sugerido para resolver el problema
+
+Ejemplo de salida de error:
+
+```
+Error (404): Resource not found
+Description: The requested resource could not be found on the server
+Cause: The URL path is incorrect or the resource has been moved
+Solution: Verify the URL path and ensure the resource exists
+```
 
 Los tipos de error incluyen:
 
