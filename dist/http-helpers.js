@@ -44,6 +44,7 @@ exports.initialize = initialize;
 const axios_1 = __importStar(require("axios"));
 const http_errors_1 = require("./http-errors");
 const http_config_1 = require("./http-config");
+const http_logger_1 = require("./http-logger");
 // ===== Sistema de logging avanzado =====
 exports.logger = {
     /**
@@ -112,14 +113,11 @@ exports.logger = {
 // ===== Implementación de HttpErrorHandler =====
 exports.errorHandler = {
     handleError(error) {
-        var _a, _b, _c, _d, _e, _f, _g, _h;
+        var _a, _b, _c, _d, _e, _f;
+        let response;
         // 1. Errores de timeout (más específico primero)
         if (error instanceof http_errors_1.HttpTimeoutError) {
-            exports.logger.error('Error de timeout', {
-                error,
-                details: error.details
-            });
-            return {
+            response = {
                 data: null,
                 error: ((_a = error.details) === null || _a === void 0 ? void 0 : _a.description) || http_errors_1.HttpTimeoutError.ERROR_MESSAGES.TIMEOUT,
                 status: 408,
@@ -127,68 +125,56 @@ exports.errorHandler = {
             };
         }
         // 2. Errores de Axios
-        if ((0, axios_1.isAxiosError)(error)) {
-            exports.logger.error('Error de Axios', {
-                status: (_b = error.response) === null || _b === void 0 ? void 0 : _b.status,
-                message: http_errors_1.HttpAxiosError.ERROR_MESSAGES.AXIOS_ERROR,
-                response: (_c = error.response) === null || _c === void 0 ? void 0 : _c.data
-            });
+        else if ((0, axios_1.isAxiosError)(error)) {
             const axiosError = new http_errors_1.HttpAxiosError();
-            return {
+            response = {
                 data: null,
-                error: ((_d = axiosError.details) === null || _d === void 0 ? void 0 : _d.description) || http_errors_1.HttpAxiosError.ERROR_MESSAGES.AXIOS_ERROR,
-                status: ((_e = error.response) === null || _e === void 0 ? void 0 : _e.status) || 0,
+                error: ((_b = axiosError.details) === null || _b === void 0 ? void 0 : _b.description) || http_errors_1.HttpAxiosError.ERROR_MESSAGES.AXIOS_ERROR,
+                status: ((_c = error.response) === null || _c === void 0 ? void 0 : _c.status) || 0,
                 details: axiosError.details
             };
         }
-        if (error instanceof http_errors_1.HttpAbortedError) {
-            exports.logger.warn('Petición abortada', {
-                error,
-                details: error.details
-            });
-            return {
+        // 3. Errores de aborto
+        else if (error instanceof http_errors_1.HttpAbortedError) {
+            response = {
                 data: null,
-                error: ((_f = error.details) === null || _f === void 0 ? void 0 : _f.description) || http_errors_1.HttpAbortedError.ERROR_MESSAGES.ABORTED,
+                error: ((_d = error.details) === null || _d === void 0 ? void 0 : _d.description) || http_errors_1.HttpAbortedError.ERROR_MESSAGES.ABORTED,
                 status: 0,
                 details: error.details
             };
         }
-        // 3. Errores personalizados de sesión (ej: token expirado)
-        if (error instanceof Error && error.message === 'TokenExpired') {
-            exports.logger.warn('Token expirado', {
-                error,
-                details: error.details
-            });
+        // 4. Errores de autenticación
+        else if (error instanceof Error && error.message === 'TokenExpired') {
             const authError = new http_errors_1.HttpAuthError();
-            return {
+            response = {
                 data: null,
-                error: ((_g = authError.details) === null || _g === void 0 ? void 0 : _g.description) || http_errors_1.HttpAuthError.ERROR_MESSAGES.SESSION_EXPIRED,
+                error: ((_e = authError.details) === null || _e === void 0 ? void 0 : _e.description) || http_errors_1.HttpAuthError.ERROR_MESSAGES.SESSION_EXPIRED,
                 status: 401,
                 details: authError.details
             };
         }
-        // 4. Errores genéricos
-        if (error instanceof Error) {
-            exports.logger.error('Error genérico', {
-                error,
-                details: error.details
-            });
-            return {
+        // 5. Errores genéricos
+        else if (error instanceof Error) {
+            response = {
                 data: null,
                 error: error.message || http_errors_1.HttpNetworkError.ERROR_MESSAGES.NETWORK,
                 status: 0,
                 details: error.details
             };
         }
-        // 5. Último recurso: error desconocido
-        exports.logger.error('Error desconocido', error);
-        const unknownError = new http_errors_1.HttpUnknownError();
-        return {
-            data: null,
-            error: ((_h = unknownError.details) === null || _h === void 0 ? void 0 : _h.description) || http_errors_1.HttpUnknownError.ERROR_MESSAGES.UNKNOWN,
-            status: 0,
-            details: unknownError.details
-        };
+        // 6. Último recurso: error desconocido
+        else {
+            const unknownError = new http_errors_1.HttpUnknownError();
+            response = {
+                data: null,
+                error: ((_f = unknownError.details) === null || _f === void 0 ? void 0 : _f.description) || http_errors_1.HttpUnknownError.ERROR_MESSAGES.UNKNOWN,
+                status: 0,
+                details: unknownError.details
+            };
+        }
+        // Log automático del error
+        http_logger_1.httpLogger.logError(response);
+        return response;
     }
 };
 // ===== Implementación de utilidades de logging =====
