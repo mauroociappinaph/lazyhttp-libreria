@@ -230,6 +230,12 @@ exports.http = {
         if (!streamConfig.enabled) {
             throw new Error('Streaming no está habilitado para esta petición');
         }
+        const proxyConfig = options.proxy || this._proxyConfig;
+        const httpsAgent = this._createProxyAgent(proxyConfig);
+        // Si se especifica rejectUnauthorized como false, desactivamos la verificación de certificados
+        if ((proxyConfig === null || proxyConfig === void 0 ? void 0 : proxyConfig.rejectUnauthorized) === false) {
+            process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+        }
         const axiosConfig = {
             method: 'GET',
             url: this._buildUrl(endpoint),
@@ -237,7 +243,7 @@ exports.http = {
             headers: this._prepareHeaders(options),
             timeout: options.timeout || this._defaultTimeout,
             proxy: false, // Desactivamos el proxy de axios para usar nuestro propio agente
-            httpsAgent: this._createProxyAgent(options.proxy || this._proxyConfig)
+            httpsAgent
         };
         try {
             const response = await (0, axios_1.default)(axiosConfig);
@@ -265,6 +271,12 @@ exports.http = {
             }
             throw error;
         }
+        finally {
+            // Restaurar la configuración de verificación de certificados
+            if ((proxyConfig === null || proxyConfig === void 0 ? void 0 : proxyConfig.rejectUnauthorized) === false) {
+                process.env.NODE_TLS_REJECT_UNAUTHORIZED = '1';
+            }
+        }
     },
     _createProxyAgent(proxyConfig) {
         if (!proxyConfig)
@@ -276,9 +288,13 @@ exports.http = {
             proxyUrl.password = auth.password;
         }
         const proxyString = proxyUrl.toString();
-        return protocol === 'socks'
-            ? new socks_proxy_agent_1.SocksProxyAgent(proxyString)
-            : new https_proxy_agent_1.HttpsProxyAgent(proxyString);
+        // Para SOCKS, usamos la URL directamente
+        if (protocol === 'socks') {
+            return new socks_proxy_agent_1.SocksProxyAgent(proxyString);
+        }
+        // Para HTTPS, configuramos las opciones específicas
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = rejectUnauthorized ? '1' : '0';
+        return new https_proxy_agent_1.HttpsProxyAgent(proxyString);
     },
     _buildUrl(endpoint) {
         // Implement the logic to build the full URL based on the base URL and the endpoint
