@@ -1,7 +1,7 @@
 {
-  "name": "lazyhttp",
-  "version": "1.3.4",
-  "description": "Una librería HTTP fácil de usar con manejo de errores, reintentos, interceptores, y más",
+  "name": "httplazy",
+  "version": "1.4.0",
+  "description": "A powerful and easy-to-use HTTP client library with error handling, retries, interceptors, and more | Una librería HTTP fácil de usar con manejo de errores, reintentos, interceptores, y más",
   "main": "dist/http-index.js",
   "types": "dist/http-index.d.ts",
   "bin": {
@@ -34,6 +34,14 @@
   ],
   "author": "Mauro José Ciappina",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maurociappina/httplazy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/maurociappina/httplazy/issues"
+  },
+  "homepage": "https://github.com/maurociappina/httplazy#readme",
   "dependencies": {
     "axios": "^1.x",
     "https-proxy-agent": "^7.0.6",
