@@ -282,6 +282,57 @@ The automatic logging system:
 - Provides detailed error context when available
 - Can be disabled for production environments if needed
 
+## Utility Functions
+
+LazyHTTP includes utility functions to help work with API responses and complex data structures.
+
+### deepFind
+
+`deepFind` is a utility function that recursively searches through nested objects and arrays to find the first value that satisfies a predicate function.
+
+```javascript
+import { http, deepFind } from "httplazy";
+
+// Fetch data from the API
+const response = await http.get("https://api.example.com/complex-data");
+
+// Find a specific object in a deeply nested structure
+const specificItem = deepFind(
+  response.data,
+  (value) =>
+    typeof value === 'object' &&
+    value !== null &&
+    value.id === 'target-id-123'
+);
+
+if (specificItem) {
+  console.log('Found item:', specificItem);
+} else {
+  console.log('Item not found');
+}
+
+// With TypeScript, you can specify the expected return type
+const user = deepFind<{name: string, email: string}>(
+  response.data,
+  (value) =>
+    typeof value === 'object' &&
+    value !== null &&
+    (value as any).role === 'admin'
+);
+
+if (user) {
+  console.log(`Admin found: ${user.name} (${user.email})`);
+}
+```
+
+This is especially useful when working with:
+
+- Complex nested API responses
+- JSON structures with unknown depth
+- Finding specific items in large data collections
+
+The function safely handles circular references and various data types.
+
 ## Contribuir al Proyecto
 
 ¿Interesado en contribuir a httplazy? ¡Excelente! Antes de comenzar, por favor lee nuestro archivo [DEVELOPMENT.md](./DEVELOPMENT.md) que contiene información importante sobre:
@@ -634,3 +685,54 @@ const companyUsers = await http.get["User"](
 - **Consistent entity naming**: Use the same resource name across your application
 - **Better code navigation**: Makes it easier to search for all API calls related to a specific entity
 - **Cleaner API**: All HTTP methods support this notation (get, post, put, patch, delete, getAll, getById)
+
+## Funciones de Utilidad
+
+LazyHTTP incluye funciones de utilidad para ayudar a trabajar con respuestas de API y estructuras de datos complejas.
+
+### deepFind
+
+`deepFind` es una función de utilidad que busca recursivamente a través de objetos y arrays anidados para encontrar el primer valor que satisface una función de predicado.
+
+```javascript
+import { http, deepFind } from "httplazy";
+
+// Obtener datos de la API
+const response = await http.get("https://api.example.com/complex-data");
+
+// Encontrar un objeto específico en una estructura profundamente anidada
+const elementoEspecifico = deepFind(
+  response.data,
+  (value) =>
+    typeof value === 'object' &&
+    value !== null &&
+    value.id === 'target-id-123'
+);
+
+if (elementoEspecifico) {
+  console.log('Elemento encontrado:', elementoEspecifico);
+} else {
+  console.log('Elemento no encontrado');
+}
+
+// Con TypeScript, puedes especificar el tipo de retorno esperado
+const usuario = deepFind<{nombre: string, email: string}>(
+  response.data,
+  (value) =>
+    typeof value === 'object' &&
+    value !== null &&
+    (value as any).rol === 'admin'
+);
+
+if (usuario) {
+  console.log(`Administrador encontrado: ${usuario.nombre} (${usuario.email})`);
+}
+```
+
+Esto es especialmente útil cuando trabajas con:
+
+- Respuestas de API anidadas complejas
+- Estructuras JSON con profundidad desconocida
+- Búsqueda de elementos específicos en grandes colecciones de datos
+
+La función maneja de forma segura referencias circulares y varios tipos de datos.
