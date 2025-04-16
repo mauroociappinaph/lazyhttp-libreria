@@ -2,7 +2,7 @@ import {
   AuthConfig,
   UserCredentials,
   AuthInfo
-} from '../http.types';
+} from '../../http.types';
 
 import {
   configureAuth as configureAuthHelper,
@@ -18,9 +18,9 @@ import {
   storeToken as storeTokenHelper,
   getToken as getTokenHelper,
   removeToken as removeTokenHelper
-} from '../http-auth';
+} from '../../http-auth';
 
-import { metricsManager } from '../metrics/http-metrics-index';
+import { metricsManager } from '../../metrics/http-metrics-index';
 
 /**
  * AuthManager - Responsable de manejar todas las operaciones de autenticación

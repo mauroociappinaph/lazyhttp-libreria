@@ -6,7 +6,7 @@
  */
 
 // Core exports - client instance and basic types
-export { http } from './client/http-exports';
+export { http } from './client/exports/http-exports';
 export {
   HttpImplementation,
   RequestOptions,
@@ -34,7 +34,7 @@ export {
   patch,
   del,
   stream
-} from './client/http-methods';
+} from './client/exports/http-methods';
 
 // Authentication exports
 export {
@@ -44,7 +44,7 @@ export {
   isAuthenticated,
   getAuthenticatedUser,
   getAccessToken
-} from './client/http-auth-exports';
+} from './client/exports/http-auth-exports';
 
 // Configuration exports
 export {
@@ -55,13 +55,13 @@ export {
   configureMetrics,
   trackActivity,
   getCurrentMetrics
-} from './client/http-config-exports';
+} from './client/exports/http-config-exports';
 
 // Logger exports
 export {
   httpLogger,
   LoggerConfig
-} from './client/http-logger-exports';
+} from './client/exports/http-logger-exports';
 
 
 

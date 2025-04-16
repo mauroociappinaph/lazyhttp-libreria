@@ -1,4 +1,4 @@
-import { HttpClient } from './http-client';
+import { HttpClient } from '../core/http-client';
 import {
   HttpImplementation,
   ProxyConfig,
@@ -7,7 +7,7 @@ import {
   UserCredentials,
   CacheConfig,
   MetricsConfig
-} from '../http.types';
+} from '../../http.types';
 import { ReadableStream } from 'stream/web';
 
 /**

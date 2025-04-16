@@ -1,6 +1,6 @@
-import { HttpCore } from '../http-core';
-import { ProxyConfig, StreamConfig } from '../http.types';
-import { httpConfiguration } from '../http-configuration';
+import { HttpCore } from '../../http-core';
+import { ProxyConfig, StreamConfig } from '../../http.types';
+import { httpConfiguration } from '../../http-configuration';
 
 /**
  * PropertyManager - Responsable de gestionar las propiedades de configuración del cliente HTTP

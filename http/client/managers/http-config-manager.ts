@@ -3,8 +3,8 @@ import {
   MetricsConfig,
   ProxyConfig,
   StreamConfig
-} from '../http.types';
-import { httpConfiguration } from '../http-configuration';
+} from '../../http.types';
+import { httpConfiguration } from '../../http-configuration';
 import { HttpPropertyManager } from './http-property-manager';
 
 /**

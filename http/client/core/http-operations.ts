@@ -1,4 +1,4 @@
-import { RequestOptions, ApiResponse } from '../http.types';
+import { RequestOptions, ApiResponse } from '../../http.types';
 import { ReadableStream } from 'stream/web';
 
 /**

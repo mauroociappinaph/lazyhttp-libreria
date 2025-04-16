@@ -1,15 +1,5 @@
 /**
- * Client module exports - Barrel file for all client functionality
+ * Barrel file para la capa de cliente HTTP
+ * Re-exporta todo desde core/index.ts para mantener compatibilidad
  */
-
-// Client implementation
-export * from './http-client';
-
-// Main exports
-export * from './http-exports';
-
-// Modular exports by category
-export * from './http-methods';
-export * from './http-auth-exports';
-export * from './http-config-exports';
-export * from './http-logger-exports';
+export * from './core';

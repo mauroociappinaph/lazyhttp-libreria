@@ -1,15 +1,15 @@
 // Core imports
-import { HttpCore } from '../http-core';
+import { HttpCore } from '../../http-core';
 import {
   HttpImplementation, RequestOptions, ApiResponse,
   AuthConfig, UserCredentials, AuthInfo,
   ProxyConfig, StreamConfig
-} from '../http.types';
+} from '../../http.types';
 import {
   prepareHeaders,
   refreshToken as refreshTokenHelper,
   handleRefreshTokenFailure as handleRefreshTokenFailureHelper
-} from '../http-helpers';
+} from '../../http-helpers';
 
 // Auth imports
 import {
@@ -26,28 +26,28 @@ import {
   storeToken as storeTokenHelper,
   getToken as getTokenHelper,
   removeToken as removeTokenHelper
-} from '../http-auth';
+} from '../../http-auth';
 
 // Configuration imports
-import { httpConfiguration } from '../http-configuration';
-import { interceptorsManager } from '../http-interceptors-manager';
+import { httpConfiguration } from '../../http-configuration';
+import { interceptorsManager } from '../../http-interceptors-manager';
 
 // Metrics imports
-import { metricsManager } from '../metrics/http-metrics-index';
+import { metricsManager } from '../../metrics/http-metrics-index';
 
 // Streaming imports
-import { streamingManager } from '../http-streaming';
+import { streamingManager } from '../../http-streaming';
 
 // Direct dependencies
 import axios from 'axios';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { SocksProxyAgent } from 'socks-proxy-agent';
-import { httpLogger } from '../http-logger';
+import { httpLogger } from '../../http-logger';
 
 // Manager imports
-import { HttpPropertyManager } from './http-property-manager';
-import { HttpAuthManager } from './http-auth-manager';
-import { HttpConfigManager } from './http-config-manager';
+import { HttpPropertyManager } from '../managers/http-property-manager';
+import { HttpAuthManager } from '../managers/http-auth-manager';
+import { HttpConfigManager } from '../managers/http-config-manager';
 import { HttpOperations } from './http-operations';
 
 /**
