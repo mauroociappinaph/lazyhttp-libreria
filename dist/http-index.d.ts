@@ -11,3 +11,4 @@ export declare const loadStreamingModule: () => Promise<{
 export declare const loadProxyModule: () => Promise<{
     configureProxy: (config: import("./http.types").ProxyConfig) => void;
 }>;
+export { deepFindLazy } from './utils';
