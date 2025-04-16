@@ -55,6 +55,16 @@ export interface RequestOptions {
    * Configuración de caché para la petición
    */
   cache?: CacheOptions;
+
+  /**
+   * Configuración de proxy para esta petición
+   */
+  proxy?: ProxyConfig;
+
+  /**
+   * Configuración de streaming para esta petición
+   */
+  stream?: StreamConfig;
 }
 
 /**
@@ -80,6 +90,16 @@ export interface ApiResponse<T> {
    * Metadatos adicionales de la respuesta
    */
   meta?: Record<string, any>;
+
+  /**
+   * Detalles adicionales del error (si lo hay)
+   */
+  details?: {
+    description: string;
+    cause: string;
+    solution: string;
+    example?: string;
+  };
 }
 
 /**
@@ -245,6 +265,41 @@ export interface HttpImplementation extends HttpClient {
    * @param key Clave del token
    */
   _removeToken(key: string): void;
+
+  /**
+   * Configura el proxy global para todas las peticiones
+   * @param config Configuración del proxy
+   */
+  configureProxy(config: ProxyConfig): void;
+
+  /**
+   * Realiza una petición con streaming
+   * @param endpoint Endpoint al que realizar la petición
+   * @param options Opciones de la petición
+   * @returns Stream de datos
+   */
+  stream<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ReadableStream<T>>;
+
+  /**
+   * Construye la URL completa basada en la URL base y el endpoint
+   * @param endpoint Endpoint a construir
+   * @returns URL completa
+   */
+  _buildUrl(endpoint: string): string;
+
+  /**
+   * Prepara las cabeceras HTTP para la petición
+   * @param options Opciones de la petición
+   * @returns Cabeceras HTTP preparadas
+   */
+  _prepareHeaders(options: RequestOptions): Record<string, string>;
+
+  /**
+   * Crea un agente de proxy basado en la configuración
+   * @param proxyConfig Configuración del proxy
+   * @returns Agente de proxy o undefined si no hay configuración
+   */
+  _createProxyAgent(proxyConfig?: ProxyConfig): any;
 }
 
 /**
@@ -325,94 +380,39 @@ export interface ApiResponseWithPagination<T> extends ApiResponse<T> {
 export type AuthType = 'jwt' | 'oauth2' | 'basic' | 'session';
 
 /**
- * Opciones para el almacenamiento de tokens
+ * Opciones para la configuración de cookies
  */
-export type StorageType = 'localStorage' | 'sessionStorage' | 'secureStorage' | 'memory';
+export interface CookieOptions {
+  maxAge?: number;
+  expires?: Date;
+  domain?: string;
+  path?: string;
+  secure?: boolean;
+  httpOnly?: boolean;
+  sameSite?: 'Strict' | 'Lax' | 'None';
+}
 
 /**
- * Configuración del sistema de autenticación
+ * Tipo de almacenamiento para los tokens de autenticación
+ */
+export type StorageType = 'cookie' | 'localStorage' | 'sessionStorage';
+
+/**
+ * Configuración de autenticación
  */
 export interface AuthConfig {
-  /**
-   * Tipo de autenticación a utilizar
-   * @default 'jwt'
-   */
-  type: AuthType;
-
-  /**
-   * Endpoints para la autenticación
-   */
-  endpoints: {
-    /**
-     * Endpoint para obtener token (login)
-     */
-    token: string;
-
-    /**
-     * Endpoint para refrescar token
-     */
-    refresh?: string;
-
-    /**
-     * Endpoint para cerrar sesión
-     */
-    logout?: string;
-
-    /**
-     * Endpoint para obtener información del usuario
-     */
-    userInfo?: string;
-  };
-
-  /**
-   * ID de cliente (para OAuth2)
-   */
-  clientId?: string;
-
-  /**
-   * Secreto de cliente (para OAuth2)
-   */
-  clientSecret?: string;
-
-  /**
-   * Tipo de almacenamiento para tokens
-   * @default 'localStorage'
-   */
+  baseURL: string;
+  loginEndpoint: string;
+  logoutEndpoint: string;
+  userInfoEndpoint?: string;
+  refreshEndpoint?: string;
+  tokenKey: string;
+  refreshTokenKey: string;
   storage: StorageType;
-
-  /**
-   * Nombres de las claves para almacenar tokens
-   */
-  tokenKeys: {
-    /**
-     * Clave para el token de acceso
-     * @default 'token'
-     */
-    accessToken: string;
-
-    /**
-     * Clave para el token de refresco
-     * @default 'refreshToken'
-     */
-    refreshToken?: string;
-  };
-
-  /**
-   * Refrescar automáticamente el token antes de que expire
-   * @default true
-   */
-  autoRefresh: boolean;
-
-  /**
-   * Margen de tiempo (en segundos) antes de la expiración para refrescar el token
-   * @default 60
-   */
-  refreshMargin?: number;
-
-  /**
-   * Callback a ejecutar en caso de error de autenticación
-   */
-  onAuthError?: (error: any) => void;
+  cookieOptions?: CookieOptions;
+  onLogin?: (response: AuthResponse) => void;
+  onLogout?: () => void;
+  onError?: (error: any) => void;
 }
 
 /**
@@ -479,8 +479,34 @@ export interface AuthResponse {
   expires_in?: number;
 }
 
+/**
+ * Detalles de un error HTTP
+ */
+export interface ErrorDetails {
+  /**
+   * Descripción detallada del error
+   */
+  description: string;
+
+  /**
+   * Causa probable del error
+   */
+  cause: string;
+
+  /**
+   * Pasos para resolver el error
+   */
+  solution: string;
+
+  /**
+   * Ejemplo de código para evitar o manejar el error
+   */
+  example?: string;
+}
+
 export class HttpError extends Error {
   suggestion?: string;
+  details?: ErrorDetails;
 
   static ERROR_MESSAGES: Record<string, string> = {
     TIMEOUT: 'La solicitud ha excedido el tiempo de espera',
@@ -612,4 +638,148 @@ export interface CacheEntry<T> {
    * Tags asociados
    */
   tags?: string[];
+}
+
+/**
+ * Métricas de sesión del usuario
+ */
+export interface SessionMetrics {
+  /**
+   * Tiempo de inicio de la sesión (timestamp)
+   */
+  loginTime: number;
+
+  /**
+   * Última actividad registrada (timestamp)
+   */
+  lastActivity: number;
+
+  /**
+   * Tiempo total acumulado en esta sesión (en ms)
+   */
+  activeTime: number;
+
+  /**
+   * Tiempo de cierre de sesión, si está disponible
+   */
+  logoutTime?: number;
+
+  /**
+   * Número de solicitudes HTTP realizadas
+   */
+  requestCount: number;
+
+  /**
+   * Mapa de tipos de actividades y sus conteos
+   * Ejemplo: { 'click': 5, 'form_submit': 2 }
+   */
+  activities: Record<string, number>;
+
+  /**
+   * Rutas visitadas durante la sesión
+   */
+  visitedRoutes: string[];
+
+  /**
+   * ID de sesión único
+   */
+  sessionId: string;
+}
+
+/**
+ * Configuración del sistema de métricas
+ */
+export interface MetricsConfig {
+  /**
+   * Si las métricas están habilitadas
+   */
+  enabled: boolean;
+
+  /**
+   * URL del endpoint para enviar métricas
+   */
+  endpoint?: string;
+
+  /**
+   * Intervalo para enviar métricas al servidor (en ms)
+   * Si es 0, solo se envían al cerrar sesión
+   */
+  reportingInterval?: number;
+
+  /**
+   * Si se debe rastrear la ruta activa
+   */
+  trackRoutes?: boolean;
+
+  /**
+   * Eventos del usuario a rastrear (clicks, form_submit, etc.)
+   */
+  trackEvents?: string[];
+
+  /**
+   * Función a ejecutar cuando hay nuevas métricas
+   */
+  onMetricsUpdate?: (metrics: SessionMetrics) => void;
+}
+
+/**
+ * Configuración de proxy
+ */
+export interface ProxyConfig {
+  /**
+   * URL del proxy
+   */
+  url: string;
+
+  /**
+   * Credenciales del proxy (opcional)
+   */
+  auth?: {
+    username: string;
+    password: string;
+  };
+
+  /**
+   * Protocolo del proxy (http, https, socks)
+   * @default 'http'
+   */
+  protocol?: 'http' | 'https' | 'socks';
+
+  /**
+   * Si se debe ignorar el certificado SSL del proxy
+   * @default false
+   */
+  rejectUnauthorized?: boolean;
+}
+
+/**
+ * Configuración de streaming
+ */
+export interface StreamConfig {
+  /**
+   * Si se debe usar streaming para esta petición
+   * @default false
+   */
+  enabled?: boolean;
+
+  /**
+   * Tamaño del chunk en bytes
+   * @default 8192
+   */
+  chunkSize?: number;
+
+  /**
+   * Callback para procesar cada chunk de datos
+   */
+  onChunk?: (chunk: any) => void;
+
+  /**
+   * Callback para cuando el streaming ha terminado
+   */
+  onEnd?: () => void;
+
+  /**
+   * Callback para manejar errores durante el streaming
+   */
+  onError?: (error: Error) => void;
 }

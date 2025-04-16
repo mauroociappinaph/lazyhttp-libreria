@@ -1,0 +1,24 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Ejecutando verificaciones pre-commit con Husky para httplazy..."
+
+# Ejecutar lint-staged para verificar los archivos staged
+npx lint-staged
+
+# Verificar dependencias circulares
+echo "📊 Verificando dependencias circulares..."
+npx madge --circular http/ ||
+(
+  echo "⛔ Se detectaron dependencias circulares. Ejecuta 'npx madge --circular http/' para más detalles."
+  exit 1
+)
+
+# Verificar reglas de exportación (no usar export default)
+echo "📦 Verificando reglas de exportación..."
+grep -r "export default" http/ --include="*.ts" | grep -v "node_modules" > /dev/null
+if [ $? -eq 0 ]; then
+  echo "⚠️ Advertencia: Se encontraron usos de 'export default'. Considera usar exportaciones nombradas."
+fi
+
+echo "✅ Todas las verificaciones pasaron correctamente."

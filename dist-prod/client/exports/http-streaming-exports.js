@@ -1,0 +1,1 @@
+"use strict";Object.defineProperty(exports,"__esModule",{value:!0}),exports.stream=void 0;const http_exports_1=require("./http-exports");exports.stream=http_exports_1.http.stream.bind(http_exports_1.http);

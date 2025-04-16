@@ -1,25 +1,20 @@
-import { AuthConfig, AuthInfo, AuthResponse, UserCredentials, StorageType } from './http.types';
+import { AuthConfig, AuthInfo, AuthResponse, CookieOptions } from './http.types';
 import { API_URL } from './http-config';
 import axios from 'axios';
+import { CookieManager } from './cookie-manager';
 
 /**
  * Configuración por defecto de autenticación
  */
 export const DEFAULT_AUTH_CONFIG: AuthConfig = {
-  type: 'jwt',
-  endpoints: {
-    token: '/auth/login',
-    refresh: '/auth/refresh',
-    logout: '/auth/logout',
-    userInfo: '/auth/me'
-  },
-  storage: 'localStorage',
-  tokenKeys: {
-    accessToken: 'token',
-    refreshToken: 'refreshToken'
-  },
-  autoRefresh: true,
-  refreshMargin: 60
+  baseURL: '',
+  loginEndpoint: '/auth/login',
+  logoutEndpoint: '/auth/logout',
+  userInfoEndpoint: '/auth/me',
+  refreshEndpoint: '/auth/refresh',
+  tokenKey: 'token',
+  refreshTokenKey: 'refreshToken',
+  storage: 'localStorage'
 };
 
 /**
@@ -33,7 +28,14 @@ export let authState: AuthInfo = {
 /**
  * Configuración actual de autenticación
  */
-export let currentAuthConfig: AuthConfig = { ...DEFAULT_AUTH_CONFIG };
+export let currentAuthConfig: AuthConfig = {
+  baseURL: '',
+  loginEndpoint: '/login',
+  logoutEndpoint: '/logout',
+  tokenKey: 'token',
+  refreshTokenKey: 'refreshToken',
+  storage: 'localStorage'
+};
 
 /**
  * Configura el sistema de autenticación
@@ -41,27 +43,19 @@ export let currentAuthConfig: AuthConfig = { ...DEFAULT_AUTH_CONFIG };
  */
 export function configureAuth(config: Partial<AuthConfig>): void {
   currentAuthConfig = {
-    ...DEFAULT_AUTH_CONFIG,
-    ...config,
-    endpoints: {
-      ...DEFAULT_AUTH_CONFIG.endpoints,
-      ...config.endpoints
-    },
-    tokenKeys: {
-      ...DEFAULT_AUTH_CONFIG.tokenKeys,
-      ...config.tokenKeys
-    }
+    ...currentAuthConfig,
+    ...config
   };
 
   // Inicializar estado con tokens almacenados
-  const accessToken = getToken(currentAuthConfig.tokenKeys.accessToken);
+  const accessToken = getToken(currentAuthConfig.tokenKey);
   if (accessToken) {
     const tokenData = decodeToken(accessToken);
     const expiresAt = tokenData?.exp ? tokenData.exp * 1000 : undefined;
 
     // Solo consideramos válido si no está expirado
     if (!expiresAt || expiresAt > Date.now()) {
-      const refreshTokenKey = currentAuthConfig.tokenKeys.refreshToken || '';
+      const refreshTokenKey = currentAuthConfig.refreshTokenKey || '';
       const refreshToken = getToken(refreshTokenKey);
 
       authState = {
@@ -72,9 +66,9 @@ export function configureAuth(config: Partial<AuthConfig>): void {
       };
     } else {
       // Limpiar tokens expirados
-      removeToken(currentAuthConfig.tokenKeys.accessToken);
-      if (currentAuthConfig.tokenKeys.refreshToken) {
-        removeToken(currentAuthConfig.tokenKeys.refreshToken);
+      removeToken(currentAuthConfig.tokenKey);
+      if (currentAuthConfig.refreshTokenKey) {
+        removeToken(currentAuthConfig.refreshTokenKey);
       }
     }
   }
@@ -85,56 +79,31 @@ export function configureAuth(config: Partial<AuthConfig>): void {
  * @param credentials Credenciales del usuario
  * @returns Información de autenticación
  */
-export async function login(credentials: UserCredentials): Promise<AuthInfo> {
+export async function login(credentials: { username: string; password: string }): Promise<AuthResponse> {
   try {
-    const endpoint = `${API_URL}${currentAuthConfig.endpoints.token}`;
-    const response = await axios.post<AuthResponse>(endpoint, credentials);
+    const response = await fetch(`${currentAuthConfig.baseURL}${currentAuthConfig.loginEndpoint}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(credentials)
+    });
 
-    if (!response.data.access_token) {
-      throw new Error('No se recibió un token de acceso');
+    if (!response.ok) {
+      throw new Error('Login failed');
     }
 
-    // Extraer datos de la respuesta
-    const { access_token, refresh_token, expires_in } = response.data;
+    const data = await response.json();
+    storeToken(data.token, data.refreshToken);
 
-    // Calcular tiempo de expiración
-    const expiresAt = expires_in
-      ? Date.now() + (expires_in * 1000)
-      : undefined;
-
-    // Almacenar tokens
-    storeToken(currentAuthConfig.tokenKeys.accessToken, access_token);
-    if (refresh_token && currentAuthConfig.tokenKeys.refreshToken) {
-      storeToken(currentAuthConfig.tokenKeys.refreshToken, refresh_token);
+    if (currentAuthConfig.onLogin) {
+      currentAuthConfig.onLogin(data);
     }
 
-    // Actualizar estado
-    authState = {
-      accessToken: access_token,
-      refreshToken: refresh_token,
-      expiresAt,
-      isAuthenticated: true
-    };
-
-    // Cargar información del usuario si está configurado
-    if (currentAuthConfig.endpoints.userInfo) {
-      try {
-        const userResponse = await axios.get(`${API_URL}${currentAuthConfig.endpoints.userInfo}`, {
-          headers: {
-            Authorization: `Bearer ${access_token}`
-          }
-        });
-        authState.user = userResponse.data;
-      } catch (error) {
-        console.warn('No se pudo cargar la información del usuario');
-      }
-    }
-
-    return authState;
+    return data;
   } catch (error) {
-    // Manejar error de autenticación
-    if (currentAuthConfig.onAuthError) {
-      currentAuthConfig.onAuthError(error);
+    if (currentAuthConfig.onError) {
+      currentAuthConfig.onError(error);
     }
     throw error;
   }
@@ -144,30 +113,26 @@ export async function login(credentials: UserCredentials): Promise<AuthInfo> {
  * Cierra la sesión actual
  */
 export async function logout(): Promise<void> {
-  // Llamar al endpoint de logout si está configurado
-  if (currentAuthConfig.endpoints.logout && authState.accessToken) {
-    try {
-      await axios.post(`${API_URL}${currentAuthConfig.endpoints.logout}`, null, {
+  try {
+    const token = getToken(currentAuthConfig.tokenKey);
+    if (token) {
+      await fetch(`${currentAuthConfig.baseURL}${currentAuthConfig.logoutEndpoint}`, {
+        method: 'POST',
         headers: {
-          Authorization: `Bearer ${authState.accessToken}`
+          'Authorization': `Bearer ${token}`
         }
       });
-    } catch (error) {
-      console.warn('Error al cerrar sesión en el servidor', error);
+    }
+  } catch (error) {
+    if (currentAuthConfig.onError) {
+      currentAuthConfig.onError(error);
+    }
+  } finally {
+    removeToken(currentAuthConfig.tokenKey);
+    if (currentAuthConfig.onLogout) {
+      currentAuthConfig.onLogout();
     }
   }
-
-  // Limpiar tokens almacenados
-  removeToken(currentAuthConfig.tokenKeys.accessToken);
-  if (currentAuthConfig.tokenKeys.refreshToken) {
-    removeToken(currentAuthConfig.tokenKeys.refreshToken);
-  }
-
-  // Resetear estado
-  authState = {
-    accessToken: '',
-    isAuthenticated: false
-  };
 }
 
 /**
@@ -175,17 +140,7 @@ export async function logout(): Promise<void> {
  * @returns `true` si está autenticado, `false` en caso contrario
  */
 export function isAuthenticated(): boolean {
-  // Verificar si está autenticado y el token no ha expirado
-  if (!authState.isAuthenticated || !authState.accessToken) {
-    return false;
-  }
-
-  // Si hay expiración definida, verificar
-  if (authState.expiresAt) {
-    return authState.expiresAt > Date.now();
-  }
-
-  return true;
+  return !!getToken(currentAuthConfig.tokenKey);
 }
 
 /**
@@ -203,9 +158,9 @@ export async function getAuthenticatedUser(): Promise<any | null> {
   }
 
   // Si no, intentar cargarla
-  if (currentAuthConfig.endpoints.userInfo) {
+  if (currentAuthConfig.userInfoEndpoint) {
     try {
-      const response = await axios.get(`${API_URL}${currentAuthConfig.endpoints.userInfo}`, {
+      const response = await axios.get(`${API_URL}${currentAuthConfig.userInfoEndpoint}`, {
         headers: {
           Authorization: `Bearer ${authState.accessToken}`
         }
@@ -237,12 +192,12 @@ export function getAccessToken(): string | null {
  * @returns El nuevo token de autenticación
  */
 export async function refreshToken(): Promise<string> {
-  if (!currentAuthConfig.endpoints.refresh || !authState.refreshToken) {
+  if (!currentAuthConfig.refreshEndpoint || !authState.refreshToken) {
     throw new Error('No hay configuración para refrescar token');
   }
 
   try {
-    const endpoint = `${API_URL}${currentAuthConfig.endpoints.refresh}`;
+    const endpoint = `${API_URL}${currentAuthConfig.refreshEndpoint}`;
     const response = await axios.post<AuthResponse>(endpoint, {
       refresh_token: authState.refreshToken
     });
@@ -260,9 +215,9 @@ export async function refreshToken(): Promise<string> {
       : undefined;
 
     // Almacenar tokens
-    storeToken(currentAuthConfig.tokenKeys.accessToken, access_token);
-    if (refresh_token && currentAuthConfig.tokenKeys.refreshToken) {
-      storeToken(currentAuthConfig.tokenKeys.refreshToken, refresh_token);
+    storeToken(currentAuthConfig.tokenKey, access_token);
+    if (refresh_token && currentAuthConfig.refreshTokenKey) {
+      storeToken(currentAuthConfig.refreshTokenKey, refresh_token);
     }
 
     // Actualizar estado
@@ -277,8 +232,8 @@ export async function refreshToken(): Promise<string> {
     return access_token;
   } catch (error) {
     // Manejar error de refresco
-    if (currentAuthConfig.onAuthError) {
-      currentAuthConfig.onAuthError(error);
+    if (currentAuthConfig.onError) {
+      currentAuthConfig.onError(error);
     }
     throw error;
   }
@@ -289,9 +244,9 @@ export async function refreshToken(): Promise<string> {
  */
 export async function handleRefreshTokenFailure(): Promise<void> {
   // Limpiar tokens almacenados
-  removeToken(currentAuthConfig.tokenKeys.accessToken);
-  if (currentAuthConfig.tokenKeys.refreshToken) {
-    removeToken(currentAuthConfig.tokenKeys.refreshToken);
+  removeToken(currentAuthConfig.tokenKey);
+  if (currentAuthConfig.refreshTokenKey) {
+    removeToken(currentAuthConfig.refreshTokenKey);
   }
 
   // Resetear estado
@@ -301,8 +256,8 @@ export async function handleRefreshTokenFailure(): Promise<void> {
   };
 
   // Notificar error de autenticación
-  if (currentAuthConfig.onAuthError) {
-    currentAuthConfig.onAuthError(new Error('Falló el refresco del token'));
+  if (currentAuthConfig.onError) {
+    currentAuthConfig.onError(new Error('Falló el refresco del token'));
   }
 }
 
@@ -355,21 +310,20 @@ export function isTokenExpired(token: string | number): boolean {
  * @param value Valor del token
  */
 export function storeToken(key: string, value: string): void {
+  const cookieOptions: CookieOptions = {
+    ...currentAuthConfig.cookieOptions,
+    path: '/'
+  };
+
   switch (currentAuthConfig.storage) {
+    case 'cookie':
+      CookieManager.set(key, value, cookieOptions);
+      break;
     case 'localStorage':
       localStorage.setItem(key, value);
       break;
     case 'sessionStorage':
       sessionStorage.setItem(key, value);
-      break;
-    case 'secureStorage':
-      // Implementación para almacenamiento seguro
-      // En un entorno real, se integraría con alguna biblioteca
-      // de almacenamiento seguro o encriptación
-      localStorage.setItem(`secure_${key}`, value);
-      break;
-    case 'memory':
-      // No hacer nada, ya se guarda en authState
       break;
   }
 }
@@ -377,26 +331,19 @@ export function storeToken(key: string, value: string): void {
 /**
  * Obtiene un token del almacenamiento configurado
  * @param key Clave del token
- * @returns Token almacenado o `null` si no existe
+ * @returns Valor del token o null si no existe
  */
 export function getToken(key: string): string | null {
   switch (currentAuthConfig.storage) {
+    case 'cookie':
+      return CookieManager.get(key);
     case 'localStorage':
       return localStorage.getItem(key);
     case 'sessionStorage':
       return sessionStorage.getItem(key);
-    case 'secureStorage':
-      return localStorage.getItem(`secure_${key}`);
-    case 'memory':
-      // Para memory, depende del tipo de token
-      if (key === currentAuthConfig.tokenKeys.accessToken) {
-        return authState.accessToken;
-      } else if (key === currentAuthConfig.tokenKeys.refreshToken) {
-        return authState.refreshToken || null;
-      }
+    default:
       return null;
   }
-  return null;
 }
 
 /**
@@ -405,17 +352,14 @@ export function getToken(key: string): string | null {
  */
 export function removeToken(key: string): void {
   switch (currentAuthConfig.storage) {
+    case 'cookie':
+      CookieManager.remove(key, currentAuthConfig.cookieOptions);
+      break;
     case 'localStorage':
       localStorage.removeItem(key);
       break;
     case 'sessionStorage':
       sessionStorage.removeItem(key);
-      break;
-    case 'secureStorage':
-      localStorage.removeItem(`secure_${key}`);
-      break;
-    case 'memory':
-      // No hacer nada, se limpiará en el estado
       break;
   }
 }
