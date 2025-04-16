@@ -1,4 +1,4 @@
-import { HttpImplementation, RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, CacheConfig, MetricsConfig, ProxyConfig, StreamConfig } from './http.types';
+import { HttpImplementation, RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, ProxyConfig, StreamConfig, MetricsConfig, CacheConfig } from './barrels';
 export declare const http: HttpImplementation & {
     configureCaching: (config: CacheConfig) => void;
     invalidateCache: (pattern: string) => void;

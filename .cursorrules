@@ -1,0 +1,65 @@
+# Reglas de Desarrollo para httplazy
+
+Este archivo contiene guías y mejores prácticas para mantener la calidad y la arquitectura del código mientras se desarrolla la biblioteca httplazy.
+
+## Estructura de código y organización
+
+- Organizar código en módulos por dominio funcional (auth, cache, core, etc.)
+- Usar la estructura de sub-barriles para exportaciones
+- Colocar nuevas funcionalidades en el dominio apropiado o crear uno nuevo
+
+## Optimización para Tree-Shaking
+
+- Usar exportaciones nombradas (`export { x }`) en lugar de exportaciones por defecto
+- Evitar `export default` para componentes principales
+- Mantener la práctica de importaciones específicas en los consumidores
+- Usar importaciones selectivas cuando sea posible (`import { X } from './y'`)
+- Evitar re-exportar todo el contenido de un módulo sin filtrado
+
+## Prevención de Dependencias Circulares
+
+- Mantener la separación clara entre módulos
+- Usar inyección de dependencias cuando sea necesario
+- Ejecutar `npx madge --circular http/` periódicamente para detectar problemas
+- Evitar que módulos de bajo nivel importen de módulos de alto nivel
+- Utilizar interfaces para desacoplar implementaciones concretas
+
+## Claridad en Relaciones de Dependencia
+
+- Actualizar la documentación cuando se añadan nuevos sub-barriles
+- Mantener los comentarios en las secciones de importación
+- Usar JSDoc para documentar propósitos de importación
+- Agrupar importaciones por categoría o dominio
+- Evitar importaciones "mágicas" sin contexto o explicación
+
+## Control de Calidad y Mantenimiento
+
+- Ejecutar `npx tsc` antes de commits para verificar tipos
+- Mantener la cobertura de pruebas para nuevas funcionalidades
+- Documentar APIs públicas con ejemplos
+- Actualizar el README con nuevas características
+- Ejecutar análisis de dependencias periódicamente
+
+## Convenciones de Nomenclatura
+
+- Usar PascalCase para clases e interfaces
+- Usar camelCase para variables y funciones
+- Usar UPPER_CASE para constantes
+- Usar prefijos descriptivos para interfaces (I) o tipos (T) cuando ayude a la claridad
+- Mantener consistencia con el estilo existente del código
+
+## Comandos Útiles
+
+```bash
+# Verificar dependencias circulares
+npx madge --circular http/
+
+# Generar gráfico de dependencias (requiere Graphviz)
+npx madge --image deps.png http/
+
+# Comprobar tipos y compilación
+npx tsc
+
+# Ver estructura de dependencias en consola
+npx madge --tsconfig tsconfig.json http/http-index.ts
+```

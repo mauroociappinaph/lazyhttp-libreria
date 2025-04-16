@@ -1,40 +1,51 @@
-import { HttpImplementation, RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, CacheConfig, MetricsConfig, ProxyConfig, StreamConfig } from './http.types';
+// Importación simplificada desde barrels
 import {
-  retryHandler,
-  errorHandler,
+  // Core
+  HttpImplementation,
+  RequestOptions,
+  ApiResponse,
+  HttpCore,
   prepareHeaders,
-  setupInterceptors,
-  refreshToken as refreshTokenHelper,
-  handleRefreshTokenFailure as handleRefreshTokenFailureHelper,
-  initialize as initializeHelper
-} from './http-helpers';
-import {
-  configureAuth as configureAuthHelper,
-  login as loginHelper,
-  logout as logoutHelper,
-  isAuthenticated as isAuthenticatedHelper,
-  getAuthenticatedUser as getAuthenticatedUserHelper,
-  getAccessToken as getAccessTokenHelper,
-  refreshToken as refreshTokenAuthHelper,
-  handleRefreshTokenFailure as handleRefreshTokenFailureAuthHelper,
-  decodeToken as decodeTokenHelper,
-  isTokenExpired as isTokenExpiredHelper,
-  storeToken as storeTokenHelper,
-  getToken as getTokenHelper,
-  removeToken as removeTokenHelper
-} from './http-auth';
-import { cacheManager } from './http-cache';
-import { executeWithCacheStrategy } from './http-cache-strategies';
-import { metricsManager } from './metrics/http-metrics-index';
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+
+  // Auth
+  AuthConfig,
+  UserCredentials,
+  AuthInfo,
+  configureAuthHelper,
+  loginHelper,
+  logoutHelper,
+  isAuthenticatedHelper,
+  getAuthenticatedUserHelper,
+  getAccessTokenHelper,
+  refreshTokenAuthHelper,
+  handleRefreshTokenFailureAuthHelper,
+  decodeTokenHelper,
+  isTokenExpiredHelper,
+  storeTokenHelper,
+  getTokenHelper,
+  removeTokenHelper,
+
+  // Config
+  ProxyConfig,
+  StreamConfig,
+  httpConfiguration,
+  interceptorsManager,
+
+  // Metrics
+  MetricsConfig,
+  metricsManager,
+
+  // Cache
+  CacheConfig,
+
+  // Streaming
+  streamingManager
+} from './barrels';
+
+// Importaciones directas que necesitamos
+import axios from 'axios';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { SocksProxyAgent } from 'socks-proxy-agent';
-
-// Importar los módulos modulares
-import { HttpCore } from './http-core';
-import { interceptorsManager } from './http-interceptors-manager';
-import { httpConfiguration } from './http-configuration';
-import { streamingManager } from './http-streaming';
 
 const DEFAULT_TIMEOUT = 10000; // 10 segundos
 const DEFAULT_RETRIES = 0;
