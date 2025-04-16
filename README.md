@@ -153,52 +153,95 @@ For detailed documentation, please visit our [documentation page](docs/README.md
 
 ### Error Handling
 
-LazyHTTP provides a simple and consistent way to handle responses and errors. All methods return an object with `{ data, error, status }` and automatically log errors with detailed information:
+LazyHTTP returns an object with `{ data, error, status }` for all methods. This means you don't need to use try/catch blocks in your code to handle errors.
 
-```typescript
-// Simple GET request - errors are automatically logged
-const { data, error } = await http.get("https://api.example.com/data");
+Example for a GET request:
+
+```javascript
+const response = await http.get("https://api.example.com/data");
+
+if (response.error) {
+  console.error("Error:", response.error.message);
+  // If details are available, they provide additional context
+  if (response.error.details) {
+    console.error("Details:", response.error.details);
+  }
+} else {
+  console.log("Data:", response.data);
+}
+```
+
+Using destructuring for cleaner code:
+
+```javascript
+const { data, error, status, details } = await http.get(
+  "https://api.example.com/data"
+);
 
 if (error) {
-  // Error already logged with details, just handle the error case
-  return;
+  console.error(`Error (${status}): ${error.message}`);
+  if (details) {
+    console.error("How to fix:", details.help);
+  }
+} else {
+  // Work directly with the data
+  console.log("User data:", data.user);
 }
+```
 
-// Work with the data
-console.log(data);
+Example for a POST request:
 
-// Configure logging (optional)
-http.configureLogging({
-  enabled: true,
-  format: "console", // or 'json'
-  colors: true,
+```javascript
+const response = await http.post("https://api.example.com/users", {
+  name: "John",
+  email: "john@example.com",
 });
+
+if (response.error) {
+  console.error("Error:", response.error.message);
+} else {
+  console.log("User created:", response.data);
+}
 ```
 
-The automatic error logging includes:
+LazyHTTP can return various error types:
 
-- Error message and status code
-- Detailed description of what went wrong
-- Probable cause of the error
-- Suggested solution to fix the issue
+- HttpTimeoutError
+- HttpNetworkError
+- HttpInvalidURLError
+- And others...
 
-Example error output:
+## Automatic Error Logging
 
+LazyHTTP includes a built-in logging system that automatically logs errors. You can configure the logging behavior:
+
+```javascript
+import { httpLogger, http } from "httplazy";
+
+// Configure the logger
+httpLogger.configure({
+  enabled: true, // Enable/disable logging (default: true)
+  level: "error", // Log level: 'error', 'warning', 'info', 'debug' (default: 'error')
+  format: "console", // Output format: 'console' or 'json' (default: 'console')
+  includeRequestDetails: true, // Include request details in logs (default: true)
+});
+
+// Make a request - errors will be automatically logged
+const response = await http.get("https://api.example.com/data");
+
+// You can still handle errors in your code if needed
+if (response.error) {
+  // Error already logged automatically
+  // Additional custom error handling
+}
 ```
-Error (404): Resource not found
-Description: The requested resource could not be found on the server
-Cause: The URL path is incorrect or the resource has been moved
-Solution: Verify the URL path and ensure the resource exists
-```
 
-Error types include:
+The automatic logging system:
 
-- `HttpTimeoutError`: Request exceeded the timeout limit
-- `HttpNetworkError`: Connection issues with the server
-- `HttpAuthError`: Authentication or authorization problems
-- `HttpAxiosError`: Issues with the Axios request
-- `HttpAbortedError`: Request was aborted before completion
-- `HttpUnknownError`: Unclassified or unexpected errors
+- Color-codes error messages in console mode for better visibility
+- Includes HTTP status codes, error types, and messages
+- Provides detailed error context when available
+- Can be disabled for production environments if needed
 
 ## Contribuir al Proyecto
 
@@ -368,49 +411,92 @@ Para documentación detallada, por favor visite nuestra [página de documentaci�
 
 ### Manejo de Errores
 
-LazyHTTP proporciona una forma simple y consistente de manejar respuestas y errores. Todos los métodos devuelven un objeto con `{ data, error, status }` y automáticamente registran errores con información detallada:
+LazyHTTP devuelve un objeto con `{ data, error, status }` para todos los métodos. Esto significa que no necesitas usar bloques try/catch en tu código para manejar errores.
 
-```typescript
-// Simple GET request - errors are automatically logged
-const { data, error } = await http.get("https://api.example.com/data");
+Ejemplo para una petición GET:
+
+```javascript
+const response = await http.get("https://api.example.com/data");
+
+if (response.error) {
+  console.error("Error:", response.error.message);
+  // Si hay detalles disponibles, proporcionan contexto adicional
+  if (response.error.details) {
+    console.error("Detalles:", response.error.details);
+  }
+} else {
+  console.log("Datos:", response.data);
+}
+```
+
+Usando desestructuración para un código más limpio:
+
+```javascript
+const { data, error, status, details } = await http.get(
+  "https://api.example.com/data"
+);
 
 if (error) {
-  // Error already logged with details, just handle the error case
-  return;
+  console.error(`Error (${status}): ${error.message}`);
+  if (details) {
+    console.error("Cómo solucionarlo:", details.help);
+  }
+} else {
+  // Trabajar directamente con los datos
+  console.log("Datos del usuario:", data.user);
 }
+```
 
-// Work with the data
-console.log(data);
+Ejemplo para una petición POST:
 
-// Configure logging (optional)
-http.configureLogging({
-  enabled: true,
-  format: "console", // or 'json'
-  colors: true,
+```javascript
+const response = await http.post("https://api.example.com/users", {
+  name: "John",
+  email: "john@example.com",
 });
+
+if (response.error) {
+  console.error("Error:", response.error.message);
+} else {
+  console.log("Usuario creado:", response.data);
+}
 ```
 
-El registro automático de errores incluye:
+LazyHTTP puede devolver varios tipos de errores:
 
-- Mensaje de error y código de estado
-- Descripción detallada de lo que salió mal
-- Causa probable del error
-- Paso sugerido para resolver el problema
+- HttpTimeoutError
+- HttpNetworkError
+- HttpInvalidURLError
+- Y otros...
 
-Ejemplo de salida de error:
+## Registro Automático de Errores
 
+LazyHTTP incluye un sistema de registro integrado que registra automáticamente los errores. Puedes configurar el comportamiento del registro:
+
+```javascript
+import { httpLogger, http } from "httplazy";
+
+// Configurar el logger
+httpLogger.configure({
+  enabled: true, // Habilitar/deshabilitar registro (por defecto: true)
+  level: "error", // Nivel de registro: 'error', 'warning', 'info', 'debug' (por defecto: 'error')
+  format: "console", // Formato de salida: 'console' o 'json' (por defecto: 'console')
+  includeRequestDetails: true, // Incluir detalles de la petición en los registros (por defecto: true)
+});
+
+// Realizar una petición - los errores se registrarán automáticamente
+const response = await http.get("https://api.example.com/data");
+
+// Aún puedes manejar errores en tu código si es necesario
+if (response.error) {
+  // El error ya ha sido registrado automáticamente
+  // Manejo de errores personalizado adicional
+}
 ```
-Error (404): Resource not found
-Description: The requested resource could not be found on the server
-Cause: The URL path is incorrect or the resource has been moved
-Solution: Verify the URL path and ensure the resource exists
-```
 
-Los tipos de error incluyen:
+El sistema de registro automático:
 
-- `HttpTimeoutError`: La solicitud excedió el límite de tiempo
-- `HttpNetworkError`: Problemas de conexión con el servidor
-- `HttpAuthError`: Problemas de autenticación o autorización
-- `HttpAxiosError`: Problemas con la solicitud de Axios
-- `HttpAbortedError`: La solicitud fue abortada antes de completarse
-- `HttpUnknownError`: Errores no clasificados o inesperados
+- Colorea los mensajes de error en modo consola para mejor visibilidad
+- Incluye códigos de estado HTTP, tipos de error y mensajes
+- Proporciona contexto detallado del error cuando está disponible
+- Puede ser deshabilitado para entornos de producción si es necesario

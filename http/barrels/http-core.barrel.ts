@@ -14,6 +14,9 @@ export {
   initialize as initializeHelper
 } from '../http-helpers';
 
+// Logger
+export { httpLogger, LoggerConfig } from '../http-logger';
+
 // Tipos básicos
 export {
   HttpImplementation,
