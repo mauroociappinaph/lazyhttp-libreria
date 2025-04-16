@@ -30,175 +30,137 @@ import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 
+// Importar los módulos modulares
+import { HttpCore } from './http-core';
+import { interceptorsManager } from './http-interceptors-manager';
+import { httpConfiguration } from './http-configuration';
+import { streamingManager } from './http-streaming';
+
 const DEFAULT_TIMEOUT = 10000; // 10 segundos
 const DEFAULT_RETRIES = 0;
 
-export const http: HttpImplementation & {
-  configureCaching: (config: CacheConfig) => void;
-  invalidateCache: (pattern: string) => void;
-  invalidateCacheByTags: (tags: string[]) => void;
-  configureMetrics: (config: MetricsConfig) => void;
-  trackActivity: (type: string) => void;
-  getCurrentMetrics: () => any;
-  _baseUrl?: string;
-  _frontendUrl?: string;
-  _defaultTimeout?: number;
-  _defaultRetries?: number;
-  _defaultHeaders?: Record<string, string>;
-  _requestInterceptors: Array<(config: any) => any>;
-  _responseInterceptors: Array<(response: any) => any>;
-  _setupInterceptors: {
-    (): void;
-    (interceptor?: any, type?: 'request' | 'response'): void;
-  };
-  _proxyConfig?: ProxyConfig;
-  _defaultStreamConfig?: StreamConfig;
-} = {
-  _baseUrl: undefined,
-  _frontendUrl: undefined,
-  _defaultTimeout: DEFAULT_TIMEOUT,
-  _defaultRetries: DEFAULT_RETRIES,
-  _defaultHeaders: {},
-  _requestInterceptors: [],
-  _responseInterceptors: [],
-  _proxyConfig: undefined,
-  _defaultStreamConfig: undefined,
+/**
+ * Implementación principal del cliente HTTP
+ * Combina todos los módulos para proporcionar una API unificada
+ */
+class HttpClient implements HttpImplementation {
+  private core = new HttpCore();
 
-  _setupInterceptors(interceptor?: any, type?: 'request' | 'response'): void {
-    // If no parameters were provided, initialize the arrays
-    if (!interceptor && !type) {
-      this._requestInterceptors = [];
-      this._responseInterceptors = [];
-      return;
+  // Propiedades para compatibilidad con la API existente
+  get _baseUrl(): string | undefined {
+    return httpConfiguration.baseUrl;
+  }
+
+  set _baseUrl(url: string | undefined) {
+    httpConfiguration.baseUrl = url;
+    this.core._baseUrl = url;
+  }
+
+  get _frontendUrl(): string | undefined {
+    return httpConfiguration.frontendUrl;
+  }
+
+  set _frontendUrl(url: string | undefined) {
+    httpConfiguration.frontendUrl = url;
+  }
+
+  get _defaultTimeout(): number {
+    return httpConfiguration.defaultTimeout;
+  }
+
+  set _defaultTimeout(timeout: number) {
+    httpConfiguration.defaultTimeout = timeout;
+    this.core._defaultTimeout = timeout;
+  }
+
+  get _defaultRetries(): number {
+    return httpConfiguration.defaultRetries;
+  }
+
+  set _defaultRetries(retries: number) {
+    httpConfiguration.defaultRetries = retries;
+    this.core._defaultRetries = retries;
+  }
+
+  get _defaultHeaders(): Record<string, string> {
+    return httpConfiguration.defaultHeaders;
+  }
+
+  set _defaultHeaders(headers: Record<string, string>) {
+    httpConfiguration.defaultHeaders = headers;
+    this.core._defaultHeaders = headers;
+  }
+
+  get _requestInterceptors(): Array<(config: any) => any> {
+    return interceptorsManager.getRequestInterceptors();
+  }
+
+  get _responseInterceptors(): Array<(response: any) => any> {
+    return interceptorsManager.getResponseInterceptors();
+  }
+
+  get _proxyConfig(): ProxyConfig | undefined {
+    return httpConfiguration.proxyConfig;
+  }
+
+  set _proxyConfig(config: ProxyConfig | undefined) {
+    if (config) {
+      httpConfiguration.configureProxy(config);
     }
+  }
 
-    // Add the interceptor to the appropriate array
-    if (type === 'request') {
-      this._requestInterceptors.push(interceptor);
-    } else if (type === 'response') {
-      this._responseInterceptors.push(interceptor);
+  get _defaultStreamConfig(): StreamConfig | undefined {
+    return httpConfiguration.streamConfig;
+  }
+
+  set _defaultStreamConfig(config: StreamConfig | undefined) {
+    if (config) {
+      httpConfiguration.configureStream(config);
     }
-  },
+  }
 
+  // Métodos de HTTP
   async request<T>(endpoint: string, options: RequestOptions = {}): Promise<ApiResponse<T>> {
-    const {
-      method = 'GET',
-      headers = {},
-      body,
-      withAuth = false,
-      timeout = DEFAULT_TIMEOUT,
-      retries = DEFAULT_RETRIES,
-      cache: cacheOptions
-    } = options;
+    return this.core.request<T>(endpoint, options);
+  }
 
-    try {
-      // Registrar la petición en métricas
-      metricsManager.trackRequest(endpoint);
-
-      // Comprobar si debemos usar la caché
-      if (cacheManager.shouldUseCache(method, options)) {
-        const cacheKey = cacheManager.generateCacheKey(endpoint, options);
-
-        return await executeWithCacheStrategy<T>(
-          cacheKey,
-          async () => {
-            const requestHeaders = prepareHeaders(headers, withAuth);
-            const response = await retryHandler.executeWithRetry(
-              this._baseUrl ? `${this._baseUrl}${endpoint}` : endpoint,
-              method,
-              requestHeaders,
-              body,
-              timeout || this._defaultTimeout || DEFAULT_TIMEOUT,
-              retries !== undefined ? retries : this._defaultRetries !== undefined ? this._defaultRetries : DEFAULT_RETRIES
-            ) as ApiResponse<T>;
-
-            // Invalidar caché automáticamente para métodos de escritura
-            if (method !== 'GET') {
-              cacheManager.invalidateByMethod(method, endpoint);
-            }
-
-            return response;
-          },
-          options
-        );
-      }
-
-      // Petición sin caché
-      const requestHeaders = prepareHeaders(headers, withAuth);
-      const response = await retryHandler.executeWithRetry(
-        this._baseUrl ? `${this._baseUrl}${endpoint}` : endpoint,
-        method,
-        requestHeaders,
-        body,
-        timeout || this._defaultTimeout || DEFAULT_TIMEOUT,
-        retries !== undefined ? retries : this._defaultRetries !== undefined ? this._defaultRetries : DEFAULT_RETRIES
-      ) as ApiResponse<T>;
-
-      // Invalidar caché automáticamente para métodos de escritura
-      if (method !== 'GET') {
-        cacheManager.invalidateByMethod(method, endpoint);
-      }
-
-      return response;
-    } catch (error) {
-      return errorHandler.handleError(error);
-    }
-  },
-
-  // Métodos HTTP simplificados
   async get<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { ...options, method: 'GET' });
-  },
+    return this.core.get<T>(endpoint, options);
+  }
 
   async getAll<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
-    const page = options?.params?.page || 1;
-    const limit = options?.params?.limit || 100;
-
-    const response = await this.request<T>(endpoint, {
-      ...options,
-      method: 'GET',
-      params: {
-        ...options?.params,
-        page,
-        limit
-      }
-    });
-
-    // Agregar metadatos de paginación a la respuesta
-    if (response.data && Array.isArray(response.data)) {
-      response.meta = {
-        currentPage: page,
-        totalItems: response.data.length
-      };
-    }
-
-    return response;
-  },
+    return this.core.getAll<T>(endpoint, options);
+  }
 
   async getById<T>(endpoint: string, id: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { ...options, method: 'GET', params: { id } });
-  },
+    return this.core.getById<T>(endpoint, id, options);
+  }
 
   async post<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { ...options, method: 'POST', body });
-  },
+    return this.core.post<T>(endpoint, body, options);
+  }
 
   async put<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { ...options, method: 'PUT', body });
-  },
+    return this.core.put<T>(endpoint, body, options);
+  }
 
   async patch<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { ...options, method: 'PATCH', body });
-  },
+    return this.core.patch<T>(endpoint, body, options);
+  }
 
   async delete<T>(endpoint: string, options?: Omit<RequestOptions, 'method'>): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { ...options, method: 'DELETE' });
-  },
+    return this.core.delete<T>(endpoint, options);
+  }
 
-  // Métodos de autenticación avanzada
+  // Método de interceptores
+  _setupInterceptors(interceptor?: any, type?: 'request' | 'response'): void {
+    interceptorsManager.setupInterceptors(interceptor, type);
+  }
+
+  // Métodos de autenticación
   configureAuth(config: AuthConfig): void {
     configureAuthHelper(config);
-  },
+  }
 
   async login(credentials: UserCredentials): Promise<AuthInfo> {
     const response = await loginHelper(credentials);
@@ -215,7 +177,7 @@ export const http: HttpImplementation & {
     }
 
     return authInfo;
-  },
+  }
 
   async logout(): Promise<void> {
     // Finalizar sesión de métricas y enviar datos
@@ -227,49 +189,50 @@ export const http: HttpImplementation & {
     }
 
     return logoutHelper();
-  },
+  }
 
   isAuthenticated(): boolean {
     return isAuthenticatedHelper();
-  },
+  }
 
   async getAuthenticatedUser(): Promise<any | null> {
     return getAuthenticatedUserHelper();
-  },
+  }
 
   getAccessToken(): string | null {
     return getAccessTokenHelper();
-  },
+  }
 
   // Métodos internos para la implementación
   async _refreshToken(): Promise<string> {
     return refreshTokenAuthHelper();
-  },
+  }
 
   async _handleRefreshTokenFailure(): Promise<void> {
     return handleRefreshTokenFailureAuthHelper();
-  },
+  }
 
   _decodeToken(token: string): any {
     return decodeTokenHelper(token);
-  },
+  }
 
   _isTokenExpired(token: string | number): boolean {
     return isTokenExpiredHelper(token);
-  },
+  }
 
   _storeToken(key: string, value: string): void {
     storeTokenHelper(key, value);
-  },
+  }
 
   _getToken(key: string): string | null {
     return getTokenHelper(key);
-  },
+  }
 
   _removeToken(key: string): void {
     removeTokenHelper(key);
-  },
+  }
 
+  // Métodos de configuración
   async initialize(config?: {
     baseUrl?: string,
     frontendUrl?: string,
@@ -278,139 +241,77 @@ export const http: HttpImplementation & {
     metrics?: MetricsConfig,
     timeout?: number,
     retries?: number,
-    headers?: Record<string, string>
+    headers?: Record<string, string>,
+    proxy?: ProxyConfig,
+    stream?: StreamConfig
   }): Promise<void> {
-    // Set base URL if provided
+    // Inicializar la configuración
+    await httpConfiguration.initialize(config);
+
+    // Sincronizar con las propiedades del core
     if (config?.baseUrl) {
-      this._baseUrl = config.baseUrl;
+      this.core._baseUrl = config.baseUrl;
     }
 
-    // Store frontend URL if provided
-    if (config?.frontendUrl) {
-      this._frontendUrl = config.frontendUrl;
-    }
-
-    // Set global defaults if provided
-    if (config?.timeout !== undefined) {
-      this._defaultTimeout = config.timeout;
+    if (config?.timeout) {
+      this.core._defaultTimeout = config.timeout;
     }
 
     if (config?.retries !== undefined) {
-      this._defaultRetries = config.retries;
+      this.core._defaultRetries = config.retries;
     }
 
     if (config?.headers) {
-      this._defaultHeaders = { ...this._defaultHeaders, ...config.headers };
+      this.core._defaultHeaders = {...this.core._defaultHeaders, ...config.headers};
     }
 
-    // Inicializar caché si está configurado
-    if (config?.cache) {
-      this.configureCaching(config.cache);
-    }
+    return Promise.resolve();
+  }
 
-    // Inicializar métricas si está configurado
-    if (config?.metrics) {
-      this.configureMetrics(config.metrics);
-    }
-
-    return initializeHelper();
-  },
-
-  // Métodos adicionales para caché
+  // Métodos de caché
   configureCaching(config: CacheConfig): void {
-    cacheManager.configure(config);
-  },
+    httpConfiguration.configureCaching(config);
+  }
 
   invalidateCache(pattern: string): void {
-    cacheManager.invalidate(pattern);
-  },
+    httpConfiguration.invalidateCache(pattern);
+  }
 
   invalidateCacheByTags(tags: string[]): void {
-    cacheManager.invalidateByTags(tags);
-  },
+    httpConfiguration.invalidateCacheByTags(tags);
+  }
 
-  // Métodos para métricas
+  // Métodos de métricas
   configureMetrics(config: MetricsConfig): void {
-    metricsManager.configure(config);
-  },
+    httpConfiguration.configureMetrics(config);
+  }
 
   trackActivity(type: string): void {
-    metricsManager.trackActivity(type);
-  },
+    httpConfiguration.trackActivity(type);
+  }
 
   getCurrentMetrics(): any {
-    return metricsManager.getCurrentMetrics();
-  },
+    return httpConfiguration.getCurrentMetrics();
+  }
 
+  // Métricas de proxy
   configureProxy(config: ProxyConfig): void {
-    this._proxyConfig = config;
-  },
+    httpConfiguration.configureProxy(config);
+  }
 
+  // Streaming
   async stream<T>(endpoint: string, options: Omit<RequestOptions, 'method' | 'body'> = {}): Promise<ReadableStream<T>> {
-    const streamConfig: StreamConfig = {
-      enabled: true,
-      chunkSize: 8192,
-      ...this._defaultStreamConfig,
-      ...options.stream
-    };
+    return streamingManager.stream<T>(endpoint, options);
+  }
 
-    if (!streamConfig.enabled) {
-      throw new Error('Streaming no está habilitado para esta petición');
-    }
+  // Métodos requeridos por la interfaz
+  _buildUrl(endpoint: string): string {
+    return this.core._baseUrl ? `${this.core._baseUrl}${endpoint}` : endpoint;
+  }
 
-    const proxyConfig = options.proxy || this._proxyConfig;
-    const httpsAgent = this._createProxyAgent(proxyConfig);
-
-    // Si se especifica rejectUnauthorized como false, desactivamos la verificación de certificados
-    if (proxyConfig?.rejectUnauthorized === false) {
-      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-    }
-
-    const axiosConfig: AxiosRequestConfig = {
-      method: 'GET',
-      url: this._buildUrl(endpoint),
-      responseType: 'stream',
-      headers: this._prepareHeaders(options),
-      timeout: options.timeout || this._defaultTimeout,
-      proxy: false, // Desactivamos el proxy de axios para usar nuestro propio agente
-      httpsAgent
-    };
-
-    try {
-      const response = await axios(axiosConfig);
-      const stream = response.data;
-
-      if (streamConfig.onChunk) {
-        stream.on('data', (chunk: any) => {
-          streamConfig.onChunk!(chunk);
-        });
-      }
-
-      if (streamConfig.onEnd) {
-        stream.on('end', () => {
-          streamConfig.onEnd!();
-        });
-      }
-
-      if (streamConfig.onError) {
-        stream.on('error', (error: Error) => {
-          streamConfig.onError!(error);
-        });
-      }
-
-      return stream;
-    } catch (error) {
-      if (streamConfig.onError) {
-        streamConfig.onError(error as Error);
-      }
-      throw error;
-    } finally {
-      // Restaurar la configuración de verificación de certificados
-      if (proxyConfig?.rejectUnauthorized === false) {
-        process.env.NODE_TLS_REJECT_UNAUTHORIZED = '1';
-      }
-    }
-  },
+  _prepareHeaders(options: RequestOptions): Record<string, string> {
+    return prepareHeaders(options.headers || {}, options.withAuth || false);
+  }
 
   _createProxyAgent(proxyConfig?: ProxyConfig) {
     if (!proxyConfig) return undefined;
@@ -433,17 +334,30 @@ export const http: HttpImplementation & {
     // Para HTTPS, configuramos las opciones específicas
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = rejectUnauthorized ? '1' : '0';
     return new HttpsProxyAgent(proxyString);
-  },
-
-  _buildUrl(endpoint: string): string {
-    // Implement the logic to build the full URL based on the base URL and the endpoint
-    return this._baseUrl ? `${this._baseUrl}${endpoint}` : endpoint;
-  },
-
-  _prepareHeaders(options: RequestOptions): Record<string, string> {
-    // Implement the logic to prepare the headers based on the options
-    return prepareHeaders(options.headers || {}, options.withAuth || false);
   }
+}
+
+// Crear la instancia singleton
+export const http = new HttpClient() as HttpImplementation & {
+  configureCaching: (config: CacheConfig) => void;
+  invalidateCache: (pattern: string) => void;
+  invalidateCacheByTags: (tags: string[]) => void;
+  configureMetrics: (config: MetricsConfig) => void;
+  trackActivity: (type: string) => void;
+  getCurrentMetrics: () => any;
+  _baseUrl?: string;
+  _frontendUrl?: string;
+  _defaultTimeout?: number;
+  _defaultRetries?: number;
+  _defaultHeaders?: Record<string, string>;
+  _requestInterceptors: Array<(config: any) => any>;
+  _responseInterceptors: Array<(response: any) => any>;
+  _setupInterceptors: {
+    (): void;
+    (interceptor?: any, type?: 'request' | 'response'): void;
+  };
+  _proxyConfig?: ProxyConfig;
+  _defaultStreamConfig?: StreamConfig;
 };
 
 // Exportar las funciones individuales para un uso más directo

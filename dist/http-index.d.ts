@@ -15,7 +15,7 @@ export declare const http: HttpImplementation & {
     _responseInterceptors: Array<(response: any) => any>;
     _setupInterceptors: {
         (): void;
-        (interceptor?: any, type?: 'request' | 'response'): void;
+        (interceptor?: any, type?: "request" | "response"): void;
     };
     _proxyConfig?: ProxyConfig;
     _defaultStreamConfig?: StreamConfig;

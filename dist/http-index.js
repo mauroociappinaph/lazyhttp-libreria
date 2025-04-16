@@ -1,108 +1,107 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getCurrentMetrics = exports.trackActivity = exports.configureMetrics = exports.initialize = exports.invalidateCacheByTags = exports.invalidateCache = exports.configureCaching = exports.getAccessToken = exports.getAuthenticatedUser = exports.isAuthenticated = exports.logout = exports.login = exports.configureAuth = exports.del = exports.patch = exports.put = exports.post = exports.getById = exports.getAll = exports.get = exports.request = exports.http = void 0;
-const tslib_1 = require("tslib");
 const http_helpers_1 = require("./http-helpers");
 const http_auth_1 = require("./http-auth");
-const http_cache_1 = require("./http-cache");
-const http_cache_strategies_1 = require("./http-cache-strategies");
 const http_metrics_index_1 = require("./metrics/http-metrics-index");
-const axios_1 = tslib_1.__importDefault(require("axios"));
 const https_proxy_agent_1 = require("https-proxy-agent");
 const socks_proxy_agent_1 = require("socks-proxy-agent");
+const http_core_1 = require("./http-core");
+const http_interceptors_manager_1 = require("./http-interceptors-manager");
+const http_configuration_1 = require("./http-configuration");
+const http_streaming_1 = require("./http-streaming");
 const DEFAULT_TIMEOUT = 10000;
 const DEFAULT_RETRIES = 0;
-exports.http = {
-    _baseUrl: undefined,
-    _frontendUrl: undefined,
-    _defaultTimeout: DEFAULT_TIMEOUT,
-    _defaultRetries: DEFAULT_RETRIES,
-    _defaultHeaders: {},
-    _requestInterceptors: [],
-    _responseInterceptors: [],
-    _proxyConfig: undefined,
-    _defaultStreamConfig: undefined,
-    _setupInterceptors(interceptor, type) {
-        if (!interceptor && !type) {
-            this._requestInterceptors = [];
-            this._responseInterceptors = [];
-            return;
+class HttpClient {
+    constructor() {
+        this.core = new http_core_1.HttpCore();
+    }
+    get _baseUrl() {
+        return http_configuration_1.httpConfiguration.baseUrl;
+    }
+    set _baseUrl(url) {
+        http_configuration_1.httpConfiguration.baseUrl = url;
+        this.core._baseUrl = url;
+    }
+    get _frontendUrl() {
+        return http_configuration_1.httpConfiguration.frontendUrl;
+    }
+    set _frontendUrl(url) {
+        http_configuration_1.httpConfiguration.frontendUrl = url;
+    }
+    get _defaultTimeout() {
+        return http_configuration_1.httpConfiguration.defaultTimeout;
+    }
+    set _defaultTimeout(timeout) {
+        http_configuration_1.httpConfiguration.defaultTimeout = timeout;
+        this.core._defaultTimeout = timeout;
+    }
+    get _defaultRetries() {
+        return http_configuration_1.httpConfiguration.defaultRetries;
+    }
+    set _defaultRetries(retries) {
+        http_configuration_1.httpConfiguration.defaultRetries = retries;
+        this.core._defaultRetries = retries;
+    }
+    get _defaultHeaders() {
+        return http_configuration_1.httpConfiguration.defaultHeaders;
+    }
+    set _defaultHeaders(headers) {
+        http_configuration_1.httpConfiguration.defaultHeaders = headers;
+        this.core._defaultHeaders = headers;
+    }
+    get _requestInterceptors() {
+        return http_interceptors_manager_1.interceptorsManager.getRequestInterceptors();
+    }
+    get _responseInterceptors() {
+        return http_interceptors_manager_1.interceptorsManager.getResponseInterceptors();
+    }
+    get _proxyConfig() {
+        return http_configuration_1.httpConfiguration.proxyConfig;
+    }
+    set _proxyConfig(config) {
+        if (config) {
+            http_configuration_1.httpConfiguration.configureProxy(config);
         }
-        if (type === 'request') {
-            this._requestInterceptors.push(interceptor);
+    }
+    get _defaultStreamConfig() {
+        return http_configuration_1.httpConfiguration.streamConfig;
+    }
+    set _defaultStreamConfig(config) {
+        if (config) {
+            http_configuration_1.httpConfiguration.configureStream(config);
         }
-        else if (type === 'response') {
-            this._responseInterceptors.push(interceptor);
-        }
-    },
+    }
     async request(endpoint, options = {}) {
-        const { method = 'GET', headers = {}, body, withAuth = false, timeout = DEFAULT_TIMEOUT, retries = DEFAULT_RETRIES, cache: cacheOptions } = options;
-        try {
-            http_metrics_index_1.metricsManager.trackRequest(endpoint);
-            if (http_cache_1.cacheManager.shouldUseCache(method, options)) {
-                const cacheKey = http_cache_1.cacheManager.generateCacheKey(endpoint, options);
-                return await (0, http_cache_strategies_1.executeWithCacheStrategy)(cacheKey, async () => {
-                    const requestHeaders = (0, http_helpers_1.prepareHeaders)(headers, withAuth);
-                    const response = await http_helpers_1.retryHandler.executeWithRetry(this._baseUrl ? `${this._baseUrl}${endpoint}` : endpoint, method, requestHeaders, body, timeout || this._defaultTimeout || DEFAULT_TIMEOUT, retries !== undefined ? retries : this._defaultRetries !== undefined ? this._defaultRetries : DEFAULT_RETRIES);
-                    if (method !== 'GET') {
-                        http_cache_1.cacheManager.invalidateByMethod(method, endpoint);
-                    }
-                    return response;
-                }, options);
-            }
-            const requestHeaders = (0, http_helpers_1.prepareHeaders)(headers, withAuth);
-            const response = await http_helpers_1.retryHandler.executeWithRetry(this._baseUrl ? `${this._baseUrl}${endpoint}` : endpoint, method, requestHeaders, body, timeout || this._defaultTimeout || DEFAULT_TIMEOUT, retries !== undefined ? retries : this._defaultRetries !== undefined ? this._defaultRetries : DEFAULT_RETRIES);
-            if (method !== 'GET') {
-                http_cache_1.cacheManager.invalidateByMethod(method, endpoint);
-            }
-            return response;
-        }
-        catch (error) {
-            return http_helpers_1.errorHandler.handleError(error);
-        }
-    },
+        return this.core.request(endpoint, options);
+    }
     async get(endpoint, options) {
-        return this.request(endpoint, { ...options, method: 'GET' });
-    },
+        return this.core.get(endpoint, options);
+    }
     async getAll(endpoint, options) {
-        var _a, _b;
-        const page = ((_a = options === null || options === void 0 ? void 0 : options.params) === null || _a === void 0 ? void 0 : _a.page) || 1;
-        const limit = ((_b = options === null || options === void 0 ? void 0 : options.params) === null || _b === void 0 ? void 0 : _b.limit) || 100;
-        const response = await this.request(endpoint, {
-            ...options,
-            method: 'GET',
-            params: {
-                ...options === null || options === void 0 ? void 0 : options.params,
-                page,
-                limit
-            }
-        });
-        if (response.data && Array.isArray(response.data)) {
-            response.meta = {
-                currentPage: page,
-                totalItems: response.data.length
-            };
-        }
-        return response;
-    },
+        return this.core.getAll(endpoint, options);
+    }
     async getById(endpoint, id, options) {
-        return this.request(endpoint, { ...options, method: 'GET', params: { id } });
-    },
+        return this.core.getById(endpoint, id, options);
+    }
     async post(endpoint, body, options) {
-        return this.request(endpoint, { ...options, method: 'POST', body });
-    },
+        return this.core.post(endpoint, body, options);
+    }
     async put(endpoint, body, options) {
-        return this.request(endpoint, { ...options, method: 'PUT', body });
-    },
+        return this.core.put(endpoint, body, options);
+    }
     async patch(endpoint, body, options) {
-        return this.request(endpoint, { ...options, method: 'PATCH', body });
-    },
+        return this.core.patch(endpoint, body, options);
+    }
     async delete(endpoint, options) {
-        return this.request(endpoint, { ...options, method: 'DELETE' });
-    },
+        return this.core.delete(endpoint, options);
+    }
+    _setupInterceptors(interceptor, type) {
+        http_interceptors_manager_1.interceptorsManager.setupInterceptors(interceptor, type);
+    }
     configureAuth(config) {
         (0, http_auth_1.configureAuth)(config);
-    },
+    }
     async login(credentials) {
         const response = await (0, http_auth_1.login)(credentials);
         const authInfo = {
@@ -114,145 +113,90 @@ exports.http = {
             http_metrics_index_1.metricsManager.startTracking();
         }
         return authInfo;
-    },
+    }
     async logout() {
         const metrics = await http_metrics_index_1.metricsManager.stopTracking();
         if (metrics) {
             console.log(`[HTTP] Sesión finalizada - Tiempo activo: ${Math.round(metrics.activeTime / 1000)}s, Peticiones: ${metrics.requestCount}`);
         }
         return (0, http_auth_1.logout)();
-    },
+    }
     isAuthenticated() {
         return (0, http_auth_1.isAuthenticated)();
-    },
+    }
     async getAuthenticatedUser() {
         return (0, http_auth_1.getAuthenticatedUser)();
-    },
+    }
     getAccessToken() {
         return (0, http_auth_1.getAccessToken)();
-    },
+    }
     async _refreshToken() {
         return (0, http_auth_1.refreshToken)();
-    },
+    }
     async _handleRefreshTokenFailure() {
         return (0, http_auth_1.handleRefreshTokenFailure)();
-    },
+    }
     _decodeToken(token) {
         return (0, http_auth_1.decodeToken)(token);
-    },
+    }
     _isTokenExpired(token) {
         return (0, http_auth_1.isTokenExpired)(token);
-    },
+    }
     _storeToken(key, value) {
         (0, http_auth_1.storeToken)(key, value);
-    },
+    }
     _getToken(key) {
         return (0, http_auth_1.getToken)(key);
-    },
+    }
     _removeToken(key) {
         (0, http_auth_1.removeToken)(key);
-    },
+    }
     async initialize(config) {
+        await http_configuration_1.httpConfiguration.initialize(config);
         if (config === null || config === void 0 ? void 0 : config.baseUrl) {
-            this._baseUrl = config.baseUrl;
+            this.core._baseUrl = config.baseUrl;
         }
-        if (config === null || config === void 0 ? void 0 : config.frontendUrl) {
-            this._frontendUrl = config.frontendUrl;
-        }
-        if ((config === null || config === void 0 ? void 0 : config.timeout) !== undefined) {
-            this._defaultTimeout = config.timeout;
+        if (config === null || config === void 0 ? void 0 : config.timeout) {
+            this.core._defaultTimeout = config.timeout;
         }
         if ((config === null || config === void 0 ? void 0 : config.retries) !== undefined) {
-            this._defaultRetries = config.retries;
+            this.core._defaultRetries = config.retries;
         }
         if (config === null || config === void 0 ? void 0 : config.headers) {
-            this._defaultHeaders = { ...this._defaultHeaders, ...config.headers };
+            this.core._defaultHeaders = { ...this.core._defaultHeaders, ...config.headers };
         }
-        if (config === null || config === void 0 ? void 0 : config.cache) {
-            this.configureCaching(config.cache);
-        }
-        if (config === null || config === void 0 ? void 0 : config.metrics) {
-            this.configureMetrics(config.metrics);
-        }
-        return (0, http_helpers_1.initialize)();
-    },
+        return Promise.resolve();
+    }
     configureCaching(config) {
-        http_cache_1.cacheManager.configure(config);
-    },
+        http_configuration_1.httpConfiguration.configureCaching(config);
+    }
     invalidateCache(pattern) {
-        http_cache_1.cacheManager.invalidate(pattern);
-    },
+        http_configuration_1.httpConfiguration.invalidateCache(pattern);
+    }
     invalidateCacheByTags(tags) {
-        http_cache_1.cacheManager.invalidateByTags(tags);
-    },
+        http_configuration_1.httpConfiguration.invalidateCacheByTags(tags);
+    }
     configureMetrics(config) {
-        http_metrics_index_1.metricsManager.configure(config);
-    },
+        http_configuration_1.httpConfiguration.configureMetrics(config);
+    }
     trackActivity(type) {
-        http_metrics_index_1.metricsManager.trackActivity(type);
-    },
+        http_configuration_1.httpConfiguration.trackActivity(type);
+    }
     getCurrentMetrics() {
-        return http_metrics_index_1.metricsManager.getCurrentMetrics();
-    },
+        return http_configuration_1.httpConfiguration.getCurrentMetrics();
+    }
     configureProxy(config) {
-        this._proxyConfig = config;
-    },
+        http_configuration_1.httpConfiguration.configureProxy(config);
+    }
     async stream(endpoint, options = {}) {
-        const streamConfig = {
-            enabled: true,
-            chunkSize: 8192,
-            ...this._defaultStreamConfig,
-            ...options.stream
-        };
-        if (!streamConfig.enabled) {
-            throw new Error('Streaming no está habilitado para esta petición');
-        }
-        const proxyConfig = options.proxy || this._proxyConfig;
-        const httpsAgent = this._createProxyAgent(proxyConfig);
-        if ((proxyConfig === null || proxyConfig === void 0 ? void 0 : proxyConfig.rejectUnauthorized) === false) {
-            process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-        }
-        const axiosConfig = {
-            method: 'GET',
-            url: this._buildUrl(endpoint),
-            responseType: 'stream',
-            headers: this._prepareHeaders(options),
-            timeout: options.timeout || this._defaultTimeout,
-            proxy: false,
-            httpsAgent
-        };
-        try {
-            const response = await (0, axios_1.default)(axiosConfig);
-            const stream = response.data;
-            if (streamConfig.onChunk) {
-                stream.on('data', (chunk) => {
-                    streamConfig.onChunk(chunk);
-                });
-            }
-            if (streamConfig.onEnd) {
-                stream.on('end', () => {
-                    streamConfig.onEnd();
-                });
-            }
-            if (streamConfig.onError) {
-                stream.on('error', (error) => {
-                    streamConfig.onError(error);
-                });
-            }
-            return stream;
-        }
-        catch (error) {
-            if (streamConfig.onError) {
-                streamConfig.onError(error);
-            }
-            throw error;
-        }
-        finally {
-            if ((proxyConfig === null || proxyConfig === void 0 ? void 0 : proxyConfig.rejectUnauthorized) === false) {
-                process.env.NODE_TLS_REJECT_UNAUTHORIZED = '1';
-            }
-        }
-    },
+        return http_streaming_1.streamingManager.stream(endpoint, options);
+    }
+    _buildUrl(endpoint) {
+        return this.core._baseUrl ? `${this.core._baseUrl}${endpoint}` : endpoint;
+    }
+    _prepareHeaders(options) {
+        return (0, http_helpers_1.prepareHeaders)(options.headers || {}, options.withAuth || false);
+    }
     _createProxyAgent(proxyConfig) {
         if (!proxyConfig)
             return undefined;
@@ -268,14 +212,9 @@ exports.http = {
         }
         process.env.NODE_TLS_REJECT_UNAUTHORIZED = rejectUnauthorized ? '1' : '0';
         return new https_proxy_agent_1.HttpsProxyAgent(proxyString);
-    },
-    _buildUrl(endpoint) {
-        return this._baseUrl ? `${this._baseUrl}${endpoint}` : endpoint;
-    },
-    _prepareHeaders(options) {
-        return (0, http_helpers_1.prepareHeaders)(options.headers || {}, options.withAuth || false);
     }
-};
+}
+exports.http = new HttpClient();
 exports.request = exports.http.request.bind(exports.http);
 exports.get = exports.http.get.bind(exports.http);
 exports.getAll = exports.http.getAll.bind(exports.http);
