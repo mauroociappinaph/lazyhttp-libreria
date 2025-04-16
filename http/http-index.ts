@@ -62,6 +62,9 @@ export {
   LoggerConfig
 } from './client/exports/http-logger-exports';
 
+// Resource symbols exports
+export * from './resources';
+
 // Lazy-loaded exports
 // Para cargar mediante importación dinámica:
 // import('httplazy').then(module => module.loadStreamingModule()).then(({ stream }) => { ... })

@@ -39,7 +39,7 @@ import { HttpOperations } from './http-operations';
 function createResourceAccessor<F extends (...args: any[]) => any>(
   method: F,
   instance: any
-): F & { [resource: string]: F } {
+): F & { [resource: string]: F } & { [key: symbol]: F } {
   // Función base que manejará la llamada directa
   const accessor = function(this: any, ...args: Parameters<F>): ReturnType<F> {
     return method.apply(instance, args);
@@ -49,17 +49,29 @@ function createResourceAccessor<F extends (...args: any[]) => any>(
   const handler: ProxyHandler<F> = {
     get(target, prop) {
       // Si es una propiedad estándar de función, devolver la propiedad original
-      if (typeof prop === 'symbol' || prop in Function.prototype) {
+      if (prop in Function.prototype) {
         return (target as any)[prop];
       }
 
-      // Para accesos como get['User'], devolver una función que llama al método original
+      // Para accesos como get[User] o get['users'], devolver una función que llama al método original
       return function(this: any, ...args: Parameters<F>): ReturnType<F> {
         // Construir el endpoint completo con el nombre del recurso
         let endpoint = args[0];
+
         // Si args[0] es un string y no es una URL completa, intentar usar el recurso como endpoint
         if (typeof endpoint !== 'string' || (endpoint.indexOf('http') !== 0 && endpoint.indexOf('/') !== 0)) {
-          endpoint = String(prop);
+          // Convertir el prop (símbolo o string) a un nombre de recurso adecuado
+          let resourceName: string;
+
+          if (typeof prop === 'symbol') {
+            // Para símbolos como User, obtener el nombre y formatear
+            resourceName = formatResource(Symbol.keyFor(prop as symbol) || prop.toString().replace(/Symbol\(|\)/g, ''));
+          } else {
+            // Para strings como 'users'
+            resourceName = formatResource(String(prop));
+          }
+
+          endpoint = resourceName;
         }
 
         // Pasar el endpoint modificado y el resto de argumentos
@@ -73,8 +85,25 @@ function createResourceAccessor<F extends (...args: any[]) => any>(
   };
 
   // Crear un proxy para manejar el acceso por corchetes
-  return new Proxy(accessor, handler) as F & { [resource: string]: F };
+  return new Proxy(accessor, handler) as F & { [resource: string]: F } & { [key: symbol]: F };
 };
+
+/**
+ * Formatea el nombre del recurso según la convención deseada
+ * Por defecto convierte a minúsculas y plural (users)
+ * Si viene de un símbolo, mantiene el formato original (User → users)
+ */
+function formatResource(resource: string): string {
+  // Si viene de un símbolo en PascalCase (User), convertir a API format (users)
+  if (/^[A-Z][a-zA-Z0-9]*$/.test(resource)) {
+    // Convertir de PascalCase a lowercase y pluralizar si no está en plural
+    const resourceLower = resource.charAt(0).toLowerCase() + resource.slice(1);
+    return resourceLower.endsWith('s') ? resourceLower : `${resourceLower}s`;
+  }
+
+  // Si ya viene como string con formato, devolverlo tal cual
+  return resource;
+}
 
 /**
  * Implementación principal del cliente HTTP

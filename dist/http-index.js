@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.loadProxyModule = exports.loadStreamingModule = exports.httpLogger = exports.getCurrentMetrics = exports.trackActivity = exports.configureMetrics = exports.invalidateCacheByTags = exports.invalidateCache = exports.configureCaching = exports.initialize = exports.getAccessToken = exports.getAuthenticatedUser = exports.isAuthenticated = exports.logout = exports.login = exports.configureAuth = exports.del = exports.patch = exports.put = exports.post = exports.getById = exports.getAll = exports.get = exports.request = exports.http = void 0;
+const tslib_1 = require("tslib");
 var http_exports_1 = require("./client/exports/http-exports");
 Object.defineProperty(exports, "http", { enumerable: true, get: function () { return http_exports_1.http; } });
 var http_methods_1 = require("./client/exports/http-methods");
@@ -29,13 +30,14 @@ Object.defineProperty(exports, "trackActivity", { enumerable: true, get: functio
 Object.defineProperty(exports, "getCurrentMetrics", { enumerable: true, get: function () { return http_config_exports_1.getCurrentMetrics; } });
 var http_logger_exports_1 = require("./client/exports/http-logger-exports");
 Object.defineProperty(exports, "httpLogger", { enumerable: true, get: function () { return http_logger_exports_1.httpLogger; } });
+tslib_1.__exportStar(require("./resources"), exports);
 const loadStreamingModule = async () => {
-    const { stream } = await Promise.resolve().then(() => __importStar(require('./client/exports/http-streaming-exports')));
+    const { stream } = await Promise.resolve().then(() => tslib_1.__importStar(require('./client/exports/http-streaming-exports')));
     return { stream };
 };
 exports.loadStreamingModule = loadStreamingModule;
 const loadProxyModule = async () => {
-    const { configureProxy } = await Promise.resolve().then(() => __importStar(require('./client/exports/http-proxy-exports')));
+    const { configureProxy } = await Promise.resolve().then(() => tslib_1.__importStar(require('./client/exports/http-proxy-exports')));
     return { configureProxy };
 };
 exports.loadProxyModule = loadProxyModule;
