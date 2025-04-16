@@ -116,6 +116,45 @@ http.configureMetrics({
 });
 ```
 
+#### Resource Accessors con Símbolos
+
+Los resource accessors permiten un acceso más limpio y con mejor soporte de autocompletado a los endpoints de la API:
+
+```typescript
+import { http, User, Product } from "httplazy";
+
+// Obtener todos los usuarios
+const users = await http.get[User]();
+
+// Obtener un producto por ID
+const product = await http.getById[Product]("123");
+
+// Crear un nuevo usuario
+await http.post[User]({ name: "John", email: "john@example.com" });
+
+// Actualizar un producto
+await http.put[Product]({ id: "123", price: 99.99 });
+
+// Eliminar un comentario
+await http.delete[Comment]("456");
+```
+
+Los símbolos se convierten automáticamente al formato correcto para la API (por ejemplo, `User` → `users`).
+
+También puedes crear tus propios símbolos para recursos personalizados:
+
+```typescript
+import { http, createResource } from "httplazy";
+
+// Crear un símbolo personalizado
+const ProductVariant = createResource("ProductVariant");
+
+// Usar el recurso personalizado
+const variants = await http.get[ProductVariant]();
+```
+
+Esto mejora la legibilidad del código y proporciona un mejor soporte de autocompletado en editores compatibles con TypeScript.
+
 ### CLI Usage
 
 ```bash
@@ -153,52 +192,112 @@ For detailed documentation, please visit our [documentation page](docs/README.md
 
 ### Error Handling
 
-LazyHTTP provides a simple and consistent way to handle responses and errors. All methods return an object with `{ data, error, status }` and automatically log errors with detailed information:
+LazyHTTP returns an object with `{ data, error, status }` for all methods. This means you don't need to use try/catch blocks in your code to handle errors.
 
-```typescript
-// Simple GET request - errors are automatically logged
-const { data, error } = await http.get("https://api.example.com/data");
+Example for a GET request:
+
+```javascript
+const response = await http.get("https://api.example.com/data");
+
+if (response.error) {
+  console.error("Error:", response.error.message);
+  // If details are available, they provide additional context
+  if (response.error.details) {
+    console.error("Details:", response.error.details);
+  }
+} else {
+  console.log("Data:", response.data);
+}
+```
+
+Using destructuring for cleaner code:
+
+```javascript
+const { data, error, status, details } = await http.get(
+  "https://api.example.com/data"
+);
 
 if (error) {
-  // Error already logged with details, just handle the error case
-  return;
+  console.error(`Error (${status}): ${error.message}`);
+  if (details) {
+    console.error("How to fix:", details.help);
+  }
+} else {
+  // Work directly with the data
+  console.log("User data:", data.user);
 }
+```
 
-// Work with the data
-console.log(data);
+Example for a POST request:
 
-// Configure logging (optional)
-http.configureLogging({
-  enabled: true,
-  format: "console", // or 'json'
-  colors: true,
+```javascript
+const response = await http.post("https://api.example.com/users", {
+  name: "John",
+  email: "john@example.com",
 });
+
+if (response.error) {
+  console.error("Error:", response.error.message);
+} else {
+  console.log("User created:", response.data);
+}
 ```
 
-The automatic error logging includes:
+LazyHTTP can return various error types:
 
-- Error message and status code
-- Detailed description of what went wrong
-- Probable cause of the error
-- Suggested solution to fix the issue
+- HttpTimeoutError
+- HttpNetworkError
+- HttpInvalidURLError
+- And others...
 
-Example error output:
+## Automatic Error Logging
 
+LazyHTTP includes a built-in logging system that automatically logs errors. You can configure the logging behavior:
+
+```javascript
+import { httpLogger, http } from "httplazy";
+
+// Configure the logger
+httpLogger.configure({
+  enabled: true, // Enable/disable logging (default: true)
+  level: "error", // Log level: 'error', 'warning', 'info', 'debug' (default: 'error')
+  format: "console", // Output format: 'console' or 'json' (default: 'console')
+  includeRequestDetails: true, // Include request details in logs (default: true)
+});
+
+// Make a request - errors will be automatically logged
+const response = await http.get("https://api.example.com/data");
+
+// You can still handle errors in your code if needed
+if (response.error) {
+  // Error already logged automatically
+  // Additional custom error handling
+}
 ```
-Error (404): Resource not found
-Description: The requested resource could not be found on the server
-Cause: The URL path is incorrect or the resource has been moved
-Solution: Verify the URL path and ensure the resource exists
+
+The automatic logging system:
+
+- Color-codes error messages in console mode for better visibility
+- Includes HTTP status codes, error types, and messages
+- Provides detailed error context when available
+- Can be disabled for production environments if needed
+
+## Contribuir al Proyecto
+
+¿Interesado en contribuir a httplazy? ¡Excelente! Antes de comenzar, por favor lee nuestro archivo [DEVELOPMENT.md](./DEVELOPMENT.md) que contiene información importante sobre:
+
+- Configuración del entorno de desarrollo
+- Estructura del proyecto y organización del código
+- Reglas de desarrollo y mejores prácticas
+- Verificaciones automáticas y hooks pre-commit
+- Proceso de contribución y publicación
+
+Seguir estas guías garantiza que el código mantenga alta calidad y consistencia, además de facilitar el proceso de revisión y aprobación de tus contribuciones.
+
+```bash
+# Configurar entorno de desarrollo rápidamente
+npm run setup-dev
 ```
-
-Error types include:
-
-- `HttpTimeoutError`: Request exceeded the timeout limit
-- `HttpNetworkError`: Connection issues with the server
-- `HttpAuthError`: Authentication or authorization problems
-- `HttpAxiosError`: Issues with the Axios request
-- `HttpAbortedError`: Request was aborted before completion
-- `HttpUnknownError`: Unclassified or unexpected errors
 
 ## Español
 
@@ -314,6 +413,45 @@ http.configureMetrics({
 });
 ```
 
+#### Resource Accessors con Símbolos
+
+Los resource accessors permiten un acceso más limpio y con mejor soporte de autocompletado a los endpoints de la API:
+
+```typescript
+import { http, User, Product } from "httplazy";
+
+// Obtener todos los usuarios
+const users = await http.get[User]();
+
+// Obtener un producto por ID
+const product = await http.getById[Product]("123");
+
+// Crear un nuevo usuario
+await http.post[User]({ name: "John", email: "john@example.com" });
+
+// Actualizar un producto
+await http.put[Product]({ id: "123", price: 99.99 });
+
+// Eliminar un comentario
+await http.delete[Comment]("456");
+```
+
+Los símbolos se convierten automáticamente al formato correcto para la API (por ejemplo, `User` → `users`).
+
+También puedes crear tus propios símbolos para recursos personalizados:
+
+```typescript
+import { http, createResource } from "httplazy";
+
+// Crear un símbolo personalizado
+const ProductVariant = createResource("ProductVariant");
+
+// Usar el recurso personalizado
+const variants = await http.get[ProductVariant]();
+```
+
+Esto mejora la legibilidad del código y proporciona un mejor soporte de autocompletado en editores compatibles con TypeScript.
+
 ### Uso de CLI
 
 ```bash
@@ -351,49 +489,148 @@ Para documentación detallada, por favor visite nuestra [página de documentaci�
 
 ### Manejo de Errores
 
-LazyHTTP proporciona una forma simple y consistente de manejar respuestas y errores. Todos los métodos devuelven un objeto con `{ data, error, status }` y automáticamente registran errores con información detallada:
+LazyHTTP devuelve un objeto con `{ data, error, status }` para todos los métodos. Esto significa que no necesitas usar bloques try/catch en tu código para manejar errores.
 
-```typescript
-// Simple GET request - errors are automatically logged
-const { data, error } = await http.get("https://api.example.com/data");
+Ejemplo para una petición GET:
+
+```javascript
+const response = await http.get("https://api.example.com/data");
+
+if (response.error) {
+  console.error("Error:", response.error.message);
+  // Si hay detalles disponibles, proporcionan contexto adicional
+  if (response.error.details) {
+    console.error("Detalles:", response.error.details);
+  }
+} else {
+  console.log("Datos:", response.data);
+}
+```
+
+Usando desestructuración para un código más limpio:
+
+```javascript
+const { data, error, status, details } = await http.get(
+  "https://api.example.com/data"
+);
 
 if (error) {
-  // Error already logged with details, just handle the error case
-  return;
+  console.error(`Error (${status}): ${error.message}`);
+  if (details) {
+    console.error("Cómo solucionarlo:", details.help);
+  }
+} else {
+  // Trabajar directamente con los datos
+  console.log("Datos del usuario:", data.user);
 }
+```
 
-// Work with the data
-console.log(data);
+Ejemplo para una petición POST:
 
-// Configure logging (optional)
-http.configureLogging({
-  enabled: true,
-  format: "console", // or 'json'
-  colors: true,
+```javascript
+const response = await http.post("https://api.example.com/users", {
+  name: "John",
+  email: "john@example.com",
 });
+
+if (response.error) {
+  console.error("Error:", response.error.message);
+} else {
+  console.log("Usuario creado:", response.data);
+}
 ```
 
-El registro automático de errores incluye:
+LazyHTTP puede devolver varios tipos de errores:
 
-- Mensaje de error y código de estado
-- Descripción detallada de lo que salió mal
-- Causa probable del error
-- Paso sugerido para resolver el problema
+- HttpTimeoutError
+- HttpNetworkError
+- HttpInvalidURLError
+- Y otros...
 
-Ejemplo de salida de error:
+## Registro Automático de Errores
 
+LazyHTTP incluye un sistema de registro integrado que registra automáticamente los errores. Puedes configurar el comportamiento del registro:
+
+```javascript
+import { httpLogger, http } from "httplazy";
+
+// Configurar el logger
+httpLogger.configure({
+  enabled: true, // Habilitar/deshabilitar registro (por defecto: true)
+  level: "error", // Nivel de registro: 'error', 'warning', 'info', 'debug' (por defecto: 'error')
+  format: "console", // Formato de salida: 'console' o 'json' (por defecto: 'console')
+  includeRequestDetails: true, // Incluir detalles de la petición en los registros (por defecto: true)
+});
+
+// Realizar una petición - los errores se registrarán automáticamente
+const response = await http.get("https://api.example.com/data");
+
+// Aún puedes manejar errores en tu código si es necesario
+if (response.error) {
+  // El error ya ha sido registrado automáticamente
+  // Manejo de errores personalizado adicional
+}
 ```
-Error (404): Resource not found
-Description: The requested resource could not be found on the server
-Cause: The URL path is incorrect or the resource has been moved
-Solution: Verify the URL path and ensure the resource exists
+
+El sistema de registro automático:
+
+- Colorea los mensajes de error en modo consola para mejor visibilidad
+- Incluye códigos de estado HTTP, tipos de error y mensajes
+- Proporciona contexto detallado del error cuando está disponible
+- Puede ser deshabilitado para entornos de producción si es necesario
+
+## Resource Access with Type Notation Syntax
+
+LazyHTTP includes a resource-oriented syntax that provides a more declarative way to interact with your API resources. This syntax uses bracket notation `http.get['ResourceName']` to make your code more readable and self-documenting.
+
+### Using Type Notation Syntax
+
+```typescript
+import { http } from "httplazy";
+
+// Users resource
+const users = await http.get["User"]("https://api.example.com/users");
+const user = await http.get["User"]("https://api.example.com/users/123");
+const { data, error } = await http.get["User"](
+  "https://api.example.com/users/123"
+);
+
+// Create a new user
+const newUser = await http.post["User"]("https://api.example.com/users", {
+  name: "Jane Doe",
+  email: "jane@example.com",
+});
+
+// Update a user
+await http.put["User"]("https://api.example.com/users/123", {
+  name: "Jane Smith",
+});
+
+// Partially update a user
+await http.patch["User"]("https://api.example.com/users/123", {
+  status: "active",
+});
+
+// Delete a user
+await http.delete["User"]("https://api.example.com/users/123");
+
+// Companies resource
+const companies = await http.get["Company"](
+  "https://api.example.com/companies"
+);
+const company = await http.get["Company"](
+  "https://api.example.com/companies/456"
+);
+
+// Working with relationships
+const companyUsers = await http.get["User"](
+  "https://api.example.com/companies/456/users"
+);
 ```
 
-Los tipos de error incluyen:
+### Benefits of Type Notation Syntax
 
-- `HttpTimeoutError`: La solicitud excedió el límite de tiempo
-- `HttpNetworkError`: Problemas de conexión con el servidor
-- `HttpAuthError`: Problemas de autenticación o autorización
-- `HttpAxiosError`: Problemas con la solicitud de Axios
-- `HttpAbortedError`: La solicitud fue abortada antes de completarse
-- `HttpUnknownError`: Errores no clasificados o inesperados
+- **Self-documenting code**: Resource names make the code more readable
+- **Consistent entity naming**: Use the same resource name across your application
+- **Better code navigation**: Makes it easier to search for all API calls related to a specific entity
+- **Cleaner API**: All HTTP methods support this notation (get, post, put, patch, delete, getAll, getById)

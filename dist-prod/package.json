@@ -1,0 +1,82 @@
+{
+  "name": "httplazy",
+  "version": "1.6.2",
+  "description": "A powerful and easy-to-use HTTP client library with error handling, retries, interceptors, and more | Una librería HTTP fácil de usar con manejo de errores, reintentos, interceptores, y más",
+  "main": "http-index.js",
+  "types": "http-index.d.ts",
+  "bin": {
+    "lazyhttp": "bin/lazyhttp.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "build:prod": "tsc && node scripts/optimize.js",
+    "build:minify": "tsc && terser dist/**/*.js -o dist-min/**/*.js --compress --mangle",
+    "prepublishOnly": "npm run build",
+    "example": "node examples/simple-example.js",
+    "example:advanced": "node examples/advanced-example.js",
+    "example:auth": "node examples/auth-example.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "setup-dev": "npm install && npm install -g madge && npm install -D husky && npx husky install && npx husky add .husky/pre-commit \"npx lint-staged\"",
+    "verify": "npx tsc --noEmit && npx madge --circular http/",
+    "analyze-deps": "npx madge http/http-index.ts",
+    "verify:full": "npm run verify && npm run analyze-deps && echo '✅ Todas las verificaciones completadas con éxito'",
+    "clean": "rm -rf dist dist-min",
+    "size": "du -sh http/ dist/ && npm pack && du -sh *.tgz"
+  },
+  "lint-staged": {
+    "http/**/*.ts": [
+      "npx tsc --noEmit",
+      "npx eslint"
+    ],
+    "*.{js,ts}": "npx eslint --cache --fix"
+  },
+  "files": [
+    "dist/http-*.js",
+    "dist/http-*.d.ts",
+    "dist/metrics",
+    "bin/lazyhttp.js",
+    "README.md"
+  ],
+  "keywords": [
+    "http",
+    "axios",
+    "fetch",
+    "api",
+    "client",
+    "request",
+    "retry",
+    "interceptor",
+    "authentication",
+    "jwt",
+    "oauth2"
+  ],
+  "author": "Mauro José Ciappina",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maurociappina/httplazy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/maurociappina/httplazy/issues"
+  },
+  "homepage": "https://github.com/maurociappina/httplazy#readme",
+  "dependencies": {
+    "axios": "^1.x"
+  },
+  "devDependencies": {
+    "eslint": "^8.55.0",
+    "https-proxy-agent": "^7.0.6",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "socks-proxy-agent": "^8.0.5",
+    "terser": "^5.39.0",
+    "typescript": "^5.3.2"
+  },
+  "peerDependencies": {
+    "axios": "^1.x"
+  },
+  "optionalDependencies": {
+    "https-proxy-agent": "^7.0.6",
+    "socks-proxy-agent": "^8.0.5"
+  }
+}

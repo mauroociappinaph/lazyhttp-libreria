@@ -225,7 +225,11 @@ export const requestExecutor: HttpRequestExecutor = {
     body: unknown | undefined,
     signal: AbortSignal
   ): Promise<AxiosResponse<T>> {
-    const url = `${API_URL}${endpoint}`;
+    // Comprobar si el endpoint ya es una URL completa
+    const isFullUrl = endpoint.startsWith('http://') || endpoint.startsWith('https://');
+
+    // Usar el endpoint directamente si es una URL completa, o añadir API_URL si es una ruta relativa
+    const url = isFullUrl ? endpoint : `${API_URL}${endpoint}`;
 
     logRequest(method, url, headers, body);
 
