@@ -32,8 +32,7 @@ export {
   post,
   put,
   patch,
-  del,
-  stream
+  del
 } from './client/exports/http-methods';
 
 // Authentication exports
@@ -62,6 +61,19 @@ export {
   httpLogger,
   LoggerConfig
 } from './client/exports/http-logger-exports';
+
+// Lazy-loaded exports
+// Para cargar mediante importación dinámica:
+// import('httplazy').then(module => module.loadStreamingModule()).then(({ stream }) => { ... })
+export const loadStreamingModule = async () => {
+  const { stream } = await import('./client/exports/http-streaming-exports');
+  return { stream };
+};
+
+export const loadProxyModule = async () => {
+  const { configureProxy } = await import('./client/exports/http-proxy-exports');
+  return { configureProxy };
+};
 
 
 
