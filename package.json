@@ -16,7 +16,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "setup-dev": "npm install && npm install -g madge && npm install -D husky && npx husky install && npx husky add .husky/pre-commit \"npx lint-staged\"",
     "verify": "npx tsc --noEmit && npx madge --circular http/",
-    "analyze-deps": "npx madge --tsconfig tsconfig.json http/http-index.ts"
+    "analyze-deps": "npx madge http/http-index.ts",
+    "verify:full": "npm run verify && npm run analyze-deps && echo '✅ Todas las verificaciones completadas con éxito'"
   },
   "lint-staged": {
     "http/**/*.ts": ["npx tsc --noEmit", "npx eslint"],

@@ -61,8 +61,11 @@ El proyecto incluye varios scripts útiles:
 # Configurar entorno de desarrollo
 npm run setup-dev
 
-# Verificar tipos y dependencias circulares
+# Verificación básica (tipos y dependencias circulares)
 npm run verify
+
+# Verificación completa (tipos, dependencias circulares y análisis de estructura)
+npm run verify:full
 
 # Analizar estructura de dependencias
 npm run analyze-deps
@@ -113,7 +116,10 @@ Husky y lint-staged están configurados para ejecutar automáticamente antes de 
 Si necesitas ejecutar estas verificaciones manualmente:
 
 ```bash
-# Verificación completa
+# Verificación completa (incluye todas las comprobaciones)
+npm run verify:full
+
+# Verificación básica
 npm run verify
 
 # Verificar tipos
@@ -123,14 +129,14 @@ npx tsc --noEmit
 npx madge --circular http/
 
 # Verificar estructura de dependencias
-npx madge --tsconfig tsconfig.json http/http-index.ts
+npx madge http/http-index.ts
 ```
 
 ## Contribución
 
 1. Crea una rama para tu característica (`feature/nueva-caracteristica`)
 2. Implementa tus cambios siguiendo las reglas en `.cursorrules`
-3. Asegúrate de que todas las verificaciones pasen ejecutando `npm run verify`
+3. Asegúrate de que todas las verificaciones pasen ejecutando `npm run verify:full`
 4. Crea un pull request con una descripción clara de los cambios
 
 ## Publicación
