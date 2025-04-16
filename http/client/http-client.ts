@@ -42,57 +42,77 @@ import { streamingManager } from '../http-streaming';
 import axios from 'axios';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { SocksProxyAgent } from 'socks-proxy-agent';
+import { httpLogger } from '../http-logger';
+
+// Manager imports
+import { HttpPropertyManager } from './http-property-manager';
+import { HttpAuthManager } from './http-auth-manager';
+import { HttpConfigManager } from './http-config-manager';
+import { HttpOperations } from './http-operations';
 
 /**
  * Implementación principal del cliente HTTP
- * Combina todos los módulos para proporcionar una API unificada
+ * Reorganizado siguiendo principios SOLID:
+ * - Single Responsibility: Delegación a managers específicos
+ * - Open/Closed: Extensible a través de managers independientes
+ * - Liskov Substitution: Implementa interfaces claras
+ * - Interface Segregation: Interfaces específicas para cada dominio
+ * - Dependency Inversion: Dependencia de abstracciones, no implementaciones concretas
  */
-export class HttpClient implements HttpImplementation {
+export class HttpClient implements HttpImplementation, HttpOperations {
   private core = new HttpCore();
 
-  // Propiedades para compatibilidad con la API existente
+  // Managers para separación de responsabilidades
+  private propertyManager: HttpPropertyManager;
+  private authManager: HttpAuthManager;
+  private configManager: HttpConfigManager;
+
+  constructor() {
+    // Inicializar managers
+    this.propertyManager = new HttpPropertyManager(this.core);
+    this.authManager = new HttpAuthManager();
+    this.configManager = new HttpConfigManager(this.propertyManager);
+  }
+
+  // Propiedades delegadas al propertyManager
   get _baseUrl(): string | undefined {
-    return httpConfiguration.baseUrl;
+    return this.propertyManager.baseUrl;
   }
 
   set _baseUrl(url: string | undefined) {
-    httpConfiguration.baseUrl = url;
-    this.core._baseUrl = url;
+    this.propertyManager.baseUrl = url;
   }
 
   get _frontendUrl(): string | undefined {
-    return httpConfiguration.frontendUrl;
+    return this.propertyManager.frontendUrl;
   }
 
   set _frontendUrl(url: string | undefined) {
-    httpConfiguration.frontendUrl = url;
+    this.propertyManager.frontendUrl = url;
   }
 
   get _defaultTimeout(): number {
-    return httpConfiguration.defaultTimeout;
+    return this.propertyManager.defaultTimeout;
   }
 
   set _defaultTimeout(timeout: number) {
-    httpConfiguration.defaultTimeout = timeout;
-    this.core._defaultTimeout = timeout;
+    this.propertyManager.defaultTimeout = timeout;
   }
 
   get _defaultRetries(): number {
-    return httpConfiguration.defaultRetries;
+    return this.propertyManager.defaultRetries;
   }
 
   set _defaultRetries(retries: number) {
-    httpConfiguration.defaultRetries = retries;
-    this.core._defaultRetries = retries;
+    this.propertyManager.defaultRetries = retries;
   }
 
   get _defaultHeaders(): Record<string, string> {
-    return httpConfiguration.defaultHeaders;
+    return this.propertyManager.defaultHeaders;
   }
 
   set _defaultHeaders(headers: Record<string, string>) {
-    httpConfiguration.defaultHeaders = headers;
-    this.core._defaultHeaders = headers;
+    this.propertyManager.defaultHeaders = headers;
   }
 
   get _requestInterceptors(): Array<(config: any) => any> {
@@ -104,26 +124,22 @@ export class HttpClient implements HttpImplementation {
   }
 
   get _proxyConfig(): ProxyConfig | undefined {
-    return httpConfiguration.proxyConfig;
+    return this.propertyManager.proxyConfig;
   }
 
   set _proxyConfig(config: ProxyConfig | undefined) {
-    if (config) {
-      httpConfiguration.configureProxy(config);
-    }
+    this.propertyManager.proxyConfig = config;
   }
 
   get _defaultStreamConfig(): StreamConfig | undefined {
-    return httpConfiguration.streamConfig;
+    return this.propertyManager.streamConfig;
   }
 
   set _defaultStreamConfig(config: StreamConfig | undefined) {
-    if (config) {
-      httpConfiguration.configureStream(config);
-    }
+    this.propertyManager.streamConfig = config;
   }
 
-  // Métodos de HTTP
+  // Métodos HTTP (implementa HttpOperations)
   async request<T>(endpoint: string, options: RequestOptions = {}): Promise<ApiResponse<T>> {
     return this.core.request<T>(endpoint, options);
   }
@@ -161,9 +177,9 @@ export class HttpClient implements HttpImplementation {
     interceptorsManager.setupInterceptors(interceptor, type);
   }
 
-  // Métodos de autenticación
+  // Métodos de autenticación delegados a authManager
   configureAuth(config: AuthConfig): void {
-    configureAuthHelper(config);
+    this.authManager.configureAuth(config);
   }
 
   async login(credentials: UserCredentials): Promise<AuthInfo> {
@@ -196,47 +212,47 @@ export class HttpClient implements HttpImplementation {
   }
 
   isAuthenticated(): boolean {
-    return isAuthenticatedHelper();
+    return this.authManager.isAuthenticated();
   }
 
   async getAuthenticatedUser(): Promise<any | null> {
-    return getAuthenticatedUserHelper();
+    return this.authManager.getAuthenticatedUser();
   }
 
   getAccessToken(): string | null {
-    return getAccessTokenHelper();
+    return this.authManager.getAccessToken();
   }
 
-  // Métodos internos para la implementación
+  // Métodos internos de autenticación
   async _refreshToken(): Promise<string> {
-    return refreshTokenAuthHelper();
+    return this.authManager.refreshToken();
   }
 
   async _handleRefreshTokenFailure(): Promise<void> {
-    return handleRefreshTokenFailureAuthHelper();
+    return this.authManager.handleRefreshTokenFailure();
   }
 
   _decodeToken(token: string): any {
-    return decodeTokenHelper(token);
+    return this.authManager.decodeToken(token);
   }
 
   _isTokenExpired(token: string | number): boolean {
-    return isTokenExpiredHelper(token);
+    return this.authManager.isTokenExpired(token);
   }
 
   _storeToken(key: string, value: string): void {
-    storeTokenHelper(key, value);
+    this.authManager.storeToken(key, value);
   }
 
   _getToken(key: string): string | null {
-    return getTokenHelper(key);
+    return this.authManager.getToken(key);
   }
 
   _removeToken(key: string): void {
-    removeTokenHelper(key);
+    this.authManager.removeToken(key);
   }
 
-  // Métodos de configuración
+  // Métodos de configuración delegados a configManager
   async initialize(config?: {
     baseUrl?: string,
     frontendUrl?: string,
@@ -249,58 +265,38 @@ export class HttpClient implements HttpImplementation {
     proxy?: ProxyConfig,
     stream?: StreamConfig
   }): Promise<void> {
-    // Inicializar la configuración
-    await httpConfiguration.initialize(config);
-
-    // Sincronizar con las propiedades del core
-    if (config?.baseUrl) {
-      this.core._baseUrl = config.baseUrl;
-    }
-
-    if (config?.timeout) {
-      this.core._defaultTimeout = config.timeout;
-    }
-
-    if (config?.retries !== undefined) {
-      this.core._defaultRetries = config.retries;
-    }
-
-    if (config?.headers) {
-      this.core._defaultHeaders = {...this.core._defaultHeaders, ...config.headers};
-    }
-
-    return Promise.resolve();
+    return this.configManager.initialize(config);
   }
 
-  // Métodos de caché
+  // Métodos de caché delegados a configManager
   configureCaching(config: any): void {
-    httpConfiguration.configureCaching(config);
+    this.configManager.configureCaching(config);
   }
 
   invalidateCache(pattern: string): void {
-    httpConfiguration.invalidateCache(pattern);
+    this.configManager.invalidateCache(pattern);
   }
 
   invalidateCacheByTags(tags: string[]): void {
-    httpConfiguration.invalidateCacheByTags(tags);
+    this.configManager.invalidateCacheByTags(tags);
   }
 
-  // Métodos de métricas
+  // Métodos de métricas delegados a configManager
   configureMetrics(config: any): void {
-    httpConfiguration.configureMetrics(config);
+    this.configManager.configureMetrics(config);
   }
 
   trackActivity(type: string): void {
-    httpConfiguration.trackActivity(type);
+    this.configManager.trackActivity(type);
   }
 
   getCurrentMetrics(): any {
-    return httpConfiguration.getCurrentMetrics();
+    return this.configManager.getCurrentMetrics();
   }
 
-  // Métricas de proxy
+  // Configuración de proxy delegado a configManager
   configureProxy(config: ProxyConfig): void {
-    httpConfiguration.configureProxy(config);
+    this.configManager.configureProxy(config);
   }
 
   // Streaming
@@ -308,7 +304,7 @@ export class HttpClient implements HttpImplementation {
     return streamingManager.stream<T>(endpoint, options);
   }
 
-  // Métodos requeridos por la interfaz
+  // Métodos de utilidad
   _buildUrl(endpoint: string): string {
     return this.core._baseUrl ? `${this.core._baseUrl}${endpoint}` : endpoint;
   }
@@ -339,4 +335,9 @@ export class HttpClient implements HttpImplementation {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = rejectUnauthorized ? '1' : '0';
     return new HttpsProxyAgent(proxyString);
   }
+
+  /**
+   * Logger instance for automatic error handling
+   */
+  public logger = httpLogger;
 }
