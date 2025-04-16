@@ -500,3 +500,59 @@ El sistema de registro automático:
 - Incluye códigos de estado HTTP, tipos de error y mensajes
 - Proporciona contexto detallado del error cuando está disponible
 - Puede ser deshabilitado para entornos de producción si es necesario
+
+## Resource Access with Type Notation Syntax
+
+LazyHTTP includes a resource-oriented syntax that provides a more declarative way to interact with your API resources. This syntax uses bracket notation `http.get['ResourceName']` to make your code more readable and self-documenting.
+
+### Using Type Notation Syntax
+
+```typescript
+import { http } from "httplazy";
+
+// Users resource
+const users = await http.get["User"]("https://api.example.com/users");
+const user = await http.get["User"]("https://api.example.com/users/123");
+const { data, error } = await http.get["User"](
+  "https://api.example.com/users/123"
+);
+
+// Create a new user
+const newUser = await http.post["User"]("https://api.example.com/users", {
+  name: "Jane Doe",
+  email: "jane@example.com",
+});
+
+// Update a user
+await http.put["User"]("https://api.example.com/users/123", {
+  name: "Jane Smith",
+});
+
+// Partially update a user
+await http.patch["User"]("https://api.example.com/users/123", {
+  status: "active",
+});
+
+// Delete a user
+await http.delete["User"]("https://api.example.com/users/123");
+
+// Companies resource
+const companies = await http.get["Company"](
+  "https://api.example.com/companies"
+);
+const company = await http.get["Company"](
+  "https://api.example.com/companies/456"
+);
+
+// Working with relationships
+const companyUsers = await http.get["User"](
+  "https://api.example.com/companies/456/users"
+);
+```
+
+### Benefits of Type Notation Syntax
+
+- **Self-documenting code**: Resource names make the code more readable
+- **Consistent entity naming**: Use the same resource name across your application
+- **Better code navigation**: Makes it easier to search for all API calls related to a specific entity
+- **Cleaner API**: All HTTP methods support this notation (get, post, put, patch, delete, getAll, getById)

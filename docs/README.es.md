@@ -492,3 +492,62 @@ http.initialize({
 
 // Los logs de debug se imprimirán en la consola
 ```
+
+## Acceso a Recursos con Notación de Tipo
+
+LazyHTTP incluye una sintaxis orientada a recursos que proporciona una manera más declarativa de interactuar con los recursos de tu API. Esta sintaxis utiliza la notación de corchetes `http.get['NombreRecurso']` para hacer que tu código sea más legible y autodocumentado.
+
+### Uso de la Notación de Tipo
+
+```typescript
+import { http } from "httplazy";
+
+// Recurso de Usuarios
+const usuarios = await http.get["Usuario"]("https://api.ejemplo.com/usuarios");
+const usuario = await http.get["Usuario"](
+  "https://api.ejemplo.com/usuarios/123"
+);
+const { data, error } = await http.get["Usuario"](
+  "https://api.ejemplo.com/usuarios/123"
+);
+
+// Crear un nuevo usuario
+const nuevoUsuario = await http.post["Usuario"](
+  "https://api.ejemplo.com/usuarios",
+  {
+    nombre: "María García",
+    email: "maria@ejemplo.com",
+  }
+);
+
+// Actualizar un usuario
+await http.put["Usuario"]("https://api.ejemplo.com/usuarios/123", {
+  nombre: "María Rodríguez",
+});
+
+// Actualizar parcialmente un usuario
+await http.patch["Usuario"]("https://api.ejemplo.com/usuarios/123", {
+  estado: "activo",
+});
+
+// Eliminar un usuario
+await http.delete["Usuario"]("https://api.ejemplo.com/usuarios/123");
+
+// Recurso de Empresas
+const empresas = await http.get["Empresa"]("https://api.ejemplo.com/empresas");
+const empresa = await http.get["Empresa"](
+  "https://api.ejemplo.com/empresas/456"
+);
+
+// Trabajando con relaciones
+const usuariosEmpresa = await http.get["Usuario"](
+  "https://api.ejemplo.com/empresas/456/usuarios"
+);
+```
+
+### Beneficios de la Notación de Tipo
+
+- **Código autodocumentado**: Los nombres de recursos hacen que el código sea más legible
+- **Nomenclatura consistente de entidades**: Usa el mismo nombre de recurso en toda tu aplicación
+- **Mejor navegación de código**: Facilita la búsqueda de todas las llamadas a la API relacionadas con una entidad específica
+- **API más limpia**: Todos los métodos HTTP admiten esta notación (get, post, put, patch, delete, getAll, getById)

@@ -35,6 +35,39 @@ import { HttpAuthManager } from '../managers/http-auth-manager';
 import { HttpConfigManager } from '../managers/http-config-manager';
 import { HttpOperations } from './http-operations';
 
+// Helper genérico para crear funciones de acceso por recursos
+function createResourceAccessor<F extends (...args: any[]) => any>(
+  method: F
+): F & { [resource: string]: F } {
+  // Función base que manejará la llamada directa
+  const accessor = function(this: any, ...args: Parameters<F>): ReturnType<F> {
+    return method.apply(this, args);
+  } as F;
+
+  // Handler para el proxy que intercepta accesos por propiedad
+  const handler: ProxyHandler<F> = {
+    get(target, prop) {
+      // Si es una propiedad estándar de función, devolver la propiedad original
+      if (typeof prop === 'symbol' || prop in Function.prototype) {
+        return (target as any)[prop];
+      }
+
+      // Para accesos como get['User'], devolver una función que llama al método original
+      return function(this: any, ...args: Parameters<F>): ReturnType<F> {
+        // Aquí podemos usar el nombre del recurso (prop) si queremos
+        // console.log(`Accediendo al recurso: ${String(prop)}`);
+        return method.apply(this, args);
+      };
+    },
+    apply(_, thisArg, args) {
+      return Reflect.apply(method, thisArg, args);
+    }
+  };
+
+  // Crear un proxy para manejar el acceso por corchetes
+  return new Proxy(accessor, handler) as F & { [resource: string]: F };
+};
+
 /**
  * Implementación principal del cliente HTTP
  * Reorganizado siguiendo principios SOLID:
@@ -129,33 +162,45 @@ export class HttpClient implements HttpImplementation, HttpOperations {
     return this.core.request<T>(endpoint, options);
   }
 
-  async get<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
+  // Implementación de get con soporte de acceso por recurso
+  get = createResourceAccessor(async function<T>(this: HttpClient, endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
     return this.core.get<T>(endpoint, options);
-  }
+  });
 
-  async getAll<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
+  // Implementación de getAll con soporte de acceso por recurso
+  getAll = createResourceAccessor(async function<T>(this: HttpClient, endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
     return this.core.getAll<T>(endpoint, options);
-  }
+  });
 
-  async getById<T>(endpoint: string, id: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
+  // Implementación de getById con soporte de acceso por recurso
+  getById = createResourceAccessor(async function<T>(this: HttpClient, endpoint: string, id: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
     return this.core.getById<T>(endpoint, id, options);
-  }
+  });
 
-  async post<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
+  // Implementación de post con soporte de acceso por recurso
+  post = createResourceAccessor(async function<T>(this: HttpClient, endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
     return this.core.post<T>(endpoint, body, options);
-  }
+  });
 
-  async put<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
+  // Implementación de put con soporte de acceso por recurso
+  put = createResourceAccessor(async function<T>(this: HttpClient, endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
     return this.core.put<T>(endpoint, body, options);
-  }
+  });
 
-  async patch<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
+  // Implementación de patch con soporte de acceso por recurso
+  patch = createResourceAccessor(async function<T>(this: HttpClient, endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
     return this.core.patch<T>(endpoint, body, options);
-  }
+  });
 
-  async delete<T>(endpoint: string, options?: Omit<RequestOptions, 'method'>): Promise<ApiResponse<T>> {
+  // Implementación de delete con soporte de acceso por recurso
+  delete = createResourceAccessor(async function<T>(this: HttpClient, endpoint: string, options?: Omit<RequestOptions, 'method'>): Promise<ApiResponse<T>> {
     return this.core.delete<T>(endpoint, options);
-  }
+  });
+
+  // Implementación de stream con soporte de acceso por recurso
+  stream = createResourceAccessor(async function<T = unknown>(this: HttpClient, endpoint: string, options: Omit<RequestOptions, 'method' | 'body'> = {}): Promise<ReadableStream<T>> {
+    return streamingManager.stream<T>(endpoint, options);
+  });
 
   // Método de interceptores
   _setupInterceptors(interceptor?: any, type?: 'request' | 'response'): void {
@@ -284,14 +329,29 @@ export class HttpClient implements HttpImplementation, HttpOperations {
     this.configManager.configureProxy(config);
   }
 
-  // Streaming
-  async stream<T>(endpoint: string, options: Omit<RequestOptions, 'method' | 'body'> = {}): Promise<ReadableStream<T>> {
-    return streamingManager.stream<T>(endpoint, options);
-  }
-
   // Métodos de utilidad
   _buildUrl(endpoint: string): string {
-    return this.core._baseUrl ? `${this.core._baseUrl}${endpoint}` : endpoint;
+    // Si ya es una URL completa, devolverla tal cual
+    if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+      return endpoint;
+    }
+
+    // Si hay una URL base configurada, construir la URL completa
+    if (this.core._baseUrl) {
+      // Asegurar que no haya doble slash entre baseUrl y endpoint
+      if (this.core._baseUrl.endsWith('/') && endpoint.startsWith('/')) {
+        return `${this.core._baseUrl}${endpoint.substring(1)}`;
+      }
+      // Asegurar que haya un slash entre baseUrl y endpoint
+      else if (!this.core._baseUrl.endsWith('/') && !endpoint.startsWith('/')) {
+        return `${this.core._baseUrl}/${endpoint}`;
+      }
+      // Caso estándar: unir directamente
+      return `${this.core._baseUrl}${endpoint}`;
+    }
+
+    // Si no hay baseUrl, devolver el endpoint tal cual
+    return endpoint;
   }
 
   _prepareHeaders(options: RequestOptions): Record<string, string> {
