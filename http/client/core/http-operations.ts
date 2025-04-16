@@ -1,5 +1,4 @@
 import { RequestOptions, ApiResponse } from '../../http.types';
-import { ReadableStream } from 'stream/web';
 
 /**
  * HttpOperations - Interfaz para todas las operaciones HTTP
@@ -50,5 +49,5 @@ export interface HttpOperations {
   /**
    * Realiza una petición en streaming
    */
-  stream<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<any>;
+  stream<T = unknown>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ReadableStream<T>>;
 }

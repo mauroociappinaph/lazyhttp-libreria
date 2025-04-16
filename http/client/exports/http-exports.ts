@@ -3,12 +3,9 @@ import {
   HttpImplementation,
   ProxyConfig,
   StreamConfig,
-  AuthConfig,
-  UserCredentials,
   CacheConfig,
   MetricsConfig
 } from '../../http.types';
-import { ReadableStream } from 'stream/web';
 
 /**
  * Crea la instancia singleton del cliente HTTP

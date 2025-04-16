@@ -6,30 +6,16 @@ import {
   ProxyConfig, StreamConfig
 } from '../../http.types';
 import {
-  prepareHeaders,
-  refreshToken as refreshTokenHelper,
-  handleRefreshTokenFailure as handleRefreshTokenFailureHelper
+  prepareHeaders
 } from '../../http-helpers';
 
 // Auth imports
 import {
-  configureAuth as configureAuthHelper,
   login as loginHelper,
-  logout as logoutHelper,
-  isAuthenticated as isAuthenticatedHelper,
-  getAuthenticatedUser as getAuthenticatedUserHelper,
-  getAccessToken as getAccessTokenHelper,
-  refreshToken as refreshTokenAuthHelper,
-  handleRefreshTokenFailure as handleRefreshTokenFailureAuthHelper,
-  decodeToken as decodeTokenHelper,
-  isTokenExpired as isTokenExpiredHelper,
-  storeToken as storeTokenHelper,
-  getToken as getTokenHelper,
-  removeToken as removeTokenHelper
+  logout as logoutHelper
 } from '../../http-auth';
 
 // Configuration imports
-import { httpConfiguration } from '../../http-configuration';
 import { interceptorsManager } from '../../http-interceptors-manager';
 
 // Metrics imports
@@ -39,7 +25,6 @@ import { metricsManager } from '../../metrics/http-metrics-index';
 import { streamingManager } from '../../http-streaming';
 
 // Direct dependencies
-import axios from 'axios';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import { httpLogger } from '../../http-logger';
