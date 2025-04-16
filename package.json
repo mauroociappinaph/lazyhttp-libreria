@@ -13,7 +13,14 @@
     "example": "node examples/simple-example.js",
     "example:advanced": "node examples/advanced-example.js",
     "example:auth": "node examples/auth-example.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "setup-dev": "npm install && npm install -g madge && npm install -D husky && npx husky install && npx husky add .husky/pre-commit \"npx lint-staged\"",
+    "verify": "npx tsc --noEmit && npx madge --circular http/",
+    "analyze-deps": "npx madge --tsconfig tsconfig.json http/http-index.ts"
+  },
+  "lint-staged": {
+    "http/**/*.ts": ["npx tsc --noEmit", "npx eslint"],
+    "*.{js,ts}": "npx eslint --cache --fix"
   },
   "files": [
     "dist/http-*.js",
@@ -51,7 +58,10 @@
   "devDependencies": {
     "typescript": "^5.3.2",
     "https-proxy-agent": "^7.0.6",
-    "socks-proxy-agent": "^8.0.5"
+    "socks-proxy-agent": "^8.0.5",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "eslint": "^8.55.0"
   },
   "peerDependencies": {
     "axios": "^1.x"

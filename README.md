@@ -200,6 +200,23 @@ Error types include:
 - `HttpAbortedError`: Request was aborted before completion
 - `HttpUnknownError`: Unclassified or unexpected errors
 
+## Contribuir al Proyecto
+
+¿Interesado en contribuir a httplazy? ¡Excelente! Antes de comenzar, por favor lee nuestro archivo [DEVELOPMENT.md](./DEVELOPMENT.md) que contiene información importante sobre:
+
+- Configuración del entorno de desarrollo
+- Estructura del proyecto y organización del código
+- Reglas de desarrollo y mejores prácticas
+- Verificaciones automáticas y hooks pre-commit
+- Proceso de contribución y publicación
+
+Seguir estas guías garantiza que el código mantenga alta calidad y consistencia, además de facilitar el proceso de revisión y aprobación de tus contribuciones.
+
+```bash
+# Configurar entorno de desarrollo rápidamente
+npm run setup-dev
+```
+
 ## Español
 
 ### Descripción

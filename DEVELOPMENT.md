@@ -4,6 +4,24 @@ Este documento proporciona instrucciones para configurar y mantener el entorno d
 
 ## Configuración Inicial
 
+Puedes configurar rápidamente el entorno de desarrollo con un solo comando:
+
+```bash
+# Configuración completa automática
+npm run setup-dev
+```
+
+Este comando instalará:
+
+- Dependencias del proyecto
+- Herramientas de desarrollo como madge
+- Configurará Husky para hooks de git
+- Configurará lint-staged para verificaciones automáticas
+
+### Configuración manual (alternativa)
+
+Si prefieres configurar el entorno manualmente:
+
 1. **Instalar dependencias:**
 
 ```bash
@@ -27,10 +45,35 @@ sudo apt-get install graphviz
 choco install graphviz
 ```
 
-3. **Activar hooks de git:**
+3. **Configurar Husky para hooks de git:**
 
 ```bash
-chmod +x .git/hooks/pre-commit
+npm install -D husky lint-staged
+npx husky install
+npx husky add .husky/pre-commit "npx lint-staged"
+```
+
+## Scripts de Desarrollo
+
+El proyecto incluye varios scripts útiles:
+
+```bash
+# Configurar entorno de desarrollo
+npm run setup-dev
+
+# Verificar tipos y dependencias circulares
+npm run verify
+
+# Analizar estructura de dependencias
+npm run analyze-deps
+
+# Compilar la biblioteca
+npm run build
+
+# Ejecutar ejemplos
+npm run example
+npm run example:advanced
+npm run example:auth
 ```
 
 ## Estructura del Proyecto
@@ -60,15 +103,19 @@ Las reglas completas de desarrollo están en el archivo `.cursorrules` en la ra�
 
 ## Verificaciones Automáticas
 
-El hook de pre-commit ejecutará automáticamente:
+Husky y lint-staged están configurados para ejecutar automáticamente antes de cada commit:
 
 - Verificación de tipos TypeScript
+- Linting con ESLint
 - Detección de dependencias circulares
 - Verificación de reglas de exportación
 
 Si necesitas ejecutar estas verificaciones manualmente:
 
 ```bash
+# Verificación completa
+npm run verify
+
 # Verificar tipos
 npx tsc --noEmit
 
@@ -83,7 +130,7 @@ npx madge --tsconfig tsconfig.json http/http-index.ts
 
 1. Crea una rama para tu característica (`feature/nueva-caracteristica`)
 2. Implementa tus cambios siguiendo las reglas en `.cursorrules`
-3. Asegúrate de que todas las verificaciones pasen
+3. Asegúrate de que todas las verificaciones pasen ejecutando `npm run verify`
 4. Crea un pull request con una descripción clara de los cambios
 
 ## Publicación
