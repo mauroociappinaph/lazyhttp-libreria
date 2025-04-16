@@ -37,11 +37,12 @@ import { HttpOperations } from './http-operations';
 
 // Helper genérico para crear funciones de acceso por recursos
 function createResourceAccessor<F extends (...args: any[]) => any>(
-  method: F
+  method: F,
+  instance: any
 ): F & { [resource: string]: F } {
   // Función base que manejará la llamada directa
   const accessor = function(this: any, ...args: Parameters<F>): ReturnType<F> {
-    return method.apply(this, args);
+    return method.apply(instance, args);
   } as F;
 
   // Handler para el proxy que intercepta accesos por propiedad
@@ -54,13 +55,20 @@ function createResourceAccessor<F extends (...args: any[]) => any>(
 
       // Para accesos como get['User'], devolver una función que llama al método original
       return function(this: any, ...args: Parameters<F>): ReturnType<F> {
-        // Aquí podemos usar el nombre del recurso (prop) si queremos
-        // console.log(`Accediendo al recurso: ${String(prop)}`);
-        return method.apply(this, args);
+        // Construir el endpoint completo con el nombre del recurso
+        let endpoint = args[0];
+        // Si args[0] es un string y no es una URL completa, intentar usar el recurso como endpoint
+        if (typeof endpoint !== 'string' || (endpoint.indexOf('http') !== 0 && endpoint.indexOf('/') !== 0)) {
+          endpoint = String(prop);
+        }
+
+        // Pasar el endpoint modificado y el resto de argumentos
+        const newArgs = [endpoint, ...args.slice(1)];
+        return method.apply(instance, newArgs as any);
       };
     },
-    apply(_, thisArg, args) {
-      return Reflect.apply(method, thisArg, args);
+    apply(_, __, args) {
+      return Reflect.apply(method, instance, args);
     }
   };
 
@@ -90,6 +98,21 @@ export class HttpClient implements HttpImplementation, HttpOperations {
     this.propertyManager = new HttpPropertyManager(this.core);
     this.authManager = new HttpAuthManager();
     this.configManager = new HttpConfigManager(this.propertyManager);
+
+    // Inicializar los resource accessors vinculándolos a this
+    this.initResourceAccessors();
+  }
+
+  // Método para inicializar los resource accessors
+  private initResourceAccessors(): void {
+    this.get = createResourceAccessor(this.getMethod.bind(this), this);
+    this.getAll = createResourceAccessor(this.getAllMethod.bind(this), this);
+    this.getById = createResourceAccessor(this.getByIdMethod.bind(this), this);
+    this.post = createResourceAccessor(this.postMethod.bind(this), this);
+    this.put = createResourceAccessor(this.putMethod.bind(this), this);
+    this.patch = createResourceAccessor(this.patchMethod.bind(this), this);
+    this.delete = createResourceAccessor(this.deleteMethod.bind(this), this);
+    this.stream = createResourceAccessor(this.streamMethod.bind(this), this);
   }
 
   // Propiedades delegadas al propertyManager
@@ -162,45 +185,48 @@ export class HttpClient implements HttpImplementation, HttpOperations {
     return this.core.request<T>(endpoint, options);
   }
 
-  // Implementación de get con soporte de acceso por recurso
-  get = createResourceAccessor(async function<T>(this: HttpClient, endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
+  // Métodos base para los resource accessors
+  async getMethod<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
     return this.core.get<T>(endpoint, options);
-  });
+  }
 
-  // Implementación de getAll con soporte de acceso por recurso
-  getAll = createResourceAccessor(async function<T>(this: HttpClient, endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
+  async getAllMethod<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
     return this.core.getAll<T>(endpoint, options);
-  });
+  }
 
-  // Implementación de getById con soporte de acceso por recurso
-  getById = createResourceAccessor(async function<T>(this: HttpClient, endpoint: string, id: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
+  async getByIdMethod<T>(endpoint: string, id: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
     return this.core.getById<T>(endpoint, id, options);
-  });
+  }
 
-  // Implementación de post con soporte de acceso por recurso
-  post = createResourceAccessor(async function<T>(this: HttpClient, endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
+  async postMethod<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
     return this.core.post<T>(endpoint, body, options);
-  });
+  }
 
-  // Implementación de put con soporte de acceso por recurso
-  put = createResourceAccessor(async function<T>(this: HttpClient, endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
+  async putMethod<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
     return this.core.put<T>(endpoint, body, options);
-  });
+  }
 
-  // Implementación de patch con soporte de acceso por recurso
-  patch = createResourceAccessor(async function<T>(this: HttpClient, endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
+  async patchMethod<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
     return this.core.patch<T>(endpoint, body, options);
-  });
+  }
 
-  // Implementación de delete con soporte de acceso por recurso
-  delete = createResourceAccessor(async function<T>(this: HttpClient, endpoint: string, options?: Omit<RequestOptions, 'method'>): Promise<ApiResponse<T>> {
+  async deleteMethod<T>(endpoint: string, options?: Omit<RequestOptions, 'method'>): Promise<ApiResponse<T>> {
     return this.core.delete<T>(endpoint, options);
-  });
+  }
 
-  // Implementación de stream con soporte de acceso por recurso
-  stream = createResourceAccessor(async function<T = unknown>(this: HttpClient, endpoint: string, options: Omit<RequestOptions, 'method' | 'body'> = {}): Promise<ReadableStream<T>> {
+  async streamMethod<T = unknown>(endpoint: string, options: Omit<RequestOptions, 'method' | 'body'> = {}): Promise<ReadableStream<T>> {
     return streamingManager.stream<T>(endpoint, options);
-  });
+  }
+
+  // Resource accessors - estas propiedades serán reemplazadas en initResourceAccessors
+  get: F & { [resource: string]: F } = null as any;
+  getAll: F & { [resource: string]: F } = null as any;
+  getById: F & { [resource: string]: F } = null as any;
+  post: F & { [resource: string]: F } = null as any;
+  put: F & { [resource: string]: F } = null as any;
+  patch: F & { [resource: string]: F } = null as any;
+  delete: F & { [resource: string]: F } = null as any;
+  stream: F & { [resource: string]: F } = null as any;
 
   // Método de interceptores
   _setupInterceptors(interceptor?: any, type?: 'request' | 'response'): void {
@@ -386,3 +412,6 @@ export class HttpClient implements HttpImplementation, HttpOperations {
    */
   public logger = httpLogger;
 }
+
+// Tipo genérico para la función de acceso por recurso
+type F = (...args: any[]) => any;
