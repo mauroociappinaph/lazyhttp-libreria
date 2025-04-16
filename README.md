@@ -116,6 +116,45 @@ http.configureMetrics({
 });
 ```
 
+#### Resource Accessors con Símbolos
+
+Los resource accessors permiten un acceso más limpio y con mejor soporte de autocompletado a los endpoints de la API:
+
+```typescript
+import { http, User, Product } from "httplazy";
+
+// Obtener todos los usuarios
+const users = await http.get[User]();
+
+// Obtener un producto por ID
+const product = await http.getById[Product]("123");
+
+// Crear un nuevo usuario
+await http.post[User]({ name: "John", email: "john@example.com" });
+
+// Actualizar un producto
+await http.put[Product]({ id: "123", price: 99.99 });
+
+// Eliminar un comentario
+await http.delete[Comment]("456");
+```
+
+Los símbolos se convierten automáticamente al formato correcto para la API (por ejemplo, `User` → `users`).
+
+También puedes crear tus propios símbolos para recursos personalizados:
+
+```typescript
+import { http, createResource } from "httplazy";
+
+// Crear un símbolo personalizado
+const ProductVariant = createResource("ProductVariant");
+
+// Usar el recurso personalizado
+const variants = await http.get[ProductVariant]();
+```
+
+Esto mejora la legibilidad del código y proporciona un mejor soporte de autocompletado en editores compatibles con TypeScript.
+
 ### CLI Usage
 
 ```bash
@@ -374,6 +413,45 @@ http.configureMetrics({
 });
 ```
 
+#### Resource Accessors con Símbolos
+
+Los resource accessors permiten un acceso más limpio y con mejor soporte de autocompletado a los endpoints de la API:
+
+```typescript
+import { http, User, Product } from "httplazy";
+
+// Obtener todos los usuarios
+const users = await http.get[User]();
+
+// Obtener un producto por ID
+const product = await http.getById[Product]("123");
+
+// Crear un nuevo usuario
+await http.post[User]({ name: "John", email: "john@example.com" });
+
+// Actualizar un producto
+await http.put[Product]({ id: "123", price: 99.99 });
+
+// Eliminar un comentario
+await http.delete[Comment]("456");
+```
+
+Los símbolos se convierten automáticamente al formato correcto para la API (por ejemplo, `User` → `users`).
+
+También puedes crear tus propios símbolos para recursos personalizados:
+
+```typescript
+import { http, createResource } from "httplazy";
+
+// Crear un símbolo personalizado
+const ProductVariant = createResource("ProductVariant");
+
+// Usar el recurso personalizado
+const variants = await http.get[ProductVariant]();
+```
+
+Esto mejora la legibilidad del código y proporciona un mejor soporte de autocompletado en editores compatibles con TypeScript.
+
 ### Uso de CLI
 
 ```bash
@@ -500,3 +578,59 @@ El sistema de registro automático:
 - Incluye códigos de estado HTTP, tipos de error y mensajes
 - Proporciona contexto detallado del error cuando está disponible
 - Puede ser deshabilitado para entornos de producción si es necesario
+
+## Resource Access with Type Notation Syntax
+
+LazyHTTP includes a resource-oriented syntax that provides a more declarative way to interact with your API resources. This syntax uses bracket notation `http.get['ResourceName']` to make your code more readable and self-documenting.
+
+### Using Type Notation Syntax
+
+```typescript
+import { http } from "httplazy";
+
+// Users resource
+const users = await http.get["User"]("https://api.example.com/users");
+const user = await http.get["User"]("https://api.example.com/users/123");
+const { data, error } = await http.get["User"](
+  "https://api.example.com/users/123"
+);
+
+// Create a new user
+const newUser = await http.post["User"]("https://api.example.com/users", {
+  name: "Jane Doe",
+  email: "jane@example.com",
+});
+
+// Update a user
+await http.put["User"]("https://api.example.com/users/123", {
+  name: "Jane Smith",
+});
+
+// Partially update a user
+await http.patch["User"]("https://api.example.com/users/123", {
+  status: "active",
+});
+
+// Delete a user
+await http.delete["User"]("https://api.example.com/users/123");
+
+// Companies resource
+const companies = await http.get["Company"](
+  "https://api.example.com/companies"
+);
+const company = await http.get["Company"](
+  "https://api.example.com/companies/456"
+);
+
+// Working with relationships
+const companyUsers = await http.get["User"](
+  "https://api.example.com/companies/456/users"
+);
+```
+
+### Benefits of Type Notation Syntax
+
+- **Self-documenting code**: Resource names make the code more readable
+- **Consistent entity naming**: Use the same resource name across your application
+- **Better code navigation**: Makes it easier to search for all API calls related to a specific entity
+- **Cleaner API**: All HTTP methods support this notation (get, post, put, patch, delete, getAll, getById)

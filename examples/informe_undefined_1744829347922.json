@@ -1,0 +1,18 @@
+{
+  "total_datasets": 10,
+  "formatos": {
+    "xls": 11,
+    "csv": 11,
+    "zip": 1,
+    "pdf": 1
+  },
+  "etiquetas": {},
+  "recursos_por_dataset": 2.4,
+  "datasets_por_licencia": {
+    "CC-BY-4.0": 10
+  },
+  "datasets_por_año": {
+    "2018": 2,
+    "2025": 8
+  }
+}

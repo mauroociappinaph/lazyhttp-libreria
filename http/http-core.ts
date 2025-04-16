@@ -53,10 +53,14 @@ export class HttpCore {
       // Registrar la petición en métricas
       metricsManager.trackRequest(endpoint);
 
+      // Determinar si la URL es completa o si debemos usar baseUrl
+      const isFullUrl = endpoint.startsWith('http://') || endpoint.startsWith('https://');
+      const finalEndpoint = isFullUrl ? endpoint : this._baseUrl ? `${this._baseUrl}${endpoint}` : endpoint;
+
       // Petición sin caché
       const requestHeaders = prepareHeaders(headers, withAuth);
       const response = await retryHandler.executeWithRetry(
-        this._baseUrl ? `${this._baseUrl}${endpoint}` : endpoint,
+        finalEndpoint,
         method,
         requestHeaders,
         body,

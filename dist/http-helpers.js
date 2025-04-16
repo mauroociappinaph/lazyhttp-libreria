@@ -157,7 +157,8 @@ function prepareHeaders(headers, withAuth) {
 }
 exports.requestExecutor = {
     async executeRequest(endpoint, method, headers, body, signal) {
-        const url = `${http_config_1.API_URL}${endpoint}`;
+        const isFullUrl = endpoint.startsWith('http://') || endpoint.startsWith('https://');
+        const url = isFullUrl ? endpoint : `${http_config_1.API_URL}${endpoint}`;
         logRequest(method, url, headers, body);
         return (0, axios_1.default)({
             url,
