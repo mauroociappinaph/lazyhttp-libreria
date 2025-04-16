@@ -78,6 +78,9 @@ export const loadProxyModule = async () => {
   return { configureProxy };
 };
 
+// Re-exportar utilidades
+export { deepFindLazy } from './utils';
+
 
 
 
