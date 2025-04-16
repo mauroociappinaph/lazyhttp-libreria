@@ -116,6 +116,45 @@ http.configureMetrics({
 });
 ```
 
+#### Resource Accessors con Símbolos
+
+Los resource accessors permiten un acceso más limpio y con mejor soporte de autocompletado a los endpoints de la API:
+
+```typescript
+import { http, User, Product } from "httplazy";
+
+// Obtener todos los usuarios
+const users = await http.get[User]();
+
+// Obtener un producto por ID
+const product = await http.getById[Product]("123");
+
+// Crear un nuevo usuario
+await http.post[User]({ name: "John", email: "john@example.com" });
+
+// Actualizar un producto
+await http.put[Product]({ id: "123", price: 99.99 });
+
+// Eliminar un comentario
+await http.delete[Comment]("456");
+```
+
+Los símbolos se convierten automáticamente al formato correcto para la API (por ejemplo, `User` → `users`).
+
+También puedes crear tus propios símbolos para recursos personalizados:
+
+```typescript
+import { http, createResource } from "httplazy";
+
+// Crear un símbolo personalizado
+const ProductVariant = createResource("ProductVariant");
+
+// Usar el recurso personalizado
+const variants = await http.get[ProductVariant]();
+```
+
+Esto mejora la legibilidad del código y proporciona un mejor soporte de autocompletado en editores compatibles con TypeScript.
+
 ### CLI Usage
 
 ```bash
@@ -373,6 +412,45 @@ http.configureMetrics({
   trackRequests: true,
 });
 ```
+
+#### Resource Accessors con Símbolos
+
+Los resource accessors permiten un acceso más limpio y con mejor soporte de autocompletado a los endpoints de la API:
+
+```typescript
+import { http, User, Product } from "httplazy";
+
+// Obtener todos los usuarios
+const users = await http.get[User]();
+
+// Obtener un producto por ID
+const product = await http.getById[Product]("123");
+
+// Crear un nuevo usuario
+await http.post[User]({ name: "John", email: "john@example.com" });
+
+// Actualizar un producto
+await http.put[Product]({ id: "123", price: 99.99 });
+
+// Eliminar un comentario
+await http.delete[Comment]("456");
+```
+
+Los símbolos se convierten automáticamente al formato correcto para la API (por ejemplo, `User` → `users`).
+
+También puedes crear tus propios símbolos para recursos personalizados:
+
+```typescript
+import { http, createResource } from "httplazy";
+
+// Crear un símbolo personalizado
+const ProductVariant = createResource("ProductVariant");
+
+// Usar el recurso personalizado
+const variants = await http.get[ProductVariant]();
+```
+
+Esto mejora la legibilidad del código y proporciona un mejor soporte de autocompletado en editores compatibles con TypeScript.
 
 ### Uso de CLI
 
