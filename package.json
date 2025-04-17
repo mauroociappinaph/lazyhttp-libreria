@@ -1,6 +1,6 @@
 {
   "name": "httplazy",
-  "version": "1.6.5",
+  "version": "1.6.6",
   "description": "A powerful and easy-to-use HTTP client library with error handling, retries, interceptors, and more | Una librería HTTP fácil de usar con manejo de errores, reintentos, interceptores, y más",
   "main": "dist/http-index.js",
   "types": "dist/http-index.d.ts",
