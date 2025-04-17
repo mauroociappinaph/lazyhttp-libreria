@@ -78,6 +78,15 @@ export const loadProxyModule = async () => {
   return { configureProxy };
 };
 
+// Módulo SOA para arquitectura orientada a servicios
+export const loadSoaModule = async () => {
+  const { createSoaClient, createSoaServer } = await import('./client/exports/http-soa-exports');
+  return {
+    createSoaClient,
+    createSoaServer
+  };
+};
+
 // Re-exportar utilidades
 export { deepFindLazy } from './utils';
 

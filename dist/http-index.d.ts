@@ -11,4 +11,8 @@ export declare const loadStreamingModule: () => Promise<{
 export declare const loadProxyModule: () => Promise<{
     configureProxy: (config: import("./http.types").ProxyConfig) => void;
 }>;
+export declare const loadSoaModule: () => Promise<{
+    createSoaClient: typeof import("./client/exports/http-soa-exports").createSoaClient;
+    createSoaServer: typeof import("./client/exports/http-soa-exports").createSoaServer;
+}>;
 export { deepFindLazy } from './utils';

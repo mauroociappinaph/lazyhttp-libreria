@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deepFindLazy = exports.loadProxyModule = exports.loadStreamingModule = exports.httpLogger = exports.getCurrentMetrics = exports.trackActivity = exports.configureMetrics = exports.invalidateCacheByTags = exports.invalidateCache = exports.configureCaching = exports.initialize = exports.getAccessToken = exports.getAuthenticatedUser = exports.isAuthenticated = exports.logout = exports.login = exports.configureAuth = exports.del = exports.patch = exports.put = exports.post = exports.getById = exports.getAll = exports.get = exports.request = exports.http = void 0;
+exports.deepFindLazy = exports.loadSoaModule = exports.loadProxyModule = exports.loadStreamingModule = exports.httpLogger = exports.getCurrentMetrics = exports.trackActivity = exports.configureMetrics = exports.invalidateCacheByTags = exports.invalidateCache = exports.configureCaching = exports.initialize = exports.getAccessToken = exports.getAuthenticatedUser = exports.isAuthenticated = exports.logout = exports.login = exports.configureAuth = exports.del = exports.patch = exports.put = exports.post = exports.getById = exports.getAll = exports.get = exports.request = exports.http = void 0;
 const tslib_1 = require("tslib");
 var http_exports_1 = require("./client/exports/http-exports");
 Object.defineProperty(exports, "http", { enumerable: true, get: function () { return http_exports_1.http; } });
@@ -41,5 +41,13 @@ const loadProxyModule = async () => {
     return { configureProxy };
 };
 exports.loadProxyModule = loadProxyModule;
+const loadSoaModule = async () => {
+    const { createSoaClient, createSoaServer } = await Promise.resolve().then(() => tslib_1.__importStar(require('./client/exports/http-soa-exports')));
+    return {
+        createSoaClient,
+        createSoaServer
+    };
+};
+exports.loadSoaModule = loadSoaModule;
 var utils_1 = require("./utils");
 Object.defineProperty(exports, "deepFindLazy", { enumerable: true, get: function () { return utils_1.deepFindLazy; } });

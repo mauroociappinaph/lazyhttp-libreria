@@ -1,6 +1,6 @@
 {
   "name": "httplazy",
-  "version": "1.6.3",
+  "version": "1.6.4",
   "description": "A powerful and easy-to-use HTTP client library with error handling, retries, interceptors, and more | Una librería HTTP fácil de usar con manejo de errores, reintentos, interceptores, y más",
   "main": "dist/http-index.js",
   "types": "dist/http-index.d.ts",
@@ -66,7 +66,7 @@
   "bugs": {
     "url": "https://github.com/maurociappina/httplazy/issues"
   },
-  "homepage": "https://github.com/maurociappina/httplazy#readme",
+  "homepage": "https://github.com/mauroociappinaph/lazyhttp-libreria/blob/master/README.md",
   "dependencies": {
     "axios": "^1.x"
   },
