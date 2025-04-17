@@ -333,6 +333,136 @@ This is especially useful when working with:
 
 The function safely handles circular references and various data types.
 
+## SOA Module (Service-Oriented Architecture)
+
+LazyHTTP includes an optional SOA module that enables you to work with service-oriented architectures. This module is loaded dynamically when needed, which keeps the core library lightweight.
+
+### Client-side SOA
+
+Create SOA clients to consume remote services with a clean, method-oriented API:
+
+```javascript
+import { http, loadSoaModule } from "httplazy";
+
+// Example: Creating and using a SOA client
+async function useUserService() {
+  // Load the SOA module dynamically
+  const { createSoaClient } = await loadSoaModule();
+
+  // Create a client for a specific service endpoint
+  const userService = createSoaClient({
+    serviceUrl: "https://api.example.com/services",
+    namespace: "users", // Optional
+    timeout: 5000, // Default timeout
+    withAuth: true, // Use authentication from http if configured
+  });
+
+  try {
+    // Call a service method (sends POST to https://api.example.com/services/users/UserService/getUserById)
+    const user = await userService.callService("UserService", "getUserById", {
+      id: 123,
+    });
+    console.log("User retrieved:", user);
+
+    // Call multiple service methods in a single request (batch)
+    const results = await userService.callBatch([
+      {
+        serviceName: "UserService",
+        method: "getUserById",
+        params: { id: 123 },
+      },
+      {
+        serviceName: "ProfileService",
+        method: "getPreferences",
+        params: { userId: 123 },
+      },
+    ]);
+
+    console.log("Batch results:", results);
+
+    // Get service definition/description
+    const serviceDef = await userService.getServiceDefinition("UserService");
+    console.log("Available methods:", Object.keys(serviceDef.methods));
+  } catch (error) {
+    console.error("Service error:", error);
+  }
+}
+```
+
+### Server-side SOA
+
+Expose services through an HTTP server with minimal configuration:
+
+```javascript
+import { loadSoaModule } from "httplazy";
+
+async function startServiceServer() {
+  // Load the SOA module
+  const { createSoaServer } = await loadSoaModule();
+
+  // Define service implementations
+  const userService = {
+    getUserById: async (params) => {
+      const { id } = params;
+      // Fetch user from database or other source
+      return { id, name: "John Doe", email: "john@example.com" };
+    },
+
+    createUser: async (params) => {
+      const { name, email } = params;
+      // Create user in database
+      return { id: 456, name, email, status: "active" };
+    },
+  };
+
+  // Create and configure the SOA server
+  const server = createSoaServer({
+    port: 3000, // Port to listen on
+    path: "/services", // Base path for services
+    cors: true, // Enable CORS
+    services: {
+      UserService: userService,
+    },
+  });
+
+  try {
+    // Start the server
+    await server.start();
+    console.log("SOA server running on port 3000");
+
+    // You can dynamically add services after the server starts
+    server.addService("ProfileService", {
+      getPreferences: async (params) => {
+        const { userId } = params;
+        return { userId, theme: "dark", notifications: true };
+      },
+    });
+
+    // Get list of registered services
+    console.log("Available services:", server.getRegisteredServices());
+  } catch (error) {
+    console.error("Error starting server:", error);
+  }
+}
+```
+
+### Benefits of the SOA Module
+
+- **Clean API Design**: Method-oriented API that avoids hardcoding URLs
+- **Service Discovery**: Automatic service definition retrieval
+- **Batch Operations**: Make multiple service calls in a single request
+- **Integration with Core Library**: Leverages the same authentication, caching, and interceptor systems
+- **Lazy Loading**: Only loaded when needed, keeping the core library lightweight
+- **TypeScript Support**: Full type definitions for better development experience
+
+The SOA module is particularly useful for:
+
+- Microservice architectures
+- Enterprise applications with well-defined service boundaries
+- Backend-for-frontend (BFF) patterns
+- API gateways
+- Complex domain models with clear service separation
+
 ## Contribuir al Proyecto
 
 ¿Interesado en contribuir a httplazy? ¡Excelente! Antes de comenzar, por favor lee nuestro archivo [DEVELOPMENT.md](./DEVELOPMENT.md) que contiene información importante sobre:
@@ -736,3 +866,137 @@ Esto es especialmente útil cuando trabajas con:
 - Búsqueda de elementos específicos en grandes colecciones de datos
 
 La función maneja de forma segura referencias circulares y varios tipos de datos.
+
+## Módulo SOA (Arquitectura Orientada a Servicios)
+
+LazyHTTP incluye un módulo SOA opcional que permite trabajar con arquitecturas orientadas a servicios. Este módulo se carga dinámicamente cuando se necesita, lo que mantiene la biblioteca principal ligera.
+
+### SOA del lado del cliente
+
+Crea clientes SOA para consumir servicios remotos con una API limpia y orientada a métodos:
+
+```javascript
+import { http, loadSoaModule } from "httplazy";
+
+// Ejemplo: Creación y uso de un cliente SOA
+async function usarServicioDeUsuarios() {
+  // Cargar el módulo SOA dinámicamente
+  const { createSoaClient } = await loadSoaModule();
+
+  // Crear un cliente para un endpoint de servicio específico
+  const servicioUsuarios = createSoaClient({
+    serviceUrl: "https://api.ejemplo.com/servicios",
+    namespace: "usuarios", // Opcional
+    timeout: 5000, // Timeout por defecto
+    withAuth: true, // Usar autenticación de http si está configurada
+  });
+
+  try {
+    // Llamar a un método de servicio (envía POST a https://api.ejemplo.com/servicios/usuarios/ServicioUsuario/obtenerUsuarioPorId)
+    const usuario = await servicioUsuarios.callService(
+      "ServicioUsuario",
+      "obtenerUsuarioPorId",
+      { id: 123 }
+    );
+    console.log("Usuario obtenido:", usuario);
+
+    // Llamar a múltiples métodos de servicio en una sola petición (batch)
+    const resultados = await servicioUsuarios.callBatch([
+      {
+        serviceName: "ServicioUsuario",
+        method: "obtenerUsuarioPorId",
+        params: { id: 123 },
+      },
+      {
+        serviceName: "ServicioPerfil",
+        method: "obtenerPreferencias",
+        params: { idUsuario: 123 },
+      },
+    ]);
+
+    console.log("Resultados del batch:", resultados);
+
+    // Obtener definición/descripción del servicio
+    const defServicio = await servicioUsuarios.getServiceDefinition(
+      "ServicioUsuario"
+    );
+    console.log("Métodos disponibles:", Object.keys(defServicio.metodos));
+  } catch (error) {
+    console.error("Error del servicio:", error);
+  }
+}
+```
+
+### SOA del lado del servidor
+
+Expone servicios a través de un servidor HTTP con configuración mínima:
+
+```javascript
+import { loadSoaModule } from "httplazy";
+
+async function iniciarServidorDeServicios() {
+  // Cargar el módulo SOA
+  const { createSoaServer } = await loadSoaModule();
+
+  // Definir implementaciones de servicios
+  const servicioUsuario = {
+    obtenerUsuarioPorId: async (params) => {
+      const { id } = params;
+      // Obtener usuario de base de datos u otra fuente
+      return { id, nombre: "Juan Pérez", email: "juan@ejemplo.com" };
+    },
+
+    crearUsuario: async (params) => {
+      const { nombre, email } = params;
+      // Crear usuario en base de datos
+      return { id: 456, nombre, email, estado: "activo" };
+    },
+  };
+
+  // Crear y configurar el servidor SOA
+  const servidor = createSoaServer({
+    port: 3000, // Puerto de escucha
+    path: "/servicios", // Ruta base para servicios
+    cors: true, // Habilitar CORS
+    services: {
+      ServicioUsuario: servicioUsuario,
+    },
+  });
+
+  try {
+    // Iniciar el servidor
+    await servidor.start();
+    console.log("Servidor SOA ejecutándose en el puerto 3000");
+
+    // Puedes añadir servicios dinámicamente después de iniciar el servidor
+    servidor.addService("ServicioPerfil", {
+      obtenerPreferencias: async (params) => {
+        const { idUsuario } = params;
+        return { idUsuario, tema: "oscuro", notificaciones: true };
+      },
+    });
+
+    // Obtener lista de servicios registrados
+    console.log("Servicios disponibles:", servidor.getRegisteredServices());
+  } catch (error) {
+    console.error("Error al iniciar servidor:", error);
+  }
+}
+```
+
+### Beneficios del Módulo SOA
+
+- **Diseño de API Limpio**: API orientada a métodos que evita codificar URLs directamente
+- **Descubrimiento de Servicios**: Recuperación automática de definiciones de servicios
+- **Operaciones por Lotes**: Realizar múltiples llamadas de servicio en una sola petición
+- **Integración con la Biblioteca Principal**: Aprovecha los mismos sistemas de autenticación, caché e interceptores
+- **Carga Perezosa**: Solo se carga cuando es necesario, manteniendo ligera la biblioteca principal
+- **Soporte TypeScript**: Definiciones de tipos completas para una mejor experiencia de desarrollo
+
+El módulo SOA es particularmente útil para:
+
+- Arquitecturas de microservicios
+- Aplicaciones empresariales con límites de servicio bien definidos
+- Patrones de backend-for-frontend (BFF)
+- Gateways de API
+- Modelos de dominio complejos con clara separación de servicios
