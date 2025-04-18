@@ -1,65 +1,140 @@
-# Reglas de Desarrollo para httplazy
+# 📘 Reglas de Desarrollo para HTTPLazy
 
-Este archivo contiene guías y mejores prácticas para mantener la calidad y la arquitectura del código mientras se desarrolla la biblioteca httplazy.
+Este archivo contiene guías y mejores prácticas para mantener la calidad, escalabilidad y arquitectura del código mientras se desarrolla la biblioteca `httplazy`.
 
-## Estructura de código y organización
+---
 
-- Organizar código en módulos por dominio funcional (auth, cache, core, etc.)
-- Usar la estructura de sub-barriles para exportaciones
-- Colocar nuevas funcionalidades en el dominio apropiado o crear uno nuevo
+## 📁 Estructura de Código y Organización
 
-## Optimización para Tree-Shaking
+- Organizar código en módulos por dominio funcional (`auth`, `cache`, `core`, etc.).
+- Usar estructura de sub-barriles para exportaciones (`index.ts` en subcarpetas).
+- Colocar nuevas funcionalidades en el dominio apropiado, o crear uno nuevo si no existe.
 
-- Usar exportaciones nombradas (`export { x }`) en lugar de exportaciones por defecto
-- Evitar `export default` para componentes principales
-- Mantener la práctica de importaciones específicas en los consumidores
-- Usar importaciones selectivas cuando sea posible (`import { X } from './y'`)
-- Evitar re-exportar todo el contenido de un módulo sin filtrado
+---
 
-## Prevención de Dependencias Circulares
+## 🧩 Modularización
 
-- Mantener la separación clara entre módulos
-- Usar inyección de dependencias cuando sea necesario
-- Ejecutar `npx madge --circular http/` periódicamente para detectar problemas
-- Evitar que módulos de bajo nivel importen de módulos de alto nivel
-- Utilizar interfaces para desacoplar implementaciones concretas
+- Dividir funcionalidades complejas en funciones auxiliares reutilizables.
+- Extraer lógica interna en helpers, utils o adaptadores por dominio.
+- Evitar mezclar lógica de múltiples dominios en un solo módulo.
+- Aplicar el principio de responsabilidad única (SRP) en cada archivo o función.
+- Mantener interfaces claras entre módulos y usar dependencias explícitas.
 
-## Claridad en Relaciones de Dependencia
+---
 
-- Actualizar la documentación cuando se añadan nuevos sub-barriles
-- Mantener los comentarios en las secciones de importación
-- Usar JSDoc para documentar propósitos de importación
-- Agrupar importaciones por categoría o dominio
-- Evitar importaciones "mágicas" sin contexto o explicación
+## 🌲 Optimización para Tree-Shaking
 
-## Control de Calidad y Mantenimiento
+- Usar solo exportaciones nombradas (`export { x }`), evitar `export default`.
+- Evitar reexportaciones completas sin filtrado.
+- Usar importaciones selectivas (`import { X } from './y'`).
+- Mantener los consumidores de la librería con importaciones específicas.
 
-- Ejecutar `npx tsc` antes de commits para verificar tipos
-- Mantener la cobertura de pruebas para nuevas funcionalidades
-- Documentar APIs públicas con ejemplos
-- Actualizar el README con nuevas características
-- Ejecutar análisis de dependencias periódicamente
+---
 
-## Convenciones de Nomenclatura
+## 🔁 Prevención de Dependencias Circulares
 
-- Usar PascalCase para clases e interfaces
-- Usar camelCase para variables y funciones
-- Usar UPPER_CASE para constantes
-- Usar prefijos descriptivos para interfaces (I) o tipos (T) cuando ayude a la claridad
-- Mantener consistencia con el estilo existente del código
+- Mantener separación clara entre capas/módulos.
+- Usar inyección de dependencias donde aplique.
+- Ejecutar `npx madge --circular ./src` periódicamente.
+- Evitar que módulos de bajo nivel dependan de alto nivel.
+- Utilizar interfaces para desacoplar implementaciones.
 
-## Comandos Útiles
+---
 
-```bash
-# Verificar dependencias circulares
-npx madge --circular http/
+## 🔗 Claridad en Relaciones de Dependencia
 
-# Generar gráfico de dependencias (requiere Graphviz)
-npx madge --image deps.png http/
+- Actualizar documentación de barriles/sub-barriles al modificarlos.
+- Mantener comentarios explicativos en zonas de importaciones.
+- Usar `JSDoc` para documentar propósito de módulos y dependencias.
+- Agrupar importaciones por dominio o categoría funcional.
+- Evitar importaciones opacas o sin contexto.
 
-# Comprobar tipos y compilación
-npx tsc
+---
 
-# Ver estructura de dependencias en consola
-npx madge --tsconfig tsconfig.json http/http-index.ts
-```
+## 🧪 Control de Calidad y Mantenimiento
+
+- Ejecutar `npx tsc` antes de cada commit para verificar los tipos.
+- Mantener cobertura de pruebas adecuada para nuevas funcionalidades.
+- Documentar APIs públicas con comentarios y ejemplos de uso.
+- Actualizar el `README.md` al agregar nuevas funcionalidades.
+- Ejecutar análisis de dependencias periódicamente.
+
+---
+
+## 🔤 Convenciones de Nomenclatura
+
+- `PascalCase` para clases e interfaces.
+- `camelCase` para variables, funciones y métodos.
+- `UPPER_CASE` para constantes.
+- Prefijos `I` o `T` opcionales si aportan claridad (`IUser`, `TOptions`).
+- Mantener consistencia con el estilo existente del proyecto.
+
+---
+
+## ⚙️ Estilo de Código
+
+- Evitar duplicación de lógica o estructuras repetidas.
+- Utilizar nombres de variables con verbos auxiliares (`isLoading`, `hasData`, `canRetry`, etc.).
+
+---
+
+## 💻 Uso de TypeScript
+
+- Todo el código debe escribirse en TypeScript.
+- Preferir `interface` sobre `type` para estructuras de datos.
+- Todas las funciones deben estar tipadas explícitamente.
+- Las interfaces deben residir en un archivo separado llamado .http-interface dentro de una carpeta.
+
+## Principios de Diseño
+
+- Priorizar código legible sobre código “clever”.
+
+## Versionado y Cambios
+
+- Seguir Conventional Commits para los mensajes: feat:, fix:, refactor:, docs:, etc.
+
+## 🔄 Pruebas Automatizadas
+
+- Usar jest para pruebas unitarias.
+
+## Convención de Archivos de Test
+
+- Ubicar los tests junto al código (foo.test.ts) o en /**tests**/, pero de forma consistente.
+- Usar mocks y fixtures aislados por dominio (**mocks**/, fixtures/).
+
+## Organización por Dominio
+
+- Cada carpeta de nivel superior debe representar un dominio funcional (por ejemplo: http/, cache/, auth/, core/, utils/).
+- Dentro de cada dominio: Separar services, adapters, types, helpers, tests, etc.
+- Mantener cada dominio autónomo: evitar que un dominio dependa directamente de la implementación interna de otro.
+
+## Barrel Files (Sub-barriles)
+
+- Usar index.ts en cada subdirectorio para exponer solo la API pública de ese módulo.
+- Evitar reexportar todo con export \*; exportar explícitamente lo necesario.
+- Un archivo index.ts nunca debe importar algo desde otro index.ts para evitar ambigüedades circulares.
+
+## 🚫 Capas Prohibidas
+
+- No permitir imports cruzados entre submódulos sin pasar por el barrel correspondiente.
+- ❌ import { x } from '../../auth/helpers/x'
+- ✅ import { x } from '@/auth'
+- Las capas “más externas” no deben depender de capas “más internas” directamente. Aplicar inversión de dependencias cuando sea necesario.
+
+## 🧩 Cohesión de Archivos
+
+- Cada archivo debe tener una única responsabilidad.
+- No mezclar múltiples funcionalidades o conceptos en un solo archivo.
+- Los archivos grandes deben dividirse si alcanzan +200 líneas, usando helpers u otros módulos.
+
+## 🧠 Naming del Árbol
+
+- El nombre de cada carpeta debe dejar en claro qué hace, no cómo lo hace.
+- ✅ cache/, http/, auth/
+- ❌ utils/ genéricos (solo usar si son helpers compartidos y bien tipados)
+- Preferir nombres en singular si el contenido representa una unidad (adapter, service, type, handler).
+
+## Cargas Cíclicas
+
+- Evitar árboles de importaciones con ciclos.
+- Validar la arquitectura con herramientas como madge regularmente.
