@@ -1000,3 +1000,61 @@ El módulo SOA es particularmente útil para:
 - Patrones de backend-for-frontend (BFF)
 - Gateways de API
 - Modelos de dominio complejos con clara separación de servicios
+
+# ✨ Nueva arquitectura: Separación cliente/servidor
+
+A partir de la versión 1.7.0, HTTPLazy proporciona una clara separación entre código de cliente (navegador) y servidor (Node.js), lo que facilita su uso en frameworks como Next.js, Remix o cualquier aplicación universal.
+
+### Importación según el entorno
+
+```javascript
+// Uso automático (detecta el entorno)
+import { http } from "httplazy";
+
+// Específicamente para navegador
+import { http } from "httplazy/client";
+
+// Específicamente para Node.js (incluye todas las capacidades)
+import { http } from "httplazy/server";
+```
+
+### Funcionalidades por entorno
+
+| Característica                | Cliente (Browser) | Servidor (Node.js) |
+| ----------------------------- | ----------------- | ------------------ |
+| HTTP básico (get, post, etc.) | ✅                | ✅                 |
+| Autenticación                 | ✅                | ✅                 |
+| Interceptores                 | ✅                | ✅                 |
+| Caché básico                  | ✅                | ✅                 |
+| Manejo de errores             | ✅                | ✅                 |
+| Proxies HTTP/SOCKS            | ❌                | ✅                 |
+| Streaming avanzado            | ❌                | ✅                 |
+| Soporte SOA                   | ❌                | ✅                 |
+| Métricas avanzadas            | ✅ (limitado)     | ✅ (completo)      |
+
+### Uso con Next.js
+
+Esta nueva arquitectura es totalmente compatible con Next.js, sin necesidad de configuraciones adicionales:
+
+```javascript
+// app/lib/api.js - Cliente
+import { http } from "httplazy/client";
+
+export const getUsers = () => http.get("/api/users");
+```
+
+```javascript
+// app/api/proxy/route.js - Servidor
+import { http, configureProxy } from "httplazy/server";
+
+configureProxy({
+  protocol: "http",
+  host: "proxy.example.com",
+  port: 8080,
+});
+
+export async function GET() {
+  const data = await http.get("https://external-api.com/data");
+  return Response.json(data);
+}
+```

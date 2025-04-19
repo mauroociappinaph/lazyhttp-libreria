@@ -1,9 +1,25 @@
 {
   "name": "httplazy",
-  "version": "1.6.8",
+  "version": "1.7.0",
   "description": "A powerful and easy-to-use HTTP client library with error handling, retries, interceptors, and more | Una librería HTTP fácil de usar con manejo de errores, reintentos, interceptores, y más",
-  "main": "dist/http-index.js",
-  "types": "dist/http-index.d.ts",
+  "main": "dist/index.js",
+  "browser": "dist/client/index.js",
+  "exports": {
+    ".": {
+      "browser": "./dist/client/index.js",
+      "node": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./client": "./dist/client/index.js",
+    "./server": "./dist/server/index.js"
+  },
+  "types": "dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "client": ["dist/client/index.d.ts"],
+      "server": ["dist/server/index.d.ts"]
+    }
+  },
   "bin": {
     "lazyhttp": "bin/lazyhttp.js"
   },
@@ -18,8 +34,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "setup-dev": "npm install && npm install -g madge && npm install -D husky && npx husky install && npx husky add .husky/pre-commit \"npx lint-staged\"",
     "verify": "npx tsc --noEmit && npx madge --circular http/",
-    "analyze-deps": "npx madge http/http-index.ts",
-    "deps-tree": "npx madge --image deps-tree.png http/http-index.ts || echo '\n⚠️ El comando para generar la imagen de dependencias requiere Graphviz. Puedes instalarlo con: brew install graphviz'",
+    "analyze-deps": "npx madge http/index.ts",
+    "deps-tree": "npx madge --image deps-tree.png http/index.ts || echo '\n⚠️ El comando para generar la imagen de dependencias requiere Graphviz. Puedes instalarlo con: brew install graphviz'",
     "check-security": "npm audit --production",
     "count-lines": "find http -name \"*.ts\" | xargs wc -l | sort -nr",
     "measure-build-time": "node -e \"const start = Date.now(); require('child_process').execSync('npm run build', {stdio: 'inherit'}); console.log('\\n⏱️ Tiempo de compilación:', ((Date.now() - start) / 1000).toFixed(2), 'segundos');\"",
@@ -38,9 +54,8 @@
     "*.{js,ts}": "npx eslint --cache --fix"
   },
   "files": [
-    "dist/http-*.js",
-    "dist/http-*.d.ts",
-    "dist/metrics",
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
     "bin/lazyhttp.js",
     "README.md"
   ],
@@ -55,7 +70,10 @@
     "interceptor",
     "authentication",
     "jwt",
-    "oauth2"
+    "oauth2",
+    "next.js",
+    "browser",
+    "nodejs"
   ],
   "author": "Mauro José Ciappina",
   "license": "MIT",
@@ -70,20 +88,18 @@
   "dependencies": {
     "axios": "^1.x"
   },
+  "optionalDependencies": {
+    "https-proxy-agent": "^7.0.6",
+    "socks-proxy-agent": "^8.0.5"
+  },
   "devDependencies": {
     "eslint": "^8.55.0",
-    "https-proxy-agent": "^7.0.6",
     "husky": "^8.0.3",
     "lint-staged": "^15.2.0",
-    "socks-proxy-agent": "^8.0.5",
     "terser": "^5.39.0",
     "typescript": "^5.3.2"
   },
   "peerDependencies": {
     "axios": "^1.x"
-  },
-  "optionalDependencies": {
-    "https-proxy-agent": "^7.0.6",
-    "socks-proxy-agent": "^8.0.5"
   }
 }
