@@ -1,4 +1,4 @@
-![Logotipo de HttpLazy](documentacion/logotipo%20empresarial%20empresa%20de%20envíos%20y%20entregas%20minimalista%20con%20letra%20color%20azul%20rojo%20blanco.png)
+![Logotipo de HttpLazy](logotipo%20empresarial%20empresa%20de%20envíos%20y%20entregas%20minimalista%20con%20letra%20color%20azul%20rojo%20blanco.png)
 
 # Documentación de HttpLazy
 
@@ -30,6 +30,7 @@
 - [Manejo de Errores](#manejo-de-errores)
   - [Tipos de Errores Comunes](#tipos-de-errores-comunes)
   - [Manejo de Errores de Red](#manejo-de-errores-de-red)
+  - [Errores Personalizados](#errores-personalizados)
 - [Uso con Next.js](#uso-con-nextjs)
   - [En Componentes Cliente](#en-componentes-cliente)
   - [En API Routes](#en-api-routes)
@@ -445,6 +446,214 @@ try {
   console.error("Error de conexión:", err.message);
 }
 ```
+
+### Errores Personalizados
+
+HttpLazy proporciona un sistema extensible de manejo de errores que va más allá de los códigos HTTP estándar.
+
+#### Tipos de errores específicos de HttpLazy
+
+La biblioteca incluye clases de error especializadas para diferentes situaciones:
+
+```javascript
+// Errores específicos por categoría
+import {
+  HttpError, // Error base para todos los errores HTTP
+  NetworkError, // Errores de conexión, timeout, DNS
+  AuthenticationError, // Errores relacionados con autenticación
+  CacheError, // Errores en el sistema de caché
+  ValidationError, // Errores de validación de datos
+  RateLimitError, // Errores por límite de peticiones excedido
+} from "httplazy/errors";
+
+// Verificar tipo de error
+if (error instanceof AuthenticationError) {
+  // Manejar error de autenticación
+  redirectToLogin();
+} else if (error instanceof NetworkError) {
+  // Manejar error de red
+  showOfflineMessage();
+}
+```
+
+#### Códigos de error personalizados
+
+Además de los códigos HTTP estándar, HttpLazy define códigos internos para situaciones específicas:
+
+```javascript
+// Ejemplo de manejo de códigos personalizados
+const { error } = await http.get("/api/users");
+
+if (error) {
+  switch (error.code) {
+    case "AUTH_EXPIRED":
+      await http.refreshToken();
+      // Reintentar petición
+      break;
+    case "CACHE_MISS":
+      // Obtener desde origen
+      break;
+    case "RATE_LIMITED":
+      // Implementar backoff exponencial
+      break;
+    case "VALIDATION_FAILED":
+      // Mostrar errores de validación
+      showValidationErrors(error.details);
+      break;
+    default:
+      // Manejo genérico
+      showErrorMessage(error.message);
+  }
+}
+```
+
+| Código de Error     | Descripción                                   | Acción recomendada                     |
+| ------------------- | --------------------------------------------- | -------------------------------------- |
+| `AUTH_EXPIRED`      | Token de autenticación expirado               | Refrescar token y reintentar           |
+| `AUTH_INVALID`      | Token inválido o credenciales incorrectas     | Redirigir a login                      |
+| `CACHE_MISS`        | No se encontró en caché                       | Obtener desde origen                   |
+| `RATE_LIMITED`      | Límite de peticiones excedido                 | Implementar backoff exponencial        |
+| `NETWORK_OFFLINE`   | Sin conexión a Internet                       | Mostrar modo offline                   |
+| `TIMEOUT_EXCEEDED`  | Tiempo de espera agotado                      | Reintentar o aumentar timeout          |
+| `VALIDATION_FAILED` | Datos enviados no cumplen validación          | Mostrar errores específicos al usuario |
+| `RESOURCE_CONFLICT` | Conflicto al modificar recurso (concurrencia) | Recarga y muestra diferencias          |
+
+#### Cómo extender los errores
+
+Puedes crear tus propias clases de error personalizadas que se integren con el sistema de HttpLazy:
+
+```javascript
+// Definir un error personalizado para tu dominio
+import { HttpError } from "httplazy/errors";
+
+class PaymentDeclinedError extends HttpError {
+  constructor(message, details = {}) {
+    super(message, "PAYMENT_DECLINED", 402, details);
+    this.name = "PaymentDeclinedError";
+
+    // Agregar propiedades específicas
+    this.paymentId = details.paymentId;
+    this.reason = details.reason;
+    this.canRetry = details.canRetry || false;
+  }
+
+  // Métodos personalizados
+  suggestAlternative() {
+    return this.details.alternatives || [];
+  }
+}
+
+// Usar con el interceptor de respuesta
+http._setupInterceptors((response) => {
+  // Transformar errores estándar en personalizados
+  if (response.status === 402 && response.data?.type === "payment_error") {
+    throw new PaymentDeclinedError("Pago rechazado", {
+      paymentId: response.data.paymentId,
+      reason: response.data.reason,
+      canRetry: response.data.canRetry,
+      alternatives: response.data.alternatives,
+    });
+  }
+  return response;
+}, "response");
+
+// En el código de la aplicación
+try {
+  await paymentService.processPayment(paymentData);
+} catch (error) {
+  if (error instanceof PaymentDeclinedError) {
+    if (error.canRetry) {
+      showRetryMessage(error.reason);
+    } else {
+      const alternatives = error.suggestAlternative();
+      showAlternativePaymentMethods(alternatives);
+    }
+  }
+}
+```
+
+#### Patrones de manejo de errores avanzados
+
+Estructura tu código para un manejo de errores consistente y mantenible:
+
+```javascript
+// Patrón: Centralizar lógica de manejo de errores
+const errorHandlers = {
+  AUTH_EXPIRED: async (error) => {
+    // Refrescar token automáticamente
+    await authService.refreshToken();
+    return true; // Indica que se puede reintentar
+  },
+  NETWORK_OFFLINE: (error) => {
+    // Activar modo offline
+    appStore.setOfflineMode(true);
+    showToast("Trabajando en modo offline");
+    return false; // No reintentar automáticamente
+  },
+  RATE_LIMITED: (error) => {
+    // Implementar backoff
+    const retryAfter = error.details.retryAfter || 5000;
+    showToast(`Demasiadas peticiones, reintentando en ${retryAfter / 1000}s`);
+    return new Promise((resolve) =>
+      setTimeout(() => resolve(true), retryAfter)
+    );
+  },
+  // Otros manejadores...
+};
+
+// Función helper para procesar errores
+async function processApiError(error, retryFn) {
+  // Obtener código específico o usar HTTP status como fallback
+  const errorCode = error.code || `HTTP_${error.status}`;
+
+  // Ver si hay un manejador específico
+  if (errorHandlers[errorCode]) {
+    const shouldRetry = await errorHandlers[errorCode](error);
+    if (shouldRetry && retryFn) {
+      return retryFn(); // Reintentar la operación
+    }
+  } else {
+    // Manejo genérico para errores sin manejador específico
+    logError(error);
+    showErrorMessage(error.message);
+  }
+
+  return null; // No se pudo manejar/reintentar
+}
+
+// Uso en componentes
+async function fetchUserData() {
+  try {
+    setLoading(true);
+    const response = await userService.getUser();
+
+    if (response.error) {
+      const result = await processApiError(response.error, fetchUserData);
+      if (result !== null) {
+        return result; // Error manejado con éxito
+      }
+      setError(response.error);
+      return null;
+    }
+
+    return response.data;
+  } catch (err) {
+    await processApiError(err, fetchUserData);
+    setError(err);
+    return null;
+  } finally {
+    setLoading(false);
+  }
+}
+```
+
+Este enfoque permite:
+
+- Centralizar la lógica de manejo de errores
+- Implementar recuperación automática (auto-retry, refresh token)
+- Mantener el código de negocio limpio, separando la lógica de error
+- Aplicar políticas consistentes en toda la aplicación
+- Extender fácilmente con nuevos tipos de errores
 
 ## Uso con Next.js
 
