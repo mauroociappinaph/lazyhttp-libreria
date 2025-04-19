@@ -1,522 +1,71 @@
-# LazyHTTP
-
-[English](#english) | [Español](#español)
-
-## English
-
-### Description
-
-LazyHTTP is a powerful and easy-to-use HTTP client library for Node.js that provides a simple interface for making HTTP requests with built-in error handling, retries, interceptors, and more. It's designed to make HTTP requests as simple as possible while providing advanced features when needed.
-
-### Key Features
-
-- **Simple and Intuitive API**: Clean and consistent interface for all HTTP methods
-- **Built-in Error Handling**: Comprehensive error handling with detailed error messages
-- **Automatic Retries**: Configurable retry mechanism for failed requests
-- **Request/Response Interceptors**: Modify requests and responses globally
-- **Authentication Support**:
-  - JWT Authentication
-  - OAuth2 Support
-  - Basic Auth
-  - Custom Auth Schemes
-- **Advanced Caching**:
-  - In-memory caching
-  - Configurable TTL
-  - Cache invalidation
-  - Cache tags
-- **Metrics Tracking**:
-  - Request/Response timing
-  - Error tracking
-  - Performance metrics
-- **Proxy Support**:
-  - HTTP/HTTPS proxies
-  - SOCKS proxies
-  - Proxy authentication
-- **Streaming Support**:
-  - Large file downloads
-  - Real-time data processing
-  - Progress tracking
-- **TypeScript Support**: Full type definitions and autocompletion
-
-### Installation
-
-```bash
-# Using npm
-npm install httplazy
-
-# Using yarn
-yarn add httplazy
-
-# Using pnpm
-pnpm add httplazy
-```
-
-### Quick Start
-
-#### Basic Usage
-
-```typescript
-import { http } from "httplazy";
-
-// Simple GET request
-const response = await http.get("https://api.example.com/data");
-console.log(response.data);
-
-// POST request with data
-const result = await http.post("https://api.example.com/create", {
-  name: "John",
-  age: 30,
-});
-
-// Using query parameters
-const search = await http.get("https://api.example.com/search", {
-  params: {
-    q: "search term",
-    page: 1,
-    limit: 10,
-  },
-});
-```
-
-#### Advanced Features
-
-```typescript
-// Configure global settings
-http.initialize({
-  baseUrl: "https://api.example.com",
-  timeout: 5000,
-  retries: 3,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// Using interceptors
-http._setupInterceptors((config) => {
-  console.log("Request:", config);
-  return config;
-}, "request");
-
-// Authentication
-http.configureAuth({
-  type: "jwt",
-  token: "your-jwt-token",
-});
-
-// Caching
-http.configureCaching({
-  enabled: true,
-  ttl: 3600,
-});
-
-// Metrics
-http.configureMetrics({
-  enabled: true,
-  trackRequests: true,
-});
-```
-
-#### Resource Accessors con Símbolos
-
-Los resource accessors permiten un acceso más limpio y con mejor soporte de autocompletado a los endpoints de la API:
-
-```typescript
-import { http, User, Product } from "httplazy";
-
-// Obtener todos los usuarios
-const users = await http.get[User]();
-
-// Obtener un producto por ID
-const product = await http.getById[Product]("123");
-
-// Crear un nuevo usuario
-await http.post[User]({ name: "John", email: "john@example.com" });
-
-// Actualizar un producto
-await http.put[Product]({ id: "123", price: 99.99 });
-
-// Eliminar un comentario
-await http.delete[Comment]("456");
-```
-
-Los símbolos se convierten automáticamente al formato correcto para la API (por ejemplo, `User` → `users`).
-
-También puedes crear tus propios símbolos para recursos personalizados:
-
-```typescript
-import { http, createResource } from "httplazy";
-
-// Crear un símbolo personalizado
-const ProductVariant = createResource("ProductVariant");
-
-// Usar el recurso personalizado
-const variants = await http.get[ProductVariant]();
-```
-
-Esto mejora la legibilidad del código y proporciona un mejor soporte de autocompletado en editores compatibles con TypeScript.
-
-### CLI Usage
-
-```bash
-# Basic GET request
-lazyhttp get https://api.example.com/data
-
-# POST request with data
-lazyhttp post https://api.example.com/create --data '{"name": "John"}'
-
-# Using query parameters
-lazyhttp get https://api.example.com/search --params '{"q": "search term"}'
-
-# With headers
-lazyhttp get https://api.example.com/data --headers '{"Authorization": "Bearer token"}'
-
-# With authentication
-lazyhttp get https://api.example.com/data --auth 'Bearer token'
-
-# With timeout
-lazyhttp get https://api.example.com/data --timeout 5000
-
-# With retries
-lazyhttp get https://api.example.com/data --retries 3
-
-# Download file
-lazyhttp get https://example.com/file.pdf --output file.pdf
-
-# Stream response
-lazyhttp get https://example.com/stream --stream
-```
-
-### Documentation
-
-For detailed documentation, please visit our [documentation page](docs/README.md).
-
-### Error Handling
-
-LazyHTTP returns an object with `{ data, error, status }` for all methods. This means you don't need to use try/catch blocks in your code to handle errors.
-
-Example for a GET request:
-
-```javascript
-const response = await http.get("https://api.example.com/data");
-
-if (response.error) {
-  console.error("Error:", response.error.message);
-  // If details are available, they provide additional context
-  if (response.error.details) {
-    console.error("Details:", response.error.details);
-  }
-} else {
-  console.log("Data:", response.data);
-}
-```
-
-Using destructuring for cleaner code:
-
-```javascript
-const { data, error, status, details } = await http.get(
-  "https://api.example.com/data"
-);
-
-if (error) {
-  console.error(`Error (${status}): ${error.message}`);
-  if (details) {
-    console.error("How to fix:", details.help);
-  }
-} else {
-  // Work directly with the data
-  console.log("User data:", data.user);
-}
-```
-
-Example for a POST request:
-
-```javascript
-const response = await http.post("https://api.example.com/users", {
-  name: "John",
-  email: "john@example.com",
-});
-
-if (response.error) {
-  console.error("Error:", response.error.message);
-} else {
-  console.log("User created:", response.data);
-}
-```
-
-LazyHTTP can return various error types:
-
-- HttpTimeoutError
-- HttpNetworkError
-- HttpInvalidURLError
-- And others...
-
-## Automatic Error Logging
-
-LazyHTTP includes a built-in logging system that automatically logs errors. You can configure the logging behavior:
-
-```javascript
-import { httpLogger, http } from "httplazy";
-
-// Configure the logger
-httpLogger.configure({
-  enabled: true, // Enable/disable logging (default: true)
-  level: "error", // Log level: 'error', 'warning', 'info', 'debug' (default: 'error')
-  format: "console", // Output format: 'console' or 'json' (default: 'console')
-  includeRequestDetails: true, // Include request details in logs (default: true)
-});
-
-// Make a request - errors will be automatically logged
-const response = await http.get("https://api.example.com/data");
-
-// You can still handle errors in your code if needed
-if (response.error) {
-  // Error already logged automatically
-  // Additional custom error handling
-}
-```
-
-The automatic logging system:
-
-- Color-codes error messages in console mode for better visibility
-- Includes HTTP status codes, error types, and messages
-- Provides detailed error context when available
-- Can be disabled for production environments if needed
-
-## Utility Functions
-
-LazyHTTP includes utility functions to help work with API responses and complex data structures.
-
-### deepFind
-
-`deepFind` is a utility function that recursively searches through nested objects and arrays to find the first value that satisfies a predicate function.
-
-```javascript
-import { http, deepFind } from "httplazy";
-
-// Fetch data from the API
-const response = await http.get("https://api.example.com/complex-data");
-
-// Find a specific object in a deeply nested structure
-const specificItem = deepFind(
-  response.data,
-  (value) =>
-    typeof value === 'object' &&
-    value !== null &&
-    value.id === 'target-id-123'
-);
-
-if (specificItem) {
-  console.log('Found item:', specificItem);
-} else {
-  console.log('Item not found');
-}
-
-// With TypeScript, you can specify the expected return type
-const user = deepFind<{name: string, email: string}>(
-  response.data,
-  (value) =>
-    typeof value === 'object' &&
-    value !== null &&
-    (value as any).role === 'admin'
-);
-
-if (user) {
-  console.log(`Admin found: ${user.name} (${user.email})`);
-}
-```
-
-This is especially useful when working with:
-
-- Complex nested API responses
-- JSON structures with unknown depth
-- Finding specific items in large data collections
-
-The function safely handles circular references and various data types.
-
-## SOA Module (Service-Oriented Architecture)
-
-LazyHTTP includes an optional SOA module that enables you to work with service-oriented architectures. This module is loaded dynamically when needed, which keeps the core library lightweight.
-
-### Client-side SOA
-
-Create SOA clients to consume remote services with a clean, method-oriented API:
-
-```javascript
-import { http, loadSoaModule } from "httplazy";
-
-// Example: Creating and using a SOA client
-async function useUserService() {
-  // Load the SOA module dynamically
-  const { createSoaClient } = await loadSoaModule();
-
-  // Create a client for a specific service endpoint
-  const userService = createSoaClient({
-    serviceUrl: "https://api.example.com/services",
-    namespace: "users", // Optional
-    timeout: 5000, // Default timeout
-    withAuth: true, // Use authentication from http if configured
-  });
-
-  try {
-    // Call a service method (sends POST to https://api.example.com/services/users/UserService/getUserById)
-    const user = await userService.callService("UserService", "getUserById", {
-      id: 123,
-    });
-    console.log("User retrieved:", user);
-
-    // Call multiple service methods in a single request (batch)
-    const results = await userService.callBatch([
-      {
-        serviceName: "UserService",
-        method: "getUserById",
-        params: { id: 123 },
-      },
-      {
-        serviceName: "ProfileService",
-        method: "getPreferences",
-        params: { userId: 123 },
-      },
-    ]);
-
-    console.log("Batch results:", results);
-
-    // Get service definition/description
-    const serviceDef = await userService.getServiceDefinition("UserService");
-    console.log("Available methods:", Object.keys(serviceDef.methods));
-  } catch (error) {
-    console.error("Service error:", error);
-  }
-}
-```
-
-### Server-side SOA
-
-Expose services through an HTTP server with minimal configuration:
-
-```javascript
-import { loadSoaModule } from "httplazy";
-
-async function startServiceServer() {
-  // Load the SOA module
-  const { createSoaServer } = await loadSoaModule();
-
-  // Define service implementations
-  const userService = {
-    getUserById: async (params) => {
-      const { id } = params;
-      // Fetch user from database or other source
-      return { id, name: "John Doe", email: "john@example.com" };
-    },
-
-    createUser: async (params) => {
-      const { name, email } = params;
-      // Create user in database
-      return { id: 456, name, email, status: "active" };
-    },
-  };
-
-  // Create and configure the SOA server
-  const server = createSoaServer({
-    port: 3000, // Port to listen on
-    path: "/services", // Base path for services
-    cors: true, // Enable CORS
-    services: {
-      UserService: userService,
-    },
-  });
-
-  try {
-    // Start the server
-    await server.start();
-    console.log("SOA server running on port 3000");
-
-    // You can dynamically add services after the server starts
-    server.addService("ProfileService", {
-      getPreferences: async (params) => {
-        const { userId } = params;
-        return { userId, theme: "dark", notifications: true };
-      },
-    });
-
-    // Get list of registered services
-    console.log("Available services:", server.getRegisteredServices());
-  } catch (error) {
-    console.error("Error starting server:", error);
-  }
-}
-```
-
-### Benefits of the SOA Module
-
-- **Clean API Design**: Method-oriented API that avoids hardcoding URLs
-- **Service Discovery**: Automatic service definition retrieval
-- **Batch Operations**: Make multiple service calls in a single request
-- **Integration with Core Library**: Leverages the same authentication, caching, and interceptor systems
-- **Lazy Loading**: Only loaded when needed, keeping the core library lightweight
-- **TypeScript Support**: Full type definitions for better development experience
-
-The SOA module is particularly useful for:
-
-- Microservice architectures
-- Enterprise applications with well-defined service boundaries
-- Backend-for-frontend (BFF) patterns
-- API gateways
-- Complex domain models with clear service separation
-
-## Contribuir al Proyecto
-
-¿Interesado en contribuir a httplazy? ¡Excelente! Antes de comenzar, por favor lee nuestro archivo [DEVELOPMENT.md](./DEVELOPMENT.md) que contiene información importante sobre:
-
-- Configuración del entorno de desarrollo
-- Estructura del proyecto y organización del código
-- Reglas de desarrollo y mejores prácticas
-- Verificaciones automáticas y hooks pre-commit
-- Proceso de contribución y publicación
-
-Seguir estas guías garantiza que el código mantenga alta calidad y consistencia, además de facilitar el proceso de revisión y aprobación de tus contribuciones.
-
-```bash
-# Configurar entorno de desarrollo rápidamente
-npm run setup-dev
-```
-
-## Español
-
-### Descripción
-
-LazyHTTP es una biblioteca cliente HTTP potente y fácil de usar para Node.js que proporciona una interfaz simple para realizar solicitudes HTTP con manejo de errores incorporado, reintentos, interceptores y más. Está diseñada para hacer las solicitudes HTTP lo más simples posible mientras proporciona características avanzadas cuando se necesitan.
-
-### Características Principales
-
-- **API Simple e Intuitiva**: Interfaz limpia y consistente para todos los métodos HTTP
-- **Manejo de Errores Incorporado**: Manejo completo de errores con mensajes detallados
-- **Reintentos Automáticos**: Mecanismo configurable de reintentos para solicitudes fallidas
-- **Interceptores de Solicitud/Respuesta**: Modificar solicitudes y respuestas globalmente
-- **Soporte de Autenticación**:
-  - Autenticación JWT
-  - Soporte OAuth2
-  - Autenticación Básica
-  - Esquemas de Autenticación Personalizados
-- **Caché Avanzado**:
-  - Caché en memoria
-  - TTL configurable
-  - Invalidación de caché
-  - Etiquetas de caché
-- **Seguimiento de Métricas**:
-  - Tiempo de solicitud/respuesta
-  - Seguimiento de errores
-  - Métricas de rendimiento
-- **Soporte de Proxy**:
-  - Proxies HTTP/HTTPS
-  - Proxies SOCKS
-  - Autenticación de proxy
-- **Soporte de Streaming**:
-  - Descarga de archivos grandes
-  - Procesamiento de datos en tiempo real
-  - Seguimiento de progreso
-- **Soporte de TypeScript**: Definiciones de tipos completas y autocompletado
-
-### Instalación
+![Logotipo de HttpLazy](logotipo%20empresarial%20empresa%20de%20envíos%20y%20entregas%20minimalista%20con%20letra%20color%20azul%20rojo%20blanco.png)
+
+# Documentación de HttpLazy
+
+[![npm version](https://img.shields.io/npm/v/httplazy)](https://www.npmjs.com/package/httplazy)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-4.5+-blue)](https://www.typescriptlang.org/)
+
+## Tabla de Contenidos
+
+- [Descripción General](#descripción-general)
+- [Instalación](#instalación)
+- [Arquitectura Cliente/Servidor](#arquitectura-clienteservidor)
+  - [Importación según entorno](#importación-según-entorno)
+  - [Comparativa de funcionalidades](#comparativa-de-funcionalidades)
+- [Uso Básico](#uso-básico)
+  - [Métodos HTTP](#métodos-http)
+  - [Configuración Inicial](#configuración-inicial)
+- [API de Referencia](#api-de-referencia)
+  - [Métodos Básicos](#métodos-básicos)
+  - [Opciones de Petición](#opciones-de-petición)
+  - [Respuesta](#respuesta)
+- [Funcionalidades Avanzadas](#funcionalidades-avanzadas)
+  - [Autenticación](#autenticación)
+  - [Caché](#caché)
+  - [Interceptores](#interceptores)
+  - [Métricas y Actividad](#métricas-y-actividad)
+  - [Streaming (Servidor)](#streaming-servidor)
+  - [Proxies (Servidor)](#proxies-servidor)
+- [Manejo de Errores](#manejo-de-errores)
+  - [Tipos de Errores Comunes](#tipos-de-errores-comunes)
+  - [Manejo de Errores de Red](#manejo-de-errores-de-red)
+  - [Errores Personalizados](#errores-personalizados)
+- [Uso con Next.js](#uso-con-nextjs)
+  - [En Componentes Cliente](#en-componentes-cliente)
+  - [En API Routes](#en-api-routes)
+  - [En Server Actions](#en-server-actions)
+- [Buenas Prácticas](#buenas-prácticas)
+  - [Organización del Código](#organización-del-código)
+  - [Patrones de Uso](#patrones-de-uso)
+  - [Optimización](#optimización)
+- [Solución de Problemas](#solución-de-problemas)
+  - [Errores CORS](#errores-cors)
+  - [Errores de Módulos Faltantes en Next.js](#errores-de-módulos-faltantes-en-nextjs)
+  - [Errores de TypeScript](#errores-de-typescript)
+- [Diagramas de Arquitectura](#diagramas-de-arquitectura)
+- [Guía de Contribución](#guía-de-contribución)
+- [Casos de Uso Específicos](#casos-de-uso-específicos)
+- [Comparativa con Alternativas](#comparativa-con-alternativas)
+- [Guía de Migración](#guía-de-migración)
+- [Rendimiento](#rendimiento)
+- [Convenciones de Código](#convenciones-de-código)
+- [Seguridad](#seguridad)
+- [Internacionalización](#internacionalización)
+- [Recursos Adicionales](#recursos-adicionales)
+
+## Descripción General
+
+**HttpLazy** es una biblioteca HTTP moderna y flexible diseñada para simplificar las peticiones HTTP en aplicaciones JavaScript/TypeScript, tanto en entornos de navegador como de servidor (Node.js). Su arquitectura modular permite utilizarla en cualquier framework, con un soporte especial para aplicaciones universales (isomórficas) como Next.js, Remix o similares.
+
+La biblioteca ofrece funcionalidades avanzadas mientras mantiene una API intuitiva:
+
+- **Interfaz unificada**: API consistente para todas las operaciones HTTP
+- **Arquitectura cliente/servidor**: Separación clara entre código de navegador y Node.js
+- **Optimización automática**: Detección de entorno para usar la implementación adecuada
+- **Funcionalidades avanzadas**: Manejo de errores, caché, autenticación, interceptores, etc.
+
+## Instalación
 
 ```bash
 # Usando npm
@@ -529,532 +78,1277 @@ yarn add httplazy
 pnpm add httplazy
 ```
 
-### Inicio Rápido
+## Arquitectura Cliente/Servidor
 
-#### Uso Básico
+La versión 1.7.0+ de HttpLazy implementa una arquitectura dual que separa el código compatible con navegadores del código exclusivo de Node.js:
 
-```typescript
-import { http } from "httplazy";
-
-// Solicitud GET simple
-const response = await http.get("https://api.example.com/data");
-console.log(response.data);
-
-// Solicitud POST con datos
-const result = await http.post("https://api.example.com/create", {
-  name: "John",
-  age: 30,
-});
-
-// Usando parámetros de consulta
-const search = await http.get("https://api.example.com/search", {
-  params: {
-    q: "término de búsqueda",
-    page: 1,
-    limit: 10,
-  },
-});
+```
+httplazy/
+├── client/   # Código seguro para navegadores
+├── server/   # Código con capacidades completas (Node.js)
+└── common/   # Código compartido entre ambos entornos
 ```
 
-#### Características Avanzadas
-
-```typescript
-// Configurar ajustes globales
-http.initialize({
-  baseUrl: "https://api.example.com",
-  timeout: 5000,
-  retries: 3,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// Usando interceptores
-http._setupInterceptors((config) => {
-  console.log("Solicitud:", config);
-  return config;
-}, "request");
-
-// Autenticación
-http.configureAuth({
-  type: "jwt",
-  token: "tu-jwt-token",
-});
-
-// Caché
-http.configureCaching({
-  enabled: true,
-  ttl: 3600,
-});
-
-// Métricas
-http.configureMetrics({
-  enabled: true,
-  trackRequests: true,
-});
-```
-
-#### Resource Accessors con Símbolos
-
-Los resource accessors permiten un acceso más limpio y con mejor soporte de autocompletado a los endpoints de la API:
-
-```typescript
-import { http, User, Product } from "httplazy";
-
-// Obtener todos los usuarios
-const users = await http.get[User]();
-
-// Obtener un producto por ID
-const product = await http.getById[Product]("123");
-
-// Crear un nuevo usuario
-await http.post[User]({ name: "John", email: "john@example.com" });
-
-// Actualizar un producto
-await http.put[Product]({ id: "123", price: 99.99 });
-
-// Eliminar un comentario
-await http.delete[Comment]("456");
-```
-
-Los símbolos se convierten automáticamente al formato correcto para la API (por ejemplo, `User` → `users`).
-
-También puedes crear tus propios símbolos para recursos personalizados:
-
-```typescript
-import { http, createResource } from "httplazy";
-
-// Crear un símbolo personalizado
-const ProductVariant = createResource("ProductVariant");
-
-// Usar el recurso personalizado
-const variants = await http.get[ProductVariant]();
-```
-
-Esto mejora la legibilidad del código y proporciona un mejor soporte de autocompletado en editores compatibles con TypeScript.
-
-### Uso de CLI
-
-```bash
-# Solicitud GET básica
-lazyhttp get https://api.example.com/data
-
-# Solicitud POST con datos
-lazyhttp post https://api.example.com/create --data '{"name": "John"}'
-
-# Usando parámetros de consulta
-lazyhttp get https://api.example.com/search --params '{"q": "término de búsqueda"}'
-
-# Con encabezados
-lazyhttp get https://api.example.com/data --headers '{"Authorization": "Bearer token"}'
-
-# Con autenticación
-lazyhttp get https://api.example.com/data --auth 'Bearer token'
-
-# Con timeout
-lazyhttp get https://api.example.com/data --timeout 5000
-
-# Con reintentos
-lazyhttp get https://api.example.com/data --retries 3
-
-# Descargar archivo
-lazyhttp get https://example.com/file.pdf --output file.pdf
-
-# Stream de respuesta
-lazyhttp get https://example.com/stream --stream
-```
-
-### Documentación
-
-Para documentación detallada, por favor visite nuestra [página de documentación](docs/README.md).
-
-### Manejo de Errores
-
-LazyHTTP devuelve un objeto con `{ data, error, status }` para todos los métodos. Esto significa que no necesitas usar bloques try/catch en tu código para manejar errores.
-
-Ejemplo para una petición GET:
+### Importación según entorno
 
 ```javascript
-const response = await http.get("https://api.example.com/data");
-
-if (response.error) {
-  console.error("Error:", response.error.message);
-  // Si hay detalles disponibles, proporcionan contexto adicional
-  if (response.error.details) {
-    console.error("Detalles:", response.error.details);
-  }
-} else {
-  console.log("Datos:", response.data);
-}
-```
-
-Usando desestructuración para un código más limpio:
-
-```javascript
-const { data, error, status, details } = await http.get(
-  "https://api.example.com/data"
-);
-
-if (error) {
-  console.error(`Error (${status}): ${error.message}`);
-  if (details) {
-    console.error("Cómo solucionarlo:", details.help);
-  }
-} else {
-  // Trabajar directamente con los datos
-  console.log("Datos del usuario:", data.user);
-}
-```
-
-Ejemplo para una petición POST:
-
-```javascript
-const response = await http.post("https://api.example.com/users", {
-  name: "John",
-  email: "john@example.com",
-});
-
-if (response.error) {
-  console.error("Error:", response.error.message);
-} else {
-  console.log("Usuario creado:", response.data);
-}
-```
-
-LazyHTTP puede devolver varios tipos de errores:
-
-- HttpTimeoutError
-- HttpNetworkError
-- HttpInvalidURLError
-- Y otros...
-
-## Registro Automático de Errores
-
-LazyHTTP incluye un sistema de registro integrado que registra automáticamente los errores. Puedes configurar el comportamiento del registro:
-
-```javascript
-import { httpLogger, http } from "httplazy";
-
-// Configurar el logger
-httpLogger.configure({
-  enabled: true, // Habilitar/deshabilitar registro (por defecto: true)
-  level: "error", // Nivel de registro: 'error', 'warning', 'info', 'debug' (por defecto: 'error')
-  format: "console", // Formato de salida: 'console' o 'json' (por defecto: 'console')
-  includeRequestDetails: true, // Incluir detalles de la petición en los registros (por defecto: true)
-});
-
-// Realizar una petición - los errores se registrarán automáticamente
-const response = await http.get("https://api.example.com/data");
-
-// Aún puedes manejar errores en tu código si es necesario
-if (response.error) {
-  // El error ya ha sido registrado automáticamente
-  // Manejo de errores personalizado adicional
-}
-```
-
-El sistema de registro automático:
-
-- Colorea los mensajes de error en modo consola para mejor visibilidad
-- Incluye códigos de estado HTTP, tipos de error y mensajes
-- Proporciona contexto detallado del error cuando está disponible
-- Puede ser deshabilitado para entornos de producción si es necesario
-
-## Resource Access with Type Notation Syntax
-
-LazyHTTP includes a resource-oriented syntax that provides a more declarative way to interact with your API resources. This syntax uses bracket notation `http.get['ResourceName']` to make your code more readable and self-documenting.
-
-### Using Type Notation Syntax
-
-```typescript
-import { http } from "httplazy";
-
-// Users resource
-const users = await http.get["User"]("https://api.example.com/users");
-const user = await http.get["User"]("https://api.example.com/users/123");
-const { data, error } = await http.get["User"](
-  "https://api.example.com/users/123"
-);
-
-// Create a new user
-const newUser = await http.post["User"]("https://api.example.com/users", {
-  name: "Jane Doe",
-  email: "jane@example.com",
-});
-
-// Update a user
-await http.put["User"]("https://api.example.com/users/123", {
-  name: "Jane Smith",
-});
-
-// Partially update a user
-await http.patch["User"]("https://api.example.com/users/123", {
-  status: "active",
-});
-
-// Delete a user
-await http.delete["User"]("https://api.example.com/users/123");
-
-// Companies resource
-const companies = await http.get["Company"](
-  "https://api.example.com/companies"
-);
-const company = await http.get["Company"](
-  "https://api.example.com/companies/456"
-);
-
-// Working with relationships
-const companyUsers = await http.get["User"](
-  "https://api.example.com/companies/456/users"
-);
-```
-
-### Benefits of Type Notation Syntax
-
-- **Self-documenting code**: Resource names make the code more readable
-- **Consistent entity naming**: Use the same resource name across your application
-- **Better code navigation**: Makes it easier to search for all API calls related to a specific entity
-- **Cleaner API**: All HTTP methods support this notation (get, post, put, patch, delete, getAll, getById)
-
-## Funciones de Utilidad
-
-LazyHTTP incluye funciones de utilidad para ayudar a trabajar con respuestas de API y estructuras de datos complejas.
-
-### deepFind
-
-`deepFind` es una función de utilidad que busca recursivamente a través de objetos y arrays anidados para encontrar el primer valor que satisface una función de predicado.
-
-```javascript
-import { http, deepFind } from "httplazy";
-
-// Obtener datos de la API
-const response = await http.get("https://api.example.com/complex-data");
-
-// Encontrar un objeto específico en una estructura profundamente anidada
-const elementoEspecifico = deepFind(
-  response.data,
-  (value) =>
-    typeof value === 'object' &&
-    value !== null &&
-    value.id === 'target-id-123'
-);
-
-if (elementoEspecifico) {
-  console.log('Elemento encontrado:', elementoEspecifico);
-} else {
-  console.log('Elemento no encontrado');
-}
-
-// Con TypeScript, puedes especificar el tipo de retorno esperado
-const usuario = deepFind<{nombre: string, email: string}>(
-  response.data,
-  (value) =>
-    typeof value === 'object' &&
-    value !== null &&
-    (value as any).rol === 'admin'
-);
-
-if (usuario) {
-  console.log(`Administrador encontrado: ${usuario.nombre} (${usuario.email})`);
-}
-```
-
-Esto es especialmente útil cuando trabajas con:
-
-- Respuestas de API anidadas complejas
-- Estructuras JSON con profundidad desconocida
-- Búsqueda de elementos específicos en grandes colecciones de datos
-
-La función maneja de forma segura referencias circulares y varios tipos de datos.
-
-## Módulo SOA (Arquitectura Orientada a Servicios)
-
-LazyHTTP incluye un módulo SOA opcional que permite trabajar con arquitecturas orientadas a servicios. Este módulo se carga dinámicamente cuando se necesita, lo que mantiene la biblioteca principal ligera.
-
-### SOA del lado del cliente
-
-Crea clientes SOA para consumir servicios remotos con una API limpia y orientada a métodos:
-
-```javascript
-import { http, loadSoaModule } from "httplazy";
-
-// Ejemplo: Creación y uso de un cliente SOA
-async function usarServicioDeUsuarios() {
-  // Cargar el módulo SOA dinámicamente
-  const { createSoaClient } = await loadSoaModule();
-
-  // Crear un cliente para un endpoint de servicio específico
-  const servicioUsuarios = createSoaClient({
-    serviceUrl: "https://api.ejemplo.com/servicios",
-    namespace: "usuarios", // Opcional
-    timeout: 5000, // Timeout por defecto
-    withAuth: true, // Usar autenticación de http si está configurada
-  });
-
-  try {
-    // Llamar a un método de servicio (envía POST a https://api.ejemplo.com/servicios/usuarios/ServicioUsuario/obtenerUsuarioPorId)
-    const usuario = await servicioUsuarios.callService(
-      "ServicioUsuario",
-      "obtenerUsuarioPorId",
-      { id: 123 }
-    );
-    console.log("Usuario obtenido:", usuario);
-
-    // Llamar a múltiples métodos de servicio en una sola petición (batch)
-    const resultados = await servicioUsuarios.callBatch([
-      {
-        serviceName: "ServicioUsuario",
-        method: "obtenerUsuarioPorId",
-        params: { id: 123 },
-      },
-      {
-        serviceName: "ServicioPerfil",
-        method: "obtenerPreferencias",
-        params: { idUsuario: 123 },
-      },
-    ]);
-
-    console.log("Resultados del batch:", resultados);
-
-    // Obtener definición/descripción del servicio
-    const defServicio = await servicioUsuarios.getServiceDefinition(
-      "ServicioUsuario"
-    );
-    console.log("Métodos disponibles:", Object.keys(defServicio.metodos));
-  } catch (error) {
-    console.error("Error del servicio:", error);
-  }
-}
-```
-
-### SOA del lado del servidor
-
-Expone servicios a través de un servidor HTTP con configuración mínima:
-
-```javascript
-import { loadSoaModule } from "httplazy";
-
-async function iniciarServidorDeServicios() {
-  // Cargar el módulo SOA
-  const { createSoaServer } = await loadSoaModule();
-
-  // Definir implementaciones de servicios
-  const servicioUsuario = {
-    obtenerUsuarioPorId: async (params) => {
-      const { id } = params;
-      // Obtener usuario de base de datos u otra fuente
-      return { id, nombre: "Juan Pérez", email: "juan@ejemplo.com" };
-    },
-
-    crearUsuario: async (params) => {
-      const { nombre, email } = params;
-      // Crear usuario en base de datos
-      return { id: 456, nombre, email, estado: "activo" };
-    },
-  };
-
-  // Crear y configurar el servidor SOA
-  const servidor = createSoaServer({
-    port: 3000, // Puerto de escucha
-    path: "/servicios", // Ruta base para servicios
-    cors: true, // Habilitar CORS
-    services: {
-      ServicioUsuario: servicioUsuario,
-    },
-  });
-
-  try {
-    // Iniciar el servidor
-    await servidor.start();
-    console.log("Servidor SOA ejecutándose en el puerto 3000");
-
-    // Puedes añadir servicios dinámicamente después de iniciar el servidor
-    servidor.addService("ServicioPerfil", {
-      obtenerPreferencias: async (params) => {
-        const { idUsuario } = params;
-        return { idUsuario, tema: "oscuro", notificaciones: true };
-      },
-    });
-
-    // Obtener lista de servicios registrados
-    console.log("Servicios disponibles:", servidor.getRegisteredServices());
-  } catch (error) {
-    console.error("Error al iniciar servidor:", error);
-  }
-}
-```
-
-### Beneficios del Módulo SOA
-
-- **Diseño de API Limpio**: API orientada a métodos que evita codificar URLs directamente
-- **Descubrimiento de Servicios**: Recuperación automática de definiciones de servicios
-- **Operaciones por Lotes**: Realizar múltiples llamadas de servicio en una sola petición
-- **Integración con la Biblioteca Principal**: Aprovecha los mismos sistemas de autenticación, caché e interceptores
-- **Carga Perezosa**: Solo se carga cuando es necesario, manteniendo ligera la biblioteca principal
-- **Soporte TypeScript**: Definiciones de tipos completas para una mejor experiencia de desarrollo
-
-El módulo SOA es particularmente útil para:
-
-- Arquitecturas de microservicios
-- Aplicaciones empresariales con límites de servicio bien definidos
-- Patrones de backend-for-frontend (BFF)
-- Gateways de API
-- Modelos de dominio complejos con clara separación de servicios
-
-# ✨ Nueva arquitectura: Separación cliente/servidor
-
-A partir de la versión 1.7.0, HTTPLazy proporciona una clara separación entre código de cliente (navegador) y servidor (Node.js), lo que facilita su uso en frameworks como Next.js, Remix o cualquier aplicación universal.
-
-### Importación según el entorno
-
-```javascript
-// Uso automático (detecta el entorno)
+// Detección automática (recomendado)
 import { http } from "httplazy";
 
 // Específicamente para navegador
 import { http } from "httplazy/client";
 
-// Específicamente para Node.js (incluye todas las capacidades)
+// Específicamente para Node.js
 import { http } from "httplazy/server";
 ```
 
-### Funcionalidades por entorno
+### Comparativa de funcionalidades
 
-| Característica                | Cliente (Browser) | Servidor (Node.js) |
-| ----------------------------- | ----------------- | ------------------ |
-| HTTP básico (get, post, etc.) | ✅                | ✅                 |
-| Autenticación                 | ✅                | ✅                 |
-| Interceptores                 | ✅                | ✅                 |
-| Caché básico                  | ✅                | ✅                 |
-| Manejo de errores             | ✅                | ✅                 |
-| Proxies HTTP/SOCKS            | ❌                | ✅                 |
-| Streaming avanzado            | ❌                | ✅                 |
-| Soporte SOA                   | ❌                | ✅                 |
-| Métricas avanzadas            | ✅ (limitado)     | ✅ (completo)      |
+| Característica     | Cliente (Browser) | Servidor (Node.js) |
+| ------------------ | ----------------- | ------------------ |
+| HTTP básico        | ✅                | ✅                 |
+| Autenticación      | ✅                | ✅                 |
+| Interceptores      | ✅                | ✅                 |
+| Caché básico       | ✅                | ✅                 |
+| Manejo de errores  | ✅                | ✅                 |
+| Proxies HTTP/SOCKS | ❌                | ✅                 |
+| Streaming avanzado | ❌                | ✅                 |
+| Soporte SOA        | ❌                | ✅                 |
+| Métricas avanzadas | ✅ (limitado)     | ✅ (completo)      |
 
-### Uso con Next.js
+## Uso Básico
 
-Esta nueva arquitectura es totalmente compatible con Next.js, sin necesidad de configuraciones adicionales:
-
-```javascript
-// app/lib/api.js - Cliente
-import { http } from "httplazy/client";
-
-export const getUsers = () => http.get("/api/users");
-```
+### Métodos HTTP
 
 ```javascript
-// app/api/proxy/route.js - Servidor
-import { http, configureProxy } from "httplazy/server";
+import { http } from "httplazy";
 
-configureProxy({
-  protocol: "http",
-  host: "proxy.example.com",
-  port: 8080,
+// Petición GET
+const { data, error } = await http.get("https://api.example.com/users");
+if (error) {
+  console.error("Error:", error.message);
+} else {
+  console.log("Usuarios:", data);
+}
+
+// Petición POST con datos
+const response = await http.post("https://api.example.com/users", {
+  name: "Ana García",
+  email: "ana@example.com",
 });
 
-export async function GET() {
-  const data = await http.get("https://external-api.com/data");
-  return Response.json(data);
+// Petición con parámetros de consulta
+const searchResponse = await http.get("https://api.example.com/search", {
+  params: {
+    q: "javascript",
+    page: 1,
+    limit: 20,
+  },
+});
+
+// Obtener recurso por ID
+const user = await http.getById("https://api.example.com/users", "123");
+
+// Actualizar recurso (PUT)
+await http.put("https://api.example.com/users/123", {
+  name: "Ana López",
+});
+
+// Actualización parcial (PATCH)
+await http.patch("https://api.example.com/users/123", {
+  status: "active",
+});
+
+// Eliminar recurso
+await http.del("https://api.example.com/users/123");
+```
+
+### Configuración Inicial
+
+```javascript
+// Configuración global
+http.initialize({
+  baseUrl: "https://api.example.com",
+  defaultHeaders: {
+    "Content-Type": "application/json",
+    "Accept-Language": "es",
+  },
+  timeout: 10000, // 10 segundos
+  retries: 2, // Reintentar peticiones fallidas
+});
+```
+
+## API de Referencia
+
+### Métodos Básicos
+
+| Método                                       | Descripción                                     | Parámetros                                                                                                                                     |
+| -------------------------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `http.request(method, url, data?, options?)` | Método genérico para cualquier tipo de petición | `method`: Tipo de petición (GET, POST, etc)<br>`url`: URL del endpoint<br>`data`: Datos a enviar (opcional)<br>`options`: Opciones adicionales |
+| `http.get(url, options?)`                    | Petición GET                                    | `url`: URL del endpoint<br>`options`: Opciones adicionales                                                                                     |
+| `http.getAll(url, options?)`                 | Petición GET optimizada para listados           | `url`: URL del endpoint<br>`options`: Opciones adicionales                                                                                     |
+| `http.getById(url, id, options?)`            | Petición GET para un recurso específico         | `url`: URL base<br>`id`: Identificador del recurso<br>`options`: Opciones adicionales                                                          |
+| `http.post(url, data?, options?)`            | Petición POST                                   | `url`: URL del endpoint<br>`data`: Datos a enviar<br>`options`: Opciones adicionales                                                           |
+| `http.put(url, data?, options?)`             | Petición PUT                                    | `url`: URL del endpoint<br>`data`: Datos completos a enviar<br>`options`: Opciones adicionales                                                 |
+| `http.patch(url, data?, options?)`           | Petición PATCH                                  | `url`: URL del endpoint<br>`data`: Datos parciales a enviar<br>`options`: Opciones adicionales                                                 |
+| `http.del(url, options?)`                    | Petición DELETE                                 | `url`: URL del endpoint<br>`options`: Opciones adicionales                                                                                     |
+
+### Opciones de Petición
+
+```typescript
+interface RequestOptions {
+  headers?: Record<string, string>; // Cabeceras HTTP
+  params?: Record<string, any>; // Parámetros de consulta (query string)
+  timeout?: number; // Tiempo máximo en ms
+  retries?: number; // Número de reintentos
+  cache?: boolean | number; // Habilitar caché y TTL en segundos
+  tags?: string[]; // Etiquetas para invalidación de caché
 }
 ```
+
+### Respuesta
+
+```typescript
+interface ApiResponse<T = any> {
+  data: T; // Datos de respuesta
+  status: number; // Código de estado HTTP
+  headers: Record<string, string>; // Cabeceras de respuesta
+  error?: {
+    // Presente solo en errores
+    message: string; // Mensaje descriptivo
+    code?: string; // Código de error
+    details?: any; // Detalles adicionales
+  };
+  config?: any; // Configuración usada en la petición
+}
+```
+
+## Funcionalidades Avanzadas
+
+### Autenticación
+
+```javascript
+// Configuración de autenticación
+http.configureAuth({
+  loginEndpoint: "/auth/login",
+  logoutEndpoint: "/auth/logout",
+  refreshTokenEndpoint: "/auth/refresh",
+  tokenStorage: "localStorage", // 'localStorage', 'sessionStorage', 'cookie', 'memory'
+  tokenKey: "access_token",
+  refreshTokenKey: "refresh_token",
+  userKey: "user_data",
+  autoRefresh: true,
+  redirectOnUnauthorized: true,
+  unauthorizedRedirectUrl: "/login",
+});
+
+// Iniciar sesión
+const { data, error } = await http.login({
+  username: "usuario@ejemplo.com",
+  password: "contraseña",
+});
+
+// Verificar estado de autenticación
+if (http.isAuthenticated()) {
+  // Usuario autenticado
+  const user = http.getAuthenticatedUser();
+  console.log("Usuario actual:", user);
+
+  // Obtener token para operaciones manuales
+  const token = http.getAccessToken();
+}
+
+// Cerrar sesión
+await http.logout();
+```
+
+### Caché
+
+```javascript
+// Configuración de caché
+http.configureCaching({
+  enabled: true,
+  ttl: 300, // Tiempo de vida en segundos
+  storage: "localStorage", // 'memory', 'localStorage', 'sessionStorage'
+  maxSize: 100, // Máximo número de entradas (solo 'memory')
+  invalidateOnMutation: true, // Invalidar en operaciones PUT/POST/DELETE
+});
+
+// Invalidación manual
+http.invalidateCache("/users/*"); // Invalidar usando patrones
+http.invalidateCacheByTags(["users"]); // Invalidar por etiquetas
+
+// Usar caché en peticiones específicas
+const { data } = await http.get("/users", {
+  cache: true, // Habilitar caché
+  tags: ["users", "list"], // Asignar etiquetas
+});
+
+// Especificar TTL personalizado
+await http.get("/users", { cache: 3600 }); // 1 hora
+```
+
+### Interceptores
+
+```javascript
+// Interceptor de petición
+http._setupInterceptors((config) => {
+  // Modificar la petición antes de enviarla
+  config.headers = config.headers || {};
+  config.headers["X-Client-Version"] = "1.0.0";
+
+  // Registrar la petición
+  console.log("Petición saliente:", config.url);
+
+  return config;
+}, "request");
+
+// Interceptor de respuesta
+http._setupInterceptors((response) => {
+  // Modificar la respuesta antes de entregarla
+  if (response.data && response.data.results) {
+    response.data = response.data.results; // Extraer datos
+  }
+
+  return response;
+}, "response");
+```
+
+### Métricas y Actividad
+
+```javascript
+// Configurar métricas
+http.configureMetrics({
+  enabled: true,
+  trackErrors: true,
+  trackPerformance: true,
+  trackCache: true,
+  sampleRate: 100, // Porcentaje de peticiones a medir
+});
+
+// Registrar eventos personalizados
+http.trackActivity("page_view");
+http.trackActivity("search", { query: "término" });
+
+// Obtener métricas actuales
+const metrics = http.getCurrentMetrics();
+console.log("Tiempo promedio de respuesta:", metrics.avgResponseTime);
+console.log("Tasa de errores:", metrics.errorRate);
+```
+
+### Streaming (Servidor)
+
+```javascript
+// Importar desde servidor
+import { stream } from "httplazy/server";
+
+// Streaming de archivo grande
+const fileStream = await stream("https://example.com/large-file.zip", {
+  onData: (chunk) => {
+    // Procesar cada fragmento
+    const percent = (bytesReceived / totalBytes) * 100;
+    updateProgressBar(percent);
+  },
+  onComplete: () => {
+    console.log("Descarga completada");
+  },
+  onError: (err) => {
+    console.error("Error en streaming:", err);
+  },
+});
+
+// Streaming básico en cliente
+import { stream } from "httplazy/client";
+
+const textStream = await stream("https://api.example.com/events");
+// Procesar stream con las APIs del navegador
+```
+
+### Proxies (Servidor)
+
+```javascript
+// Importar desde servidor
+import { configureProxy } from "httplazy/server";
+
+// Configurar proxy HTTP
+configureProxy({
+  protocol: "http",
+  host: "proxy.company.com",
+  port: 8080,
+  auth: {
+    username: "user",
+    password: "pass",
+  },
+});
+
+// Proxy SOCKS
+configureProxy({
+  protocol: "socks5",
+  host: "127.0.0.1",
+  port: 9050,
+});
+```
+
+## Manejo de Errores
+
+HttpLazy proporciona un manejo de errores consistente y predecible:
+
+```javascript
+const { data, error, status } = await http.get("/api/users");
+
+if (error) {
+  // Manejar según código HTTP
+  if (status === 404) {
+    console.error("Recurso no encontrado");
+  } else if (status === 401) {
+    console.error("Autenticación requerida");
+  } else if (status >= 500) {
+    console.error("Error del servidor:", error.message);
+  } else {
+    console.error(`Error (${status}):`, error.message);
+  }
+
+  // Detalles adicionales
+  if (error.details) {
+    console.error("Detalles:", error.details);
+  }
+} else {
+  // Procesar datos exitosos
+}
+```
+
+### Tipos de Errores Comunes
+
+| Código | Tipo                 | Causas habituales                          |
+| ------ | -------------------- | ------------------------------------------ |
+| 400    | Bad Request          | Datos incorrectos, validación fallida      |
+| 401    | Unauthorized         | Token inválido o expirado                  |
+| 403    | Forbidden            | Permisos insuficientes                     |
+| 404    | Not Found            | Recurso inexistente                        |
+| 422    | Unprocessable Entity | Datos válidos pero lógicamente incorrectos |
+| 429    | Too Many Requests    | Límite de tasa excedido                    |
+| 500    | Server Error         | Error interno del servidor                 |
+
+### Manejo de Errores de Red
+
+```javascript
+try {
+  const response = await http.get("/api/data");
+
+  if (response.error) {
+    // Error HTTP con respuesta del servidor
+    handleApiError(response.error);
+  } else {
+    processData(response.data);
+  }
+} catch (err) {
+  // Errores de red, como desconexión o timeout
+  console.error("Error de conexión:", err.message);
+}
+```
+
+### Errores Personalizados
+
+HttpLazy proporciona un sistema extensible de manejo de errores que va más allá de los códigos HTTP estándar.
+
+#### Tipos de errores específicos de HttpLazy
+
+La biblioteca incluye clases de error especializadas para diferentes situaciones:
+
+```javascript
+// Errores específicos por categoría
+import {
+  HttpError, // Error base para todos los errores HTTP
+  NetworkError, // Errores de conexión, timeout, DNS
+  AuthenticationError, // Errores relacionados con autenticación
+  CacheError, // Errores en el sistema de caché
+  ValidationError, // Errores de validación de datos
+  RateLimitError, // Errores por límite de peticiones excedido
+} from "httplazy/errors";
+
+// Verificar tipo de error
+if (error instanceof AuthenticationError) {
+  // Manejar error de autenticación
+  redirectToLogin();
+} else if (error instanceof NetworkError) {
+  // Manejar error de red
+  showOfflineMessage();
+}
+```
+
+#### Códigos de error personalizados
+
+Además de los códigos HTTP estándar, HttpLazy define códigos internos para situaciones específicas:
+
+```javascript
+// Ejemplo de manejo de códigos personalizados
+const { error } = await http.get("/api/users");
+
+if (error) {
+  switch (error.code) {
+    case "AUTH_EXPIRED":
+      await http.refreshToken();
+      // Reintentar petición
+      break;
+    case "CACHE_MISS":
+      // Obtener desde origen
+      break;
+    case "RATE_LIMITED":
+      // Implementar backoff exponencial
+      break;
+    case "VALIDATION_FAILED":
+      // Mostrar errores de validación
+      showValidationErrors(error.details);
+      break;
+    default:
+      // Manejo genérico
+      showErrorMessage(error.message);
+  }
+}
+```
+
+| Código de Error     | Descripción                                   | Acción recomendada                     |
+| ------------------- | --------------------------------------------- | -------------------------------------- |
+| `AUTH_EXPIRED`      | Token de autenticación expirado               | Refrescar token y reintentar           |
+| `AUTH_INVALID`      | Token inválido o credenciales incorrectas     | Redirigir a login                      |
+| `CACHE_MISS`        | No se encontró en caché                       | Obtener desde origen                   |
+| `RATE_LIMITED`      | Límite de peticiones excedido                 | Implementar backoff exponencial        |
+| `NETWORK_OFFLINE`   | Sin conexión a Internet                       | Mostrar modo offline                   |
+| `TIMEOUT_EXCEEDED`  | Tiempo de espera agotado                      | Reintentar o aumentar timeout          |
+| `VALIDATION_FAILED` | Datos enviados no cumplen validación          | Mostrar errores específicos al usuario |
+| `RESOURCE_CONFLICT` | Conflicto al modificar recurso (concurrencia) | Recarga y muestra diferencias          |
+
+#### Cómo extender los errores
+
+Puedes crear tus propias clases de error personalizadas que se integren con el sistema de HttpLazy:
+
+```javascript
+// Definir un error personalizado para tu dominio
+import { HttpError } from "httplazy/errors";
+
+class PaymentDeclinedError extends HttpError {
+  constructor(message, details = {}) {
+    super(message, "PAYMENT_DECLINED", 402, details);
+    this.name = "PaymentDeclinedError";
+
+    // Agregar propiedades específicas
+    this.paymentId = details.paymentId;
+    this.reason = details.reason;
+    this.canRetry = details.canRetry || false;
+  }
+
+  // Métodos personalizados
+  suggestAlternative() {
+    return this.details.alternatives || [];
+  }
+}
+
+// Usar con el interceptor de respuesta
+http._setupInterceptors((response) => {
+  // Transformar errores estándar en personalizados
+  if (response.status === 402 && response.data?.type === "payment_error") {
+    throw new PaymentDeclinedError("Pago rechazado", {
+      paymentId: response.data.paymentId,
+      reason: response.data.reason,
+      canRetry: response.data.canRetry,
+      alternatives: response.data.alternatives,
+    });
+  }
+  return response;
+}, "response");
+
+// En el código de la aplicación
+try {
+  await paymentService.processPayment(paymentData);
+} catch (error) {
+  if (error instanceof PaymentDeclinedError) {
+    if (error.canRetry) {
+      showRetryMessage(error.reason);
+    } else {
+      const alternatives = error.suggestAlternative();
+      showAlternativePaymentMethods(alternatives);
+    }
+  }
+}
+```
+
+#### Patrones de manejo de errores avanzados
+
+Estructura tu código para un manejo de errores consistente y mantenible:
+
+```javascript
+// Patrón: Centralizar lógica de manejo de errores
+const errorHandlers = {
+  AUTH_EXPIRED: async (error) => {
+    // Refrescar token automáticamente
+    await authService.refreshToken();
+    return true; // Indica que se puede reintentar
+  },
+  NETWORK_OFFLINE: (error) => {
+    // Activar modo offline
+    appStore.setOfflineMode(true);
+    showToast("Trabajando en modo offline");
+    return false; // No reintentar automáticamente
+  },
+  RATE_LIMITED: (error) => {
+    // Implementar backoff
+    const retryAfter = error.details.retryAfter || 5000;
+    showToast(`Demasiadas peticiones, reintentando en ${retryAfter / 1000}s`);
+    return new Promise((resolve) =>
+      setTimeout(() => resolve(true), retryAfter)
+    );
+  },
+  // Otros manejadores...
+};
+
+// Función helper para procesar errores
+async function processApiError(error, retryFn) {
+  // Obtener código específico o usar HTTP status como fallback
+  const errorCode = error.code || `HTTP_${error.status}`;
+
+  // Ver si hay un manejador específico
+  if (errorHandlers[errorCode]) {
+    const shouldRetry = await errorHandlers[errorCode](error);
+    if (shouldRetry && retryFn) {
+      return retryFn(); // Reintentar la operación
+    }
+  } else {
+    // Manejo genérico para errores sin manejador específico
+    logError(error);
+    showErrorMessage(error.message);
+  }
+
+  return null; // No se pudo manejar/reintentar
+}
+
+// Uso en componentes
+async function fetchUserData() {
+  try {
+    setLoading(true);
+    const response = await userService.getUser();
+
+    if (response.error) {
+      const result = await processApiError(response.error, fetchUserData);
+      if (result !== null) {
+        return result; // Error manejado con éxito
+      }
+      setError(response.error);
+      return null;
+    }
+
+    return response.data;
+  } catch (err) {
+    await processApiError(err, fetchUserData);
+    setError(err);
+    return null;
+  } finally {
+    setLoading(false);
+  }
+}
+```
+
+Este enfoque permite:
+
+- Centralizar la lógica de manejo de errores
+- Implementar recuperación automática (auto-retry, refresh token)
+- Mantener el código de negocio limpio, separando la lógica de error
+- Aplicar políticas consistentes en toda la aplicación
+- Extender fácilmente con nuevos tipos de errores
+
+## Uso con Next.js
+
+HttpLazy está optimizado para aplicaciones Next.js, gestionando automáticamente la diferencia entre código de cliente y servidor.
+
+### En Componentes Cliente
+
+```jsx
+"use client";
+import { useState, useEffect } from "react";
+import { http } from "httplazy/client";
+
+export default function UserProfile({ userId }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadUser() {
+      const { data, error } = await http.getById("/api/users", userId);
+      if (!error) {
+        setUser(data);
+      }
+      setLoading(false);
+    }
+
+    loadUser();
+  }, [userId]);
+
+  if (loading) return <div>Cargando...</div>;
+  if (!user) return <div>Usuario no encontrado</div>;
+
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      <p>Email: {user.email}</p>
+    </div>
+  );
+}
+```
+
+### En API Routes
+
+```javascript
+// app/api/products/route.js
+import { http } from "httplazy/server";
+
+export async function GET(request) {
+  // Obtener productos desde un servicio externo
+  const response = await http.get("https://external-api.com/products");
+
+  if (response.error) {
+    return Response.json(
+      { error: response.error.message },
+      { status: response.status }
+    );
+  }
+
+  return Response.json(response.data);
+}
+```
+
+### En Server Actions
+
+```javascript
+// app/actions.js
+"use server";
+import { http } from "httplazy/server";
+
+export async function processPayment(formData) {
+  const paymentData = {
+    amount: formData.get("amount"),
+    cardNumber: formData.get("cardNumber"),
+    // otros campos...
+  };
+
+  // Usar proxy para API de pagos
+  configureProxy({
+    protocol: "https",
+    host: "secure-proxy.company.com",
+    port: 443,
+  });
+
+  const response = await http.post(
+    "https://payment-gateway.com/process",
+    paymentData
+  );
+
+  return response.data;
+}
+```
+
+## Buenas Prácticas
+
+### Organización del Código
+
+Crea un servicio centralizado para tus APIs:
+
+```javascript
+// lib/api.js
+import { http } from "httplazy/client";
+
+http.initialize({
+  baseUrl: "/api",
+  // otras configuraciones...
+});
+
+export const userService = {
+  getAll: () => http.get("/users"),
+  getById: (id) => http.getById("/users", id),
+  create: (data) => http.post("/users", data),
+  update: (id, data) => http.put(`/users/${id}`, data),
+  delete: (id) => http.del(`/users/${id}`),
+};
+
+export const authService = {
+  login: (credentials) => http.login(credentials),
+  logout: () => http.logout(),
+  getCurrentUser: () => http.getAuthenticatedUser(),
+};
+
+// exportar otros servicios...
+```
+
+### Patrones de Uso
+
+1. **Desestructuración de respuestas**
+
+   ```javascript
+   const { data, error, status } = await userService.getAll();
+   ```
+
+2. **Manejo de promesas en paralelo**
+
+   ```javascript
+   const [users, products] = await Promise.all([
+     userService.getAll(),
+     productService.getAll(),
+   ]);
+   ```
+
+3. **Patrones de carga con React**
+
+   ```javascript
+   const [data, setData] = useState(null);
+   const [loading, setLoading] = useState(true);
+   const [error, setError] = useState(null);
+
+   useEffect(() => {
+     let isMounted = true;
+
+     async function fetchData() {
+       try {
+         setLoading(true);
+         const response = await userService.getAll();
+
+         if (isMounted) {
+           if (response.error) {
+             setError(response.error);
+             setData(null);
+           } else {
+             setData(response.data);
+             setError(null);
+           }
+         }
+       } catch (err) {
+         if (isMounted) {
+           setError({ message: "Error de conexión" });
+           setData(null);
+         }
+       } finally {
+         if (isMounted) {
+           setLoading(false);
+         }
+       }
+     }
+
+     fetchData();
+
+     return () => {
+       isMounted = false;
+     };
+   }, []);
+   ```
+
+### Optimización
+
+1. **Uso adecuado de caché**
+
+   ```javascript
+   // Datos que cambian poco
+   const config = await http.get("/api/config", { cache: 3600 }); // 1h
+
+   // Datos que cambian con frecuencia
+   const notifications = await http.get("/api/notifications", { cache: 60 }); // 1min
+   ```
+
+2. **Invalidación selectiva**
+
+   ```javascript
+   // Después de actualizar un usuario
+   await userService.update(id, userData);
+   http.invalidateCacheByTags(["users"]);
+   ```
+
+3. **Precarga de datos críticos**
+   ```javascript
+   // Precargar datos comunes durante la inicialización
+   export async function initializeApp() {
+     await Promise.all([
+       http.get("/api/config", { cache: true }),
+       http.get("/api/common-data", { cache: true }),
+     ]);
+   }
+   ```
+
+## Solución de Problemas
+
+### Errores CORS
+
+Si experimentas errores CORS en desarrollo:
+
+```javascript
+// Configuración para desarrollo local
+if (process.env.NODE_ENV === "development") {
+  http.initialize({
+    // otras configuraciones...
+    defaultHeaders: {
+      "Content-Type": "application/json",
+      // Añadir headers CORS si es necesario
+    },
+  });
+}
+```
+
+### Errores de Módulos Faltantes en Next.js
+
+Si encuentras errores como "Can't resolve 'net'" en Next.js, asegúrate de importar correctamente:
+
+```javascript
+// ❌ Incorrecto
+import { http } from "httplazy";
+
+// ✅ Correcto para componentes cliente
+import { http } from "httplazy/client";
+```
+
+### Errores de TypeScript
+
+Si encuentras errores de TypeScript relacionados con los tipos:
+
+```typescript
+// Importar tipos explícitamente
+import { http } from "httplazy/client";
+import type { ApiResponse, RequestOptions } from "httplazy/client";
+
+async function fetchData(): Promise<ApiResponse<UserType[]>> {
+  return http.get<UserType[]>("/api/users");
+}
+```
+
+## Diagramas de Arquitectura
+
+### Arquitectura Cliente/Servidor
+
+```
+┌─────────────────────────┐      ┌─────────────────────────┐
+│                         │      │                         │
+│   CLIENTE (Navegador)   │      │   SERVIDOR (Node.js)    │
+│                         │      │                         │
+│  ┌─────────────────┐    │      │  ┌─────────────────┐    │
+│  │                 │    │      │  │                 │    │
+│  │  Core API       │    │      │  │  Core API       │    │
+│  │  - request()    │    │      │  │  - request()    │    │
+│  │  - get(), post()│    │      │  │  - get(), post()│    │
+│  │  - auth, caché  │    │      │  │  - auth, caché  │    │
+│  │                 │    │      │  │                 │    │
+│  └────────┬────────┘    │      │  └────────┬────────┘    │
+│           │             │      │           │             │
+│  ┌────────▼────────┐    │      │  ┌────────▼────────┐    │
+│  │                 │    │      │  │                 │    │
+│  │  Implementación │    │      │  │  Implementación │    │
+│  │  Browser        │    │      │  │  Node.js        │    │
+│  │  (fetch/XHR)    │    │      │  │  (http/https)   │    │
+│  │                 │    │      │  │                 │    │
+│  └─────────────────┘    │      │  └─────────────────┘    │
+│                         │      │           │             │
+└─────────────────────────┘      │  ┌────────▼────────┐    │
+                                 │  │                 │    │
+                                 │  │  Extensiones    │    │
+                                 │  │  - Proxies      │    │
+                                 │  │  - Streaming    │    │
+                                 │  │  - SOA          │    │
+                                 │  │                 │    │
+                                 │  └─────────────────┘    │
+                                 │                         │
+                                 └─────────────────────────┘
+```
+
+### Flujo de una Petición HTTP
+
+```
+┌──────────┐    ┌────────────┐    ┌────────────┐    ┌────────────┐    ┌─────────┐
+│          │    │            │    │            │    │            │    │         │
+│ Llamada  │--->│Interceptor │--->│  Caché     │--->│ Solicitud  │--->│ Servidor│
+│ http.get │    │ Petición   │    │ ¿Presente? │    │   HTTP     │    │  API    │
+│          │    │            │    │            │    │            │    │         │
+└──────────┘    └────────────┘    └─────┬──────┘    └─────┬──────┘    └────┬────┘
+                                        │                 │                │
+                                        │ Sí              │                │
+                                        ▼                 │                │
+                                 ┌────────────┐          │                │
+                                 │            │          │                │
+                                 │   Datos    │          │                │
+                                 │  Cacheados │          │                │
+                                 │            │          │                │
+                                 └──────┬─────┘          │                │
+                                        │                │                │
+                                        ▼                │                │
+┌──────────┐    ┌────────────┐    ┌────▼──────┐    ┌─────▼──────┐    ┌────▼────┐
+│          │    │            │    │           │    │            │    │         │
+│ Respuesta│<---│Interceptor │<---│Procesar   │<---│ Respuesta  │<---│ Datos   │
+│ Cliente  │    │ Respuesta  │    │ Errores   │    │   HTTP     │    │ API     │
+│          │    │            │    │           │    │            │    │         │
+└──────────┘    └────────────┘    └───────────┘    └────────────┘    └─────────┘
+```
+
+## Guía de Contribución
+
+Estamos abiertos a contribuciones para mejorar HttpLazy. Puedes contribuir de varias formas:
+
+### Cómo Contribuir
+
+1. **Fork del repositorio**: Crea tu propio fork del proyecto desde GitHub
+2. **Clona**: `git clone https://github.com/tu-usuario/lazyhttp-libreria.git`
+3. **Instala**: `npm install` para instalar dependencias
+4. **Crea una rama**: `git checkout -b nombre-caracteristica`
+5. **Desarrolla**: Implementa tu característica o corrección
+6. **Prueba**: Ejecuta `npm test` para asegurar que todo funciona
+7. **Compila**: `npm run build` para verificar la compilación
+8. **Commit**: `git commit -m "feat: descripción de tu cambio"`
+9. **Push**: `git push origin nombre-caracteristica`
+10. **Crea un Pull Request**: Abre un PR en GitHub con una descripción detallada
+
+### Guías de Estilo
+
+- Seguimos las convenciones de TypeScript estándar
+- Usamos ESLint con la configuración del proyecto
+- Todos los cambios deben incluir pruebas
+- Documentar cualquier nueva API o cambio en la API existente
+
+### Proceso de Revisión
+
+- Cada PR es revisado por al menos un mantenedor del proyecto
+- Los CI checks deben pasar (tests, linting, tipado)
+- El código debe seguir las [Convenciones de Código](#convenciones-de-código)
+
+## Casos de Uso Específicos
+
+### Manejo de Subida de Archivos
+
+```javascript
+// Subida básica de archivo
+async function uploadFile(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const { data, error } = await http.post("/api/upload", formData, {
+    headers: {
+      // No establecer Content-Type, se establece automáticamente con boundary
+    },
+  });
+
+  return { data, error };
+}
+
+// Subida múltiple con cancelación
+async function uploadMultipleFiles(files) {
+  const controller = new AbortController();
+  const formData = new FormData();
+
+  Array.from(files).forEach((file, index) => {
+    formData.append(`file-${index}`, file);
+  });
+
+  // Botón para cancelar en la UI
+  cancelButton.addEventListener("click", () => controller.abort());
+
+  try {
+    const { data } = await http.post("/api/upload-multiple", formData, {
+      signal: controller.signal,
+      timeout: 120000, // 2 minutos
+      retries: 1, // Un reintento en caso de fallo
+    });
+
+    return { success: true, data };
+  } catch (error) {
+    if (error.name === "AbortError") {
+      return { success: false, aborted: true };
+    }
+    return { success: false, error };
+  }
+}
+```
+
+## Comparativa con Alternativas
+
+| Característica             | HttpLazy              | Axios                | Fetch API                    |
+| -------------------------- | --------------------- | -------------------- | ---------------------------- |
+| **Tamaño (aprox)**         | ~12KB min+gzip        | ~14KB min+gzip       | Nativo                       |
+| **Soporte universal**      | ✅ (Cliente/Servidor) | ✅                   | ✅ (Limitado en Node)        |
+| **TypeScript**             | ✅ Completo           | ✅ Completo          | Limitado                     |
+| **Interceptores**          | ✅                    | ✅                   | ❌ (Requiere implementación) |
+| **Caché integrada**        | ✅                    | ❌                   | ❌                           |
+| **Cancelación**            | ✅                    | ✅                   | ✅                           |
+| **Autenticación**          | ✅ Integrada          | ❌ (Manual)          | ❌ (Manual)                  |
+| **Soporte para Streaming** | ✅                    | ✅ (Básico)          | ✅                           |
+| **Soporte para Proxy**     | ✅ (Servidor)         | ✅                   | ❌                           |
+| **Reintentos automáticos** | ✅                    | ❌ (Requiere config) | ❌                           |
+| **Métricas integradas**    | ✅                    | ❌                   | ❌                           |
+
+### ¿Por qué elegir HttpLazy?
+
+- **Uniformidad**: Una sola API para cliente y servidor
+- **Optimización automática**: Uso eficiente según el entorno
+- **Todo incluido**: No requiere múltiples librerías para caché, auth, etc.
+- **Tree-shaking eficiente**: Solo incluye lo que usas
+- **Enfoque en TypeScript**: Tipado completo para mejor DX
+- **Arquitectura modular**: Fácil de extender
+
+## Guía de Migración
+
+### Migración desde v1.6.x a v1.7.x
+
+La versión 1.7.0 introdujo la arquitectura cliente/servidor. Si vienes de versiones anteriores, sigue estos pasos:
+
+1. **Actualiza la dependencia**:
+
+   ```bash
+   npm install httplazy@latest
+   ```
+
+2. **Importaciones**: Modifica tus importaciones según el entorno:
+
+   ```javascript
+   // Antes (todas las versiones)
+   import { http } from "httplazy";
+
+   // Ahora (específico para navegador)
+   import { http } from "httplazy/client";
+
+   // Ahora (específico para Node.js)
+   import { http } from "httplazy/server";
+
+   // Ahora (detección automática - recomendado)
+   import { http } from "httplazy";
+   ```
+
+3. **Funciones renombradas**:
+
+   ```javascript
+   // Antes
+   http.delete("/api/users/123");
+
+   // Ahora
+   http.del("/api/users/123");
+   ```
+
+4. **Cambios en tipos**:
+
+   ```typescript
+   // Antes
+   import { HttpResponse } from "httplazy";
+
+   // Ahora
+   import { ApiResponse } from "httplazy/common/types";
+   // o
+   import type { ApiResponse } from "httplazy";
+   ```
+
+5. **Métodos obsoletos**:
+
+   ```javascript
+   // Antes (obsoleto)
+   http.configure({
+     /* config */
+   });
+
+   // Ahora
+   http.initialize({
+     /* config */
+   });
+   ```
+
+### Migración desde Axios
+
+Si estás migrando desde Axios, estos son los cambios principales:
+
+```javascript
+// Axios
+import axios from "axios";
+
+const api = axios.create({
+  baseURL: "https://api.example.com",
+  timeout: 10000,
+  headers: { "X-Custom-Header": "value" },
+});
+
+api
+  .get("/users")
+  .then((response) => console.log(response.data))
+  .catch((error) => console.error(error));
+
+// HttpLazy
+import { http } from "httplazy";
+
+http.initialize({
+  baseUrl: "https://api.example.com",
+  timeout: 10000,
+  defaultHeaders: { "X-Custom-Header": "value" },
+});
+
+const { data, error } = await http.get("/users");
+if (error) {
+  console.error(error);
+} else {
+  console.log(data);
+}
+```
+
+## Rendimiento
+
+HttpLazy está optimizado para ofrecer un rendimiento excelente en diversas condiciones.
+
+### Estrategias de Optimización
+
+#### 1. Uso de Caché
+
+```javascript
+// Configuración óptima para recursos estáticos
+http.configureCaching({
+  enabled: true,
+  ttl: 3600, // 1 hora
+  storage: "localStorage",
+  maxSize: 50,
+});
+
+// Peticiones con caché
+await http.get("/api/countries", {
+  cache: true,
+  tags: ["reference-data"],
+});
+```
+
+#### 2. Estrategia stale-while-revalidate
+
+```javascript
+// Usar caché mientras se actualiza en segundo plano
+const { data } = await http.get("/api/dashboard-data", {
+  cache: {
+    strategy: "stale-while-revalidate",
+  },
+});
+```
+
+### Recomendaciones de Rendimiento
+
+1. **Agrupar recursos relacionados**: Usar un único endpoint que devuelva múltiples recursos relacionados.
+2. **Usar caché con tags**: Las etiquetas permiten invalidar selectivamente solo ciertos recursos.
+3. **Configurar timeouts adecuados**: Ajusta los timeouts según el tipo de operación.
+4. **Limitar reintentos automáticos**: Configura un número bajo de reintentos para evitar sobrecargar el servidor.
+
+## Convenciones de Código
+
+HttpLazy sigue unas convenciones estrictas en su desarrollo para mantener consistencia y calidad. Estas mismas convenciones se recomiendan para extender la librería:
+
+### Nomenclatura
+
+- **PascalCase**: Clases, interfaces, tipos y enumerados
+
+  ```typescript
+  class HttpClient {}
+  interface RequestOptions {}
+  ```
+
+- **camelCase**: Variables, funciones, métodos y propiedades
+
+  ```typescript
+  const defaultConfig = {};
+  function sendRequest() {}
+  ```
+
+- **UPPER_SNAKE_CASE**: Constantes y valores de enumerados
+  ```typescript
+  const DEFAULT_TIMEOUT = 30000;
+  enum HttpMethod {
+    GET = "GET",
+    POST = "POST",
+  }
+  ```
+
+### Estructura de Archivos
+
+- Un concepto, una responsabilidad por archivo
+- Nombres de archivos en kebab-case (ej: `http-client.ts`)
+- Carpetas organizadas por dominio funcional
+- Extensiones según contenido: `.ts`, `.test.ts`, `.d.ts`
+
+### Documentación de Código
+
+- Comentarios JSDoc para todas las APIs públicas
+- Comentarios de una línea para lógica compleja
+- Ejemplos de uso para funcionalidades no triviales
+
+Ejemplo:
+
+```typescript
+/**
+ * Realiza una petición HTTP.
+ * @param method - El método HTTP a utilizar (GET, POST, etc.)
+ * @param url - La URL de destino
+ * @param data - Los datos a enviar (opcional)
+ * @param options - Opciones adicionales de la petición
+ * @returns Promesa que resuelve a la respuesta
+ * @example
+ * // Petición GET básica
+ * const response = await request('GET', 'https://api.example.com/users');
+ */
+async function request<T>(
+  method: HttpMethod,
+  url: string,
+  data?: any,
+  options?: RequestOptions
+): Promise<ApiResponse<T>> {
+  // Implementación
+}
+```
+
+### Manejo de Errores
+
+- Errores explícitos con mensajes descriptivos
+- Clases de error específicas según el dominio
+- Propagación consistente (no mezclar excepciones y códigos de retorno)
+
+### Testing
+
+- Pruebas unitarias para cada función pública
+- Pruebas de integración para flujos completos
+- Mocks y fixtures compartidos en carpetas dedicadas
+
+## Seguridad
+
+La seguridad es una prioridad en HttpLazy. Aquí hay algunas consideraciones importantes y buenas prácticas:
+
+### Consideraciones de Seguridad
+
+#### Protección de tokens y datos sensibles
+
+HttpLazy implementa protección para los tokens de autenticación:
+
+```javascript
+// Redacción automática de tokens en logs
+http.initialize({
+  baseUrl: "https://api.example.com",
+  logging: {
+    level: "info",
+    redactSensitiveData: true,
+  },
+});
+```
+
+#### Almacenamiento Seguro de Tokens
+
+HttpLazy ofrece opciones para el almacenamiento de tokens:
+
+```javascript
+http.configureAuth({
+  tokenStorage: "localStorage", // Opciones: 'localStorage', 'sessionStorage', 'cookie', 'memory'
+  tokenKey: "access_token",
+  refreshTokenKey: "refresh_token",
+});
+```
+
+### Vulnerabilidades Comunes a Evitar
+
+1. **Inyección (Injection)**: Validar siempre los datos de entrada
+2. **Exposición de datos sensibles**: No incluir tokens o claves en URLs
+3. **XSS (Cross-Site Scripting)**: Sanitizar datos y utilizar cabeceras de seguridad
+4. **Configuración insegura**: No deshabilitar la verificación SSL, incluso en desarrollo
+
+## Recursos Adicionales
+
+- **GitHub**: [github.com/mauroociappinaph/lazyhttp-libreria](https://github.com/mauroociappinaph/lazyhttp-libreria)
+- **NPM**: [npmjs.com/package/httplazy](https://npmjs.com/package/httplazy)
+- **Ejemplos**: Consulta la carpeta `/examples` para ver implementaciones completas
+
+---
+
+Esta documentación cubre las características principales de HttpLazy. Para casos de uso específicos o soporte, consulta el repositorio de GitHub o abre un issue si encuentras algún problema.
