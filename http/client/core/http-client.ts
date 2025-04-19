@@ -1,3 +1,4 @@
+import { SocksProxyAgent } from 'socks-proxy-agent';
 // Core imports
 import { HttpCore } from '../../http-core';
 import {
@@ -26,7 +27,7 @@ import { streamingManager } from '../../http-streaming';
 
 // Direct dependencies
 import { HttpsProxyAgent } from 'https-proxy-agent';
-import { SocksProxyAgent } from 'socks-proxy-agent';
+
 import { httpLogger } from '../../http-logger';
 
 // Manager imports

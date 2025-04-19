@@ -18,7 +18,11 @@
     "inlineSources": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noImplicitReturns": true
+    "noImplicitReturns": true,
+    "paths": {
+      "@/*": ["./http/*"]
+    },
+    "lib": ["dom", "es2018"]
   },
   "include": ["http/**/*"],
   "exclude": ["node_modules", "dist", "examples"]
