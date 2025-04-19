@@ -1,4 +1,4 @@
-![Logotipo de HttpLazy](logotipo%20empresarial%20empresa%20de%20envíos%20y%20entregas%20minimalista%20con%20letra%20color%20azul%20rojo%20blanco.png)
+![Logotipo de HttpLazy](documentacion/logotipo%20empresarial%20empresa%20de%20envíos%20y%20entregas%20minimalista%20con%20letra%20color%20azul%20rojo%20blanco.png)
 
 # Documentación de HttpLazy
 
