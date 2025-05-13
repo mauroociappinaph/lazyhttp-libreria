@@ -10,7 +10,7 @@ const http_errors_1 = require("./http-errors");
 const http_config_1 = require("./http-config");
 let isRefreshing = false;
 let failedRequests = [];
-function setupInterceptors(instance = http_config_1.axiosInstance) {
+function setupInterceptors(instance = http_config_1.httpInstance) {
     instance.interceptors.request.use((config) => {
         var _a;
         if ((_a = config.url) === null || _a === void 0 ? void 0 : _a.includes(http_config_1.AUTH_ENDPOINTS.REFRESH_TOKEN)) {
@@ -71,7 +71,7 @@ async function refreshToken() {
     if (!refreshToken) {
         throw new http_errors_1.HttpAuthError('No refresh token available');
     }
-    const response = await axios_1.default.post(`${http_config_1.AUTH_ENDPOINTS.REFRESH_TOKEN}`, { refreshToken }, { baseURL: http_config_1.axiosInstance.defaults.baseURL });
+    const response = await axios_1.default.post(`${http_config_1.AUTH_ENDPOINTS.REFRESH_TOKEN}`, { refreshToken }, { baseURL: http_config_1.httpInstance.defaults.baseURL });
     if (!((_a = response.data) === null || _a === void 0 ? void 0 : _a.token)) {
         throw new http_errors_1.HttpAuthError('Invalid token response');
     }

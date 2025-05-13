@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.axiosInstance = exports.AUTH_ENDPOINTS = exports.AUTH_STORAGE = exports.DEFAULT_RETRIES = exports.DEFAULT_TIMEOUT = exports.API_URL = exports.debugConfig = exports.DebugLevel = void 0;
+exports.httpInstance = exports.AUTH_ENDPOINTS = exports.AUTH_STORAGE = exports.DEFAULT_RETRIES = exports.DEFAULT_TIMEOUT = exports.API_URL = exports.debugConfig = exports.DebugLevel = void 0;
 exports.createAxiosInstance = createAxiosInstance;
 const tslib_1 = require("tslib");
 const axios_1 = tslib_1.__importDefault(require("axios"));
@@ -48,4 +48,4 @@ function createAxiosInstance() {
         },
     });
 }
-exports.axiosInstance = createAxiosInstance();
+exports.httpInstance = createAxiosInstance();
