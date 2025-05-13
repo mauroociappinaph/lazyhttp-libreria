@@ -12,8 +12,8 @@ describe('HttpAuthManager', () => {
     const token = 'test-token-123';
 
     // Act
-    authManager.setToken(token);
-    const retrievedToken = authManager.getToken();
+    authManager.storeToken('access_token', token);
+    const retrievedToken = authManager.getToken('access_token');
 
     // Assert
     expect(retrievedToken).toBe(token);
@@ -22,14 +22,14 @@ describe('HttpAuthManager', () => {
 
   test('debería manejar correctamente el logout', () => {
     // Arrange
-    authManager.setToken('test-token');
+    authManager.storeToken('access_token', 'test-token');
     expect(authManager.isAuthenticated()).toBe(true);
 
     // Act
     authManager.logout();
 
     // Assert
-    expect(authManager.getToken()).toBeNull();
+    expect(authManager.getToken('access_token')).toBeNull();
     expect(authManager.isAuthenticated()).toBe(false);
   });
 
@@ -38,8 +38,8 @@ describe('HttpAuthManager', () => {
     const user = { id: '123', name: 'Test User' };
 
     // Act
-    authManager.setUser(user);
-    const retrievedUser = authManager.getUser();
+    authManager.storeUser('user', user);
+    const retrievedUser = authManager.getUser('user');
 
     // Assert
     expect(retrievedUser).toEqual(user);
@@ -50,8 +50,8 @@ describe('HttpAuthManager', () => {
     const refreshToken = 'refresh-token-123';
 
     // Act
-    authManager.setRefreshToken(refreshToken);
-    const retrievedRefreshToken = authManager.getRefreshToken();
+    authManager.storeRefreshToken('refresh_token', refreshToken);
+    const retrievedRefreshToken = authManager.getRefreshToken('refresh_token');
 
     // Assert
     expect(retrievedRefreshToken).toBe(refreshToken);
