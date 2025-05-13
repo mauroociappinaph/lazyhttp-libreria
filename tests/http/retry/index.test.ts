@@ -47,8 +47,12 @@ describe('Retry System Integration', () => {
       result.callCount++;
       attempts++;
 
-      // Si no está habilitado el retry, salir después del primer intento
-      if (!isEnabled && attempts > 1) break;
+      // Si no está habilitado el retry, salir inmediatamente después del primer intento
+      if (!isEnabled && attempts > 1) {
+        // Importante: si retry está desactivado, solo debemos hacer un intento
+        // sin importar el número de errores simulados
+        break;
+      }
 
       // Calcular delay (solo para verificación en tests)
       if (attempts > 1) {

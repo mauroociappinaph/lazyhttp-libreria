@@ -1,5 +1,30 @@
 import { HttpAuthManager } from '../../../../http/client/managers/http-auth-manager';
 
+// Mock de localStorage para entornos Node.js
+const localStorageMock = (function() {
+  let store: Record<string, string> = {};
+  return {
+    getItem: function(key: string) {
+      return store[key] || null;
+    },
+    setItem: function(key: string, value: string) {
+      store[key] = value;
+    },
+    removeItem: function(key: string) {
+      delete store[key];
+    },
+    clear: function() {
+      store = {};
+    }
+  };
+})();
+
+// Asignar el mock a global
+Object.defineProperty(global, 'localStorage', {
+  value: localStorageMock,
+  writable: true
+});
+
 describe('HttpAuthManager', () => {
   let authManager: HttpAuthManager;
 

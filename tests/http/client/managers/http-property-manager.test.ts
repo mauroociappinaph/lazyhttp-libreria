@@ -1,85 +1,159 @@
 import { HttpPropertyManager } from '../../../../http/client/managers/http-property-manager';
+import { httpConfiguration } from '../../../../http/http-configuration';
+
+// Mock de las dependencias
+jest.mock('../../../../http/http-configuration', () => ({
+  httpConfiguration: {
+    baseUrl: undefined,
+    frontendUrl: undefined,
+    defaultTimeout: 30000,
+    defaultRetries: 0,
+    defaultHeaders: {},
+    configureProxy: jest.fn(),
+    configureStream: jest.fn()
+  }
+}));
 
 describe('HttpPropertyManager', () => {
   let propertyManager: HttpPropertyManager;
+  let mockCore: any;
 
   beforeEach(() => {
-    propertyManager = new HttpPropertyManager();
+    // Crear mock del HttpCore
+    mockCore = {
+      _baseUrl: undefined,
+      _defaultTimeout: 30000,
+      _defaultRetries: 0,
+      _defaultHeaders: {}
+    };
+
+    // Crear instancia con el mock
+    propertyManager = new HttpPropertyManager(mockCore);
+
+    // Limpiar estado entre tests
+    jest.clearAllMocks();
   });
 
-  test('debería configurar y recuperar propiedades correctamente', () => {
+  test('debería configurar y recuperar baseUrl correctamente', () => {
     // Arrange
-    const key = 'testProperty';
-    const value = { data: 'example' };
+    const url = 'https://api.ejemplo.com';
 
     // Act
-    propertyManager.setProperty(key, value);
-    const retrievedValue = propertyManager.getProperty(key);
+    propertyManager.baseUrl = url;
 
     // Assert
-    expect(retrievedValue).toEqual(value);
+    expect(propertyManager.baseUrl).toBe(url);
+    expect(mockCore._baseUrl).toBe(url);
+    expect(httpConfiguration.baseUrl).toBe(url);
   });
 
-  test('debería devolver undefined para propiedades que no existen', () => {
-    // Act
-    const value = propertyManager.getProperty('nonExistentProperty');
-
-    // Assert
-    expect(value).toBeUndefined();
-  });
-
-  test('debería sobrescribir una propiedad existente', () => {
+  test('debería configurar y recuperar frontendUrl correctamente', () => {
     // Arrange
-    const key = 'testProperty';
-    const initialValue = 'initial';
-    const newValue = 'updated';
+    const url = 'https://frontend.ejemplo.com';
 
     // Act
-    propertyManager.setProperty(key, initialValue);
-    propertyManager.setProperty(key, newValue);
-    const retrievedValue = propertyManager.getProperty(key);
+    propertyManager.frontendUrl = url;
 
     // Assert
-    expect(retrievedValue).toEqual(newValue);
+    expect(propertyManager.frontendUrl).toBe(url);
+    expect(httpConfiguration.frontendUrl).toBe(url);
   });
 
-  test('debería verificar correctamente la existencia de una propiedad', () => {
+  test('debería configurar y recuperar defaultTimeout correctamente', () => {
     // Arrange
-    const key = 'testProperty';
-
-    // Act & Assert - Propiedad no existe
-    expect(propertyManager.hasProperty(key)).toBe(false);
-
-    // Configurar propiedad
-    propertyManager.setProperty(key, 'value');
-
-    // Propiedad existe
-    expect(propertyManager.hasProperty(key)).toBe(true);
-  });
-
-  test('debería eliminar correctamente una propiedad', () => {
-    // Arrange
-    const key = 'testProperty';
-    propertyManager.setProperty(key, 'value');
+    const timeout = 5000;
 
     // Act
-    propertyManager.removeProperty(key);
+    propertyManager.defaultTimeout = timeout;
 
     // Assert
-    expect(propertyManager.hasProperty(key)).toBe(false);
-    expect(propertyManager.getProperty(key)).toBeUndefined();
+    expect(propertyManager.defaultTimeout).toBe(timeout);
+    expect(mockCore._defaultTimeout).toBe(timeout);
+    expect(httpConfiguration.defaultTimeout).toBe(timeout);
   });
 
-  test('debería limpiar todas las propiedades', () => {
+  test('debería configurar y recuperar defaultRetries correctamente', () => {
     // Arrange
-    propertyManager.setProperty('prop1', 'value1');
-    propertyManager.setProperty('prop2', 'value2');
+    const retries = 3;
 
     // Act
-    propertyManager.clearProperties();
+    propertyManager.defaultRetries = retries;
 
     // Assert
-    expect(propertyManager.hasProperty('prop1')).toBe(false);
-    expect(propertyManager.hasProperty('prop2')).toBe(false);
+    expect(propertyManager.defaultRetries).toBe(retries);
+    expect(mockCore._defaultRetries).toBe(retries);
+    expect(httpConfiguration.defaultRetries).toBe(retries);
+  });
+
+  test('debería configurar y recuperar defaultHeaders correctamente', () => {
+    // Arrange
+    const headers = { 'X-API-Key': 'test-key' };
+
+    // Act
+    propertyManager.defaultHeaders = headers;
+
+    // Assert
+    expect(propertyManager.defaultHeaders).toEqual(headers);
+    expect(mockCore._defaultHeaders).toEqual(headers);
+    expect(httpConfiguration.defaultHeaders).toEqual(headers);
+  });
+
+  test('debería configurar proxyConfig correctamente', () => {
+    // Arrange
+    const proxyConfig = { url: 'http://proxy.ejemplo.com' };
+
+    // Act
+    propertyManager.proxyConfig = proxyConfig;
+
+    // Assert
+    expect(httpConfiguration.configureProxy).toHaveBeenCalledWith(proxyConfig);
+  });
+
+  test('debería configurar streamConfig correctamente', () => {
+    // Arrange
+    const streamConfig = { enabled: true };
+
+    // Act
+    propertyManager.streamConfig = streamConfig;
+
+    // Assert
+    expect(httpConfiguration.configureStream).toHaveBeenCalledWith(streamConfig);
+  });
+
+  test('debería sincronizar la configuración del core correctamente', () => {
+    // Arrange - Configuración previa
+    httpConfiguration.baseUrl = 'https://api.test.com';
+    httpConfiguration.defaultTimeout = 10000;
+    httpConfiguration.defaultRetries = 2;
+    httpConfiguration.defaultHeaders = { 'Content-Type': 'application/json' };
+
+    // Act
+    propertyManager.syncCoreSettings();
+
+    // Assert
+    expect(mockCore._baseUrl).toBe(httpConfiguration.baseUrl);
+    expect(mockCore._defaultTimeout).toBe(httpConfiguration.defaultTimeout);
+    expect(mockCore._defaultRetries).toBe(httpConfiguration.defaultRetries);
+    expect(mockCore._defaultHeaders).toEqual(httpConfiguration.defaultHeaders);
+  });
+
+  test('debería actualizar la configuración desde un objeto', () => {
+    // Arrange
+    const config = {
+      baseUrl: 'https://api.nueva.com',
+      timeout: 15000,
+      retries: 3,
+      headers: { 'X-Custom': 'value' }
+    };
+
+    // Act
+    propertyManager.updateFromConfig(config);
+
+    // Assert
+    expect(propertyManager.baseUrl).toBe(config.baseUrl);
+    expect(propertyManager.defaultTimeout).toBe(config.timeout);
+    expect(propertyManager.defaultRetries).toBe(config.retries);
+    // Headers deberían combinar los existentes con los nuevos
+    expect(propertyManager.defaultHeaders['X-Custom']).toBe('value');
   });
 });
