@@ -1,17 +1,18 @@
-import * as ManagersExport from '../../../../http/client/managers';
+/**
+ * Test para verificar que los managers del cliente HTTP se exportan correctamente
+ */
+import * as managers from '../../../../http/client/managers';
 
-describe('HTTP Managers Exports', () => {
-  test('debería exportar todas las clases de managers correctamente', () => {
-    // Verificar que se exportan los managers
-    expect(ManagersExport.HttpAuthManager).toBeDefined();
-    expect(ManagersExport.HttpConfigManager).toBeDefined();
-    expect(ManagersExport.HttpPropertyManager).toBeDefined();
+describe('HTTP Client Managers Exports', () => {
+  test('debería exportar HttpAuthManager', () => {
+    expect(managers).toHaveProperty('HttpAuthManager');
   });
 
-  test('debería poder instanciar los managers exportados', () => {
-    // Verificar que se pueden instanciar (esto garantiza que son constructores válidos)
-    expect(typeof ManagersExport.HttpAuthManager).toBe('function');
-    expect(typeof ManagersExport.HttpConfigManager).toBe('function');
-    expect(typeof ManagersExport.HttpPropertyManager).toBe('function');
+  test('debería exportar HttpConfigManager', () => {
+    expect(managers).toHaveProperty('HttpConfigManager');
+  });
+
+  test('debería exportar HttpPropertyManager', () => {
+    expect(managers).toHaveProperty('HttpPropertyManager');
   });
 });

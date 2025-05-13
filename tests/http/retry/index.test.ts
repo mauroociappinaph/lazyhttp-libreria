@@ -41,20 +41,27 @@ describe('Retry System Integration', () => {
       return initialDelay * Math.pow(backoffFactor, retryCount);
     };
 
-    // Simular peticiones con errores
-
     // Hacer la petición inicial
     result.callCount = 1;
 
+    // Si simulateErrors es 0 o menor, la petición ha sido exitosa
+    if (simulateErrors <= 0) {
+      result.success = true;
+      return result;
+    }
+
     // Si retry está desactivado, sólo hacemos una petición sin importar el número de errores
     if (!isEnabled) {
-      result.success = (result.callCount >= simulateErrors);
+      result.success = simulateErrors <= 1; // Éxito solo si no hay errores o solo 1 (que ya se manejó)
       return result;
     }
 
     // Si retry está activado, hacemos hasta maxRetries reintentos
     let retryCount = 0;
+
+    // Mientras tengamos reintentos disponibles y no hayamos superado los errores simulados
     while (retryCount < maxRetries && result.callCount < simulateErrors) {
+      // Incrementar contador de intentos y de llamadas
       retryCount++;
       result.callCount++;
 
@@ -63,8 +70,7 @@ describe('Retry System Integration', () => {
       expect(delay).toBe(initialDelay * Math.pow(backoffFactor, retryCount - 1));
     }
 
-    // Si el número de llamadas es menor que los errores simulados,
-    // entonces no tuvimos suficientes reintentos y fallamos
+    // Determinar si tuvimos éxito: si pudimos hacer suficientes llamadas para superar los errores
     result.success = result.callCount >= simulateErrors;
 
     return result;
@@ -79,11 +85,11 @@ describe('Retry System Integration', () => {
       backoffFactor: 2
     };
 
-    // Simular 3 errores (requiere petición original + 3 reintentos)
-    const result = simulateHttpRequestWithRetry(retryConfig, undefined, 3);
+    // Simular 4 errores (requiere petición original + 3 reintentos)
+    const result = simulateHttpRequestWithRetry(retryConfig, undefined, 4);
 
-    // Verificar que se hicieron 3 intentos y tuvo éxito
-    expect(result.callCount).toBe(3);
+    // Verificar que se hicieron 4 intentos (1 original + 3 reintentos) y tuvo éxito
+    expect(result.callCount).toBe(4);
     expect(result.success).toBeTruthy();
   });
 
@@ -154,5 +160,20 @@ describe('Retry System Integration', () => {
 
     // Las expectativas están dentro de la función simulateHttpRequestWithRetry
     // Verifican que delay = initialDelay * (backoffFactor ^ retryCount)
+  });
+
+  test('debería manejar peticiones sin errores correctamente', () => {
+    // Configuración de retry (no importa porque no habrá errores)
+    const retryConfig: Partial<RetryConfig> = {
+      enabled: true,
+      maxRetries: 3
+    };
+
+    // Simular 0 errores (petición exitosa)
+    const result = simulateHttpRequestWithRetry(retryConfig, undefined, 0);
+
+    // Verificar que solo se hizo 1 llamada y tuvo éxito
+    expect(result.callCount).toBe(1);
+    expect(result.success).toBeTruthy();
   });
 });
