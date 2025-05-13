@@ -25,6 +25,7 @@
   - [Caché](#caché)
   - [Interceptores](#interceptores)
   - [Métricas y Actividad](#métricas-y-actividad)
+    - [Logging Personalizado](#logging-personalizado)
   - [Streaming (Servidor)](#streaming-servidor)
   - [Proxies (Servidor)](#proxies-servidor)
   - [Retry Automático con Backoff Exponencial](#retry-automático-con-backoff-exponencial)
@@ -373,6 +374,38 @@ const metrics = http.getCurrentMetrics();
 console.log("Tiempo promedio de respuesta:", metrics.avgResponseTime);
 console.log("Tasa de errores:", metrics.errorRate);
 ```
+
+### Logging Personalizado
+
+HttpLazy incluye un sistema de logging modular y extensible para registrar información de cada petición y respuesta HTTP.
+
+```typescript
+import { Logger, ConsoleLoggerAdapter } from "httplazy/http/logging";
+
+// Configuración básica
+envía logs a consola
+const logger = Logger.getInstance();
+logger.configure({
+  level: "debug",
+  adapters: [new ConsoleLoggerAdapter()],
+});
+
+logger.info("Mensaje informativo", { userId: 123 });
+```
+
+**Como interceptor HTTP:**
+
+```typescript
+import { LoggingInterceptor } from "httplazy/http/logging";
+
+client.useInterceptor(new LoggingInterceptor());
+```
+
+- Puedes crear adaptadores propios implementando la interfaz `ILoggerAdapter`.
+- Soporta niveles: debug, info, warn, error.
+- Permite múltiples destinos de log (consola, archivo, servicios externos, etc).
+
+> Consulta la documentación extendida en `http/logging/README.md` para más detalles y ejemplos.
 
 ### Streaming (Servidor)
 
