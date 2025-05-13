@@ -128,4 +128,15 @@ export class HttpCore {
   async delete<T>(endpoint: string, options?: Omit<RequestOptions, 'method'>): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, { ...options, method: 'DELETE' });
   }
+
+  /**
+   * Realiza múltiples solicitudes GET concurrentes y devuelve un array con los datos de cada respuesta.
+   * Si alguna respuesta no tiene datos (data === null), no se incluirá en el array final.
+   */
+  async all<T = any>(urls: string[], options?: Omit<RequestOptions, 'method' | 'body'>): Promise<T[]> {
+    const promesas = urls.map(url => this.get<T>(url, options));
+    const resultados = await Promise.all(promesas);
+    // Filtra los null para evitar errores de tipo
+    return resultados.map(r => r.data).filter((d): d is T => d !== null);
+  }
 }
