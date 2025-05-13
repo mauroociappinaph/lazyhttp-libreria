@@ -1,0 +1,86 @@
+import { HttpAuthManager } from '../../../../http/client/managers/http-auth-manager';
+
+describe('HttpAuthManager', () => {
+  let authManager: HttpAuthManager;
+
+  beforeEach(() => {
+    authManager = new HttpAuthManager();
+  });
+
+  test('debería configurar y usar tokens de autenticación', () => {
+    // Arrange
+    const token = 'test-token-123';
+
+    // Act
+    authManager.setToken(token);
+    const retrievedToken = authManager.getToken();
+
+    // Assert
+    expect(retrievedToken).toBe(token);
+    expect(authManager.isAuthenticated()).toBe(true);
+  });
+
+  test('debería manejar correctamente el logout', () => {
+    // Arrange
+    authManager.setToken('test-token');
+    expect(authManager.isAuthenticated()).toBe(true);
+
+    // Act
+    authManager.logout();
+
+    // Assert
+    expect(authManager.getToken()).toBeNull();
+    expect(authManager.isAuthenticated()).toBe(false);
+  });
+
+  test('debería configurar credenciales de usuario', () => {
+    // Arrange
+    const user = { id: '123', name: 'Test User' };
+
+    // Act
+    authManager.setUser(user);
+    const retrievedUser = authManager.getUser();
+
+    // Assert
+    expect(retrievedUser).toEqual(user);
+  });
+
+  test('debería manejar refresh tokens', () => {
+    // Arrange
+    const refreshToken = 'refresh-token-123';
+
+    // Act
+    authManager.setRefreshToken(refreshToken);
+    const retrievedRefreshToken = authManager.getRefreshToken();
+
+    // Assert
+    expect(retrievedRefreshToken).toBe(refreshToken);
+  });
+
+  test('debería manejar tokens nulos o vacíos correctamente', () => {
+    // Act & Assert
+    expect(authManager.isAuthenticated()).toBe(false);
+
+    authManager.setToken('');
+    expect(authManager.isAuthenticated()).toBe(false);
+
+    authManager.setToken(null);
+    expect(authManager.isAuthenticated()).toBe(false);
+  });
+
+  test('debería limpiar toda la información de autenticación al hacer logout', () => {
+    // Arrange
+    authManager.setToken('test-token');
+    authManager.setRefreshToken('refresh-token');
+    authManager.setUser({ id: '123', name: 'Test User' });
+
+    // Act
+    authManager.logout();
+
+    // Assert
+    expect(authManager.getToken()).toBeNull();
+    expect(authManager.getRefreshToken()).toBeNull();
+    expect(authManager.getUser()).toBeNull();
+    expect(authManager.isAuthenticated()).toBe(false);
+  });
+});
