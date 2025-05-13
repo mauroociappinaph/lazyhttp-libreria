@@ -1,0 +1,29 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+### 🧩 Single Responsibility y No Repetición de Código
+
+**Contexto:** Este proyecto sigue principios de diseño sólidos. Cada módulo, archivo o función debe tener **una única responsabilidad clara** y **no debe duplicar lógica**.
+
+---
+
+#### 🧠 Regla 1: Principio de Responsabilidad Única (SRP)
+Cada archivo, clase o función debe cumplir con una sola función clara. Si una función realiza más de una tarea (como validación, transformación y formateo), debe dividirse en unidades separadas.
+
+---
+
+#### 🔁 Regla 2: No repetir lógica (DRY - Don't Repeat Yourself)
+Si se detecta código repetido, este debe extraerse en helpers o funciones reutilizables. Repeticiones de estructuras como headers, rutas o funciones similares deben consolidarse en módulos comunes.
+
+---
+
+#### 📌 Aplicación específica para `httplazy`:
+- Cada función debe encapsular solo una tarea (por ejemplo, construir URL, manejar errores o agregar headers).
+- No debe haber duplicación de headers, paths ni estructuras de respuestas en diferentes módulos.
+- Los helpers comunes deben estar organizados en carpetas como `utils/` o `lib/`.
+
+---
+
+🔒 **Objetivo:** Mejorar la mantenibilidad, facilitar pruebas unitarias y escalar la librería sin introducir errores colaterales.

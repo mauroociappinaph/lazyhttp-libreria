@@ -1,18 +1,25 @@
 /**
- * Archivo de barril para exportaciones de helpers HTTP
- * Este archivo reexporta todas las funciones auxiliares del módulo HTTP
+ * Exportación de todos los helpers HTTP organizados por dominio funcional
+ * Este archivo actúa como punto único de importación para helpers
  */
 
-// Manejadores
-export { errorHandler } from './http-error-handler.helper';
-export { retryHandler } from './http-retry.helper';
-export { responseProcessor } from './http-response.helper';
+// Helpers de logging
+export * from './logging/logger';
 
-// Funciones de logging
-export { logger, logRequest, logResponse } from './http-logger.helper';
+// Helpers de error
+export * from './error/error-handler';
 
-// Utilidades de autenticación
-export { prepareHeaders } from '../http-helpers'; // Temporalmente importado desde el archivo original
+// Helpers de autenticación
+export * from './auth/auth-helpers';
 
-// Inicialización
-export { initialize, setupInterceptors } from '../http-helpers'; // Temporalmente importado desde el archivo original
+// Helpers de peticiones
+export * from './request/request-executor';
+
+// Helpers de respuestas
+export * from './response/response-processor';
+
+// Helpers de reintentos
+export * from './retry/retry-handler';
+
+// Helpers de URL
+export * from './url/url-helpers';
