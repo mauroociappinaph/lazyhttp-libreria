@@ -62,26 +62,26 @@ describe('HttpAuthManager', () => {
     // Act & Assert
     expect(authManager.isAuthenticated()).toBe(false);
 
-    authManager.setToken('');
+    authManager.storeToken('access_token', '');
     expect(authManager.isAuthenticated()).toBe(false);
 
-    authManager.setToken(null);
+    authManager.removeToken('access_token');
     expect(authManager.isAuthenticated()).toBe(false);
   });
 
   test('debería limpiar toda la información de autenticación al hacer logout', () => {
     // Arrange
-    authManager.setToken('test-token');
-    authManager.setRefreshToken('refresh-token');
-    authManager.setUser({ id: '123', name: 'Test User' });
+    authManager.storeToken('access_token', 'test-token');
+    authManager.storeToken('refresh_token', 'refresh-token');
+    authManager.storeToken('user', JSON.stringify({ id: '123', name: 'Test User' }));
 
     // Act
     authManager.logout();
 
     // Assert
-    expect(authManager.getToken()).toBeNull();
-    expect(authManager.getRefreshToken()).toBeNull();
-    expect(authManager.getUser()).toBeNull();
+    expect(authManager.getToken('access_token')).toBeNull();
+    expect(authManager.getToken('refresh_token')).toBeNull();
+    expect(authManager.getToken('user')).toBeNull();
     expect(authManager.isAuthenticated()).toBe(false);
   });
 });
