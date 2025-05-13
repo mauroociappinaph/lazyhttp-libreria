@@ -17,7 +17,7 @@ import {
 } from '../../http-auth';
 
 // Configuration imports
-import { interceptorsManager } from '../../http-interceptors-manager';
+import { interceptorsManager } from '../../interceptors/http-interceptors-manager';
 
 // Metrics imports
 import { metricsManager } from '../../metrics/http-metrics-index';
