@@ -16,8 +16,12 @@
   "types": "dist/index.d.ts",
   "typesVersions": {
     "*": {
-      "client": ["dist/client/index.d.ts"],
-      "server": ["dist/server/index.d.ts"]
+      "client": [
+        "dist/client/index.d.ts"
+      ],
+      "server": [
+        "dist/server/index.d.ts"
+      ]
     }
   },
   "bin": {
@@ -31,11 +35,14 @@
     "example": "node examples/simple-example.js",
     "example:advanced": "node examples/advanced-example.js",
     "example:auth": "node examples/auth-example.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "example:retry": "ts-node examples/retry-example.ts",
+    "test": "jest --coverage",
+    "test:watch": "jest --watchAll",
+    "test:ci": "jest --runInBand",
     "setup-dev": "npm install && npm install -g madge && npm install -D husky && npx husky install && npx husky add .husky/pre-commit \"npx lint-staged\"",
     "verify": "npx tsc --noEmit && npx madge --circular http/",
     "analyze-deps": "npx madge http/index.ts",
-    "deps-tree": "npx madge --image deps-tree.png http/index.ts || echo '\n⚠️ El comando para generar la imagen de dependencias requiere Graphviz. Puedes instalarlo con: brew install graphviz'",
+    "deps-tree": "npx madge --image deps-tree.png http/index.ts || echo '\n⚠️ El comando para generar la imagen de dependencias requiere Graphviz'",
     "check-security": "npm audit --production",
     "count-lines": "find http -name \"*.ts\" | xargs wc -l | sort -nr",
     "measure-build-time": "node -e \"const start = Date.now(); require('child_process').execSync('npm run build', {stdio: 'inherit'}); console.log('\\n⏱️ Tiempo de compilación:', ((Date.now() - start) / 1000).toFixed(2), 'segundos');\"",
@@ -93,11 +100,17 @@
     "socks-proxy-agent": "^8.0.5"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.14",
     "eslint": "^8.55.0",
     "husky": "^8.0.3",
-    "lint-staged": "^15.2.0",
+    "jest": "^29.7.0",
+    "lint-staged": "^15.5.2",
+    "madge": "^8.0.0",
+    "prettier": "^3.5.3",
     "terser": "^5.39.0",
-    "typescript": "^5.3.2"
+    "ts-jest": "^29.3.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
   },
   "peerDependencies": {
     "axios": "^1.x"

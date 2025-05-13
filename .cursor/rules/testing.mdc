@@ -1,0 +1,147 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 🧪 HTTPLazy - Reglas de Testing Unitario con Jest
+
+Este documento define las reglas para implementar pruebas unitarias en la biblioteca `httplazy` usando Jest. Su objetivo es garantizar una cobertura adecuada, modularidad, mantenibilidad y confiabilidad del código.
+
+---
+
+## ✅ Reglas Generales
+
+### 1. **Regla del Módulo Aislado**
+
+Cada prueba debe enfocarse en una sola unidad de código (una función, clase o método), sin depender de otras implementaciones.
+
+---
+
+### 2. **Regla del Mock Controlado**
+
+Usar `jest.mock` para reemplazar dependencias externas (HTTP, almacenamiento, servicios externos, etc.). Se debe evitar el uso real de `fetch`, `localStorage`, etc.
+
+```ts
+jest.mock('../cache/LocalStorageManager');
+```
+
+---
+
+### 3. **Regla de Organización por Dominio**
+
+Las pruebas deben estar organizadas en carpetas paralelas al código fuente. Ejemplo:
+
+```
+/src/http/client/BrowserHttpClient.ts
+/tests/http/client/BrowserHttpClient.test.ts
+```
+
+---
+
+### 4. **Regla del Patrón AAA (Arrange-Act-Assert)**
+
+Cada test debe estar dividido claramente en tres secciones:
+
+* Arrange: Preparar inputs y mocks
+* Act: Ejecutar el código
+* Assert: Verificar resultados esperados
+
+```ts
+test('should call fetch with correct URL', () => {
+  // Arrange
+  const client = new BrowserHttpClient();
+
+  // Act
+  client.get('/users');
+
+  // Assert
+  expect(fetch).toHaveBeenCalledWith('/users');
+});
+```
+
+---
+
+### 5. **Regla de Casos Limítrofes y Errores**
+
+Todo método debe tener tests para:
+
+* Casos normales
+* Casos límite (inputs vacíos, nulos, etc.)
+* Errores esperados
+
+---
+
+### 6. **Regla del Cliente Mockeado**
+
+Para probar interceptores y managers, se debe utilizar un `MockHttpClient` que simule respuestas controladas.
+
+```ts
+class MockHttpClient extends BaseHttpClient {
+  async get() {
+    return { status: 200, data: 'ok' };
+  }
+}
+```
+
+---
+
+### 7. **Regla de Cobertura Completa de Interfaces**
+
+Cada implementación que cumpla una interfaz (`IHttpClient`, `ICacheManager`, etc.) debe tener una prueba que cubra todos sus métodos públicos.
+
+---
+
+### 8. **Regla de Verbo Descriptivo**
+
+El nombre del test debe describir claramente el comportamiento esperado.
+
+```ts
+test('get() should return cached response when available', ...)
+```
+
+---
+
+### 9. **Regla de No Redundancia**
+
+Evitar probar lógica de dependencias que ya están cubiertas por sus propios tests (testear sólo el comportamiento del módulo actual).
+
+---
+
+### 10. **Regla de Automatización y Watch Mode**
+
+El script `npm run test` debe correr todos los tests, y `npm run test:watch` debe ejecutar en modo vigilancia para desarrollo continuo.
+
+---
+
+## 🧪 Scripts Sugeridos en package.json
+
+```json
+{
+  "scripts": {
+    "test": "jest --coverage",
+    "test:watch": "jest --watchAll",
+    "test:ci": "jest --runInBand"
+  }
+}
+```
+
+---
+
+## 📁 Estructura sugerida de carpetas de test
+
+```
+/tests
+  /http
+    /client
+      BrowserHttpClient.test.ts
+    /server
+  /auth
+  /cache
+  /metrics
+  /interceptors
+  /factories
+```
+
+---
+
+Estas reglas aseguran que el desarrollo de `httplazy` sea acompañado por un sistema de pruebas riguroso y sostenible. Cualquier nuevo módulo o clase debe venir acompañado de sus pruebas unitarias siguiendo esta guía.
