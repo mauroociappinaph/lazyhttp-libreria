@@ -1,6 +1,6 @@
 import { BrowserHttpClient } from '../../../../http/client/core/browser-http-client';
 import axios from 'axios';
-import { interceptorsManager } from '../../../../http/http-interceptors-manager';
+import { interceptorsManager } from '../../../../http/interceptors/http-interceptors-manager';
 
 // Mock de axios
 jest.mock('axios');
