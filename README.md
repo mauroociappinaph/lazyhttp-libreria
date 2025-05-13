@@ -165,6 +165,26 @@ await http.patch("https://api.example.com/users/123", {
 await http.del("https://api.example.com/users/123");
 ```
 
+### Solicitudes Concurrentes
+
+HttpLazy permite realizar múltiples solicitudes GET en paralelo de forma sencilla usando el método `all`. Este método recibe un array de URLs y devuelve un array con los datos de cada respuesta (omitiendo las que sean null).
+
+```javascript
+import { http } from "httplazy";
+
+const urls = [
+  "https://fakestoreapi.com/products/1",
+  "https://fakestoreapi.com/products/2",
+  "https://fakestoreapi.com/products/3",
+];
+
+const productos = await http.all(urls);
+console.log(productos); // [producto1, producto2, producto3]
+```
+
+- Si alguna respuesta no tiene datos (`data === null`), se omite del array final.
+- Puedes pasar opciones adicionales (headers, params, etc) como segundo argumento.
+
 ### Configuración Inicial
 
 ```javascript

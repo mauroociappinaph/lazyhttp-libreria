@@ -131,7 +131,22 @@ export class HttpCore {
 
   /**
    * Realiza múltiples solicitudes GET concurrentes y devuelve un array con los datos de cada respuesta.
-   * Si alguna respuesta no tiene datos (data === null), no se incluirá en el array final.
+   *
+   * @template T Tipo de los datos esperados en la respuesta.
+   * @param {string[]} urls - Array de URLs a las que se realizará la solicitud GET concurrente.
+   * @param {Omit<RequestOptions, 'method' | 'body'>} [options] - Opciones adicionales para cada solicitud (headers, params, etc). Opcional.
+   * @returns {Promise<T[]>} Promesa que resuelve con un array de datos (excluyendo los nulos) en el mismo orden que las URLs.
+   *
+   * @example
+   * const http = new HttpCore();
+   * const urls = [
+   *   'https://api.com/1',
+   *   'https://api.com/2'
+   * ];
+   * const resultados = await http.all(urls);
+   * // resultados = [dato1, dato2]
+   *
+   * // Si alguna respuesta es null, se omite del array final
    */
   async all<T = any>(urls: string[], options?: Omit<RequestOptions, 'method' | 'body'>): Promise<T[]> {
     const promesas = urls.map(url => this.get<T>(url, options));
