@@ -7,7 +7,7 @@ jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 // Mock de interceptorsManager
-jest.mock('../../../../http/http-interceptors-manager', () => ({
+jest.mock('../../../../http/interceptors/http-interceptors-manager', () => ({
   interceptorsManager: {
     setupInterceptors: jest.fn(),
     getRequestInterceptors: jest.fn().mockReturnValue([]),

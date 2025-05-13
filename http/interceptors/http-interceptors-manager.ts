@@ -1,4 +1,4 @@
-import { setupInterceptors } from './http-helpers';
+import { setupInterceptors } from '../http-helpers';
 
 /**
  * Clase para gestionar los interceptores de peticiones y respuestas

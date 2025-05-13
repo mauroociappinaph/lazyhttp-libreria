@@ -4,7 +4,7 @@
 
 // Configuración
 export { httpConfiguration } from '../http-configuration';
-export { interceptorsManager } from '../http-interceptors-manager';
+export { interceptorsManager } from '../interceptors/http-interceptors-manager';
 
 // Tipos de configuración
 export {
