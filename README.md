@@ -25,6 +25,7 @@
   - [Caché](#caché)
   - [Interceptores](#interceptores)
   - [Métricas y Actividad](#métricas-y-actividad)
+    - [Logging Personalizado](#logging-personalizado)
   - [Streaming (Servidor)](#streaming-servidor)
   - [Proxies (Servidor)](#proxies-servidor)
   - [Retry Automático con Backoff Exponencial](#retry-automático-con-backoff-exponencial)
@@ -163,6 +164,26 @@ await http.patch("https://api.example.com/users/123", {
 // Eliminar recurso
 await http.del("https://api.example.com/users/123");
 ```
+
+### Solicitudes Concurrentes
+
+HttpLazy permite realizar múltiples solicitudes GET en paralelo de forma sencilla usando el método `all`. Este método recibe un array de URLs y devuelve un array con los datos de cada respuesta (omitiendo las que sean null).
+
+```javascript
+import { http } from "httplazy";
+
+const urls = [
+  "https://fakestoreapi.com/products/1",
+  "https://fakestoreapi.com/products/2",
+  "https://fakestoreapi.com/products/3",
+];
+
+const productos = await http.all(urls);
+console.log(productos); // [producto1, producto2, producto3]
+```
+
+- Si alguna respuesta no tiene datos (`data === null`), se omite del array final.
+- Puedes pasar opciones adicionales (headers, params, etc) como segundo argumento.
 
 ### Configuración Inicial
 
@@ -328,28 +349,28 @@ Esta estrategia ayuda a evitar sobrecargas en el servidor y mejora la probabilid
 
 ### Interceptores
 
-```javascript
+```typescript
+import { httpInstance } from "httplazy";
+
 // Interceptor de petición
-http._setupInterceptors((config) => {
-  // Modificar la petición antes de enviarla
+httpInstance.interceptors.request.use((config) => {
   config.headers = config.headers || {};
-  config.headers["X-Client-Version"] = "1.0.0";
-
-  // Registrar la petición
-  console.log("Petición saliente:", config.url);
-
+  config.headers["X-Custom-Header"] = "MiValorPersonalizado";
+  console.log("Interceptor de petición: config final", config);
   return config;
-}, "request");
+});
 
 // Interceptor de respuesta
-http._setupInterceptors((response) => {
-  // Modificar la respuesta antes de entregarla
-  if (response.data && response.data.results) {
-    response.data = response.data.results; // Extraer datos
+httpInstance.interceptors.response.use(
+  (response) => {
+    console.log("Interceptor de respuesta: respuesta recibida", response);
+    return response;
+  },
+  (error) => {
+    console.error("Interceptor de error:", error);
+    return Promise.reject(error);
   }
-
-  return response;
-}, "response");
+);
 ```
 
 ### Métricas y Actividad
@@ -373,6 +394,38 @@ const metrics = http.getCurrentMetrics();
 console.log("Tiempo promedio de respuesta:", metrics.avgResponseTime);
 console.log("Tasa de errores:", metrics.errorRate);
 ```
+
+### Logging Personalizado
+
+HttpLazy incluye un sistema de logging modular y extensible para registrar información de cada petición y respuesta HTTP.
+
+```typescript
+import { Logger, ConsoleLoggerAdapter } from "httplazy/http/logging";
+
+// Configuración básica
+envía logs a consola
+const logger = Logger.getInstance();
+logger.configure({
+  level: "debug",
+  adapters: [new ConsoleLoggerAdapter()],
+});
+
+logger.info("Mensaje informativo", { userId: 123 });
+```
+
+**Como interceptor HTTP:**
+
+```typescript
+import { LoggingInterceptor } from "httplazy/http/logging";
+
+client.useInterceptor(new LoggingInterceptor());
+```
+
+- Puedes crear adaptadores propios implementando la interfaz `ILoggerAdapter`.
+- Soporta niveles: debug, info, warn, error.
+- Permite múltiples destinos de log (consola, archivo, servicios externos, etc).
+
+> Consulta la documentación extendida en `http/logging/README.md` para más detalles y ejemplos.
 
 ### Streaming (Servidor)
 

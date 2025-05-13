@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { HttpAuthError } from './http-errors';
-import { axiosInstance, AUTH_ENDPOINTS, AUTH_STORAGE } from './http-config';
+import { httpInstance, AUTH_ENDPOINTS, AUTH_STORAGE } from './http-config';
 
 // Estado para manejar el refresh token
 let isRefreshing = false;
@@ -10,7 +10,7 @@ let failedRequests: Array<() => void> = [];
  * Configura los interceptores para la instancia de Axios
  * @param instance Instancia de Axios a configurar
  */
-export function setupInterceptors(instance: AxiosInstance = axiosInstance): void {
+export function setupInterceptors(instance: AxiosInstance = httpInstance): void {
   // Interceptor de solicitud
   instance.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
@@ -107,7 +107,7 @@ export async function refreshToken(): Promise<string> {
   const response = await axios.post<{ token: string }>(
     `${AUTH_ENDPOINTS.REFRESH_TOKEN}`,
     { refreshToken },
-    { baseURL: axiosInstance.defaults.baseURL }
+    { baseURL: httpInstance.defaults.baseURL }
   );
 
   if (!response.data?.token) {

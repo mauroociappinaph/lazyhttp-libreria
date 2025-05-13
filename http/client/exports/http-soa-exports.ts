@@ -1,6 +1,6 @@
 import { AxiosInstance } from 'axios';
 import { RequestOptions } from '../../http.types';
-import { axiosInstance } from '../../http-config';
+import { httpInstance } from '../../http-config';
 import { prepareHeaders } from '../../http-helpers';
 
 /**
@@ -62,7 +62,7 @@ export function createSoaClient(config: SoaClientConfig): SoaClient {
   } = config;
 
   // Usar la instancia de axios proporcionada o la predeterminada
-  const http = customAxiosInstance || axiosInstance;
+  const http = customAxiosInstance || httpInstance;
 
   // Preparar la URL base con el namespace si existe
   const baseUrl = namespace
