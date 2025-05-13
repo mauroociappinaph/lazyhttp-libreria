@@ -1,5 +1,6 @@
 import axios, { AxiosResponse } from 'axios';
-import { HttpMethod, HttpRequestExecutor } from '../../http.types';
+import { HttpRequestExecutor } from '../../types/core/request.types';
+import { HttpMethod } from '../../types/core/http-methods.types';
 import { API_URL } from '../../http-config';
 import { logRequest } from '../logging/logger';
 

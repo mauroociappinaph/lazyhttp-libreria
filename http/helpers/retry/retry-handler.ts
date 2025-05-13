@@ -1,4 +1,6 @@
-import { ApiResponse, HttpMethod, HttpRetryHandler } from '../../http.types';
+import { HttpRetryHandler } from '../../types/core/request.types';
+import { ApiResponse } from '../../types/core/response.types';
+import { HttpMethod } from '../../types/core/http-methods.types';
 import { errorHandler } from '../error/error-handler';
 import { requestExecutor } from '../request/request-executor';
 import { responseProcessor } from '../response/response-processor';

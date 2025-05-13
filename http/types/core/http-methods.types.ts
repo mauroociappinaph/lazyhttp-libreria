@@ -5,13 +5,8 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
 // Interfaces referenciadas que se definen en otros archivos
 // Declaraciones preliminares
-interface CacheOptions {
-  enabled?: boolean;
-  strategy?: string;
-  ttl?: number;
-  key?: string;
-  tags?: string[];
-}
+import { CacheOptions } from '../cache/cache.types';
+import { StreamConfig } from '../streaming/streaming.types';
 
 interface ProxyConfig {
   url: string;
@@ -21,14 +16,6 @@ interface ProxyConfig {
   };
   protocol?: 'http' | 'https' | 'socks';
   rejectUnauthorized?: boolean;
-}
-
-interface StreamConfig {
-  enabled?: boolean;
-  chunkSize?: number;
-  onChunk?: (chunk: any) => void;
-  onEnd?: () => void;
-  onError?: (error: Error) => void;
 }
 
 /**

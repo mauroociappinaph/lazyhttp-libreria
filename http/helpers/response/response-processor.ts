@@ -1,5 +1,5 @@
 import { AxiosResponse } from 'axios';
-import { ApiResponse, HttpResponseProcessor } from '../../http.types';
+import { ApiResponse, HttpResponseProcessor } from '../../types/core/response.types';
 import { logResponse } from '../logging/logger';
 
 /**
