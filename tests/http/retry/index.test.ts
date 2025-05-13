@@ -42,23 +42,25 @@ describe('Retry System Integration', () => {
     };
 
     // Simular peticiones con errores
-    let attempts = 0;
-    while (attempts <= maxRetries && result.callCount < simulateErrors) {
-      result.callCount++;
-      attempts++;
 
-      // Si no está habilitado el retry, salir inmediatamente después del primer intento
-      if (!isEnabled && attempts > 1) {
-        // Importante: si retry está desactivado, solo debemos hacer un intento
-        // sin importar el número de errores simulados
-        break;
-      }
+    // Hacer la petición inicial
+    result.callCount = 1;
+
+    // Si retry está desactivado, sólo hacemos una petición sin importar el número de errores
+    if (!isEnabled) {
+      result.success = (result.callCount >= simulateErrors);
+      return result;
+    }
+
+    // Si retry está activado, hacemos hasta maxRetries reintentos
+    let retryCount = 0;
+    while (retryCount < maxRetries && result.callCount < simulateErrors) {
+      retryCount++;
+      result.callCount++;
 
       // Calcular delay (solo para verificación en tests)
-      if (attempts > 1) {
-        const delay = calculateDelay(attempts - 2);
-        expect(delay).toBe(initialDelay * Math.pow(backoffFactor, attempts - 2));
-      }
+      const delay = calculateDelay(retryCount - 1);
+      expect(delay).toBe(initialDelay * Math.pow(backoffFactor, retryCount - 1));
     }
 
     // Si el número de llamadas es menor que los errores simulados,
