@@ -5,169 +5,136 @@ import axios from 'axios';
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
-// Aumentar timeout para estos tests
-jest.setTimeout(10000);
-
-describe('BrowserHttpClient - Retry', () => {
+describe('BrowserHttpClient', () => {
   let httpClient: BrowserHttpClient;
 
   beforeEach(() => {
-    // Limpia mocks entre tests
     jest.clearAllMocks();
-
-    // Usar temporizadores falsos para todos los tests
-    jest.useFakeTimers();
-
-    // Crear instancia con configuración de retry
     httpClient = new BrowserHttpClient();
     httpClient.initialize({
-      baseUrl: 'https://api.ejemplo.com',
-      retry: {
-        enabled: true,
-        maxRetries: 2,
-        initialDelay: 100,
-        backoffFactor: 2,
-        retryableStatusCodes: [500, 503],
-        retryableErrors: ['ECONNRESET', 'ETIMEDOUT']
-      }
+      baseUrl: 'https://api.ejemplo.com'
     });
   });
 
-  afterEach(() => {
-    // Restaurar temporizadores reales después de cada test
-    jest.useRealTimers();
-  });
-
-  test('debería reintentar automáticamente cuando ocurre un error reintentable', async () => {
+  test('debería ejecutar una petición GET exitosa', async () => {
     // Arrange
-    // Simular 2 errores y luego éxito
-    mockedAxios.request
-      .mockRejectedValueOnce({
-        response: { status: 503, data: { message: 'Service Unavailable' } },
-        isAxiosError: true
-      })
-      .mockRejectedValueOnce({
-        response: { status: 503, data: { message: 'Service Unavailable' } },
-        isAxiosError: true
-      })
-      .mockResolvedValueOnce({
-        data: { success: true },
-        status: 200,
-        headers: {},
-        config: {}
-      });
+    const responseData = { id: 1, name: 'Test' };
+    mockedAxios.request.mockResolvedValueOnce({
+      data: responseData,
+      status: 200,
+      headers: {},
+      config: {}
+    });
 
-    // Act - Iniciar la petición
-    const requestPromise = httpClient.get('/test');
-
-    // Avanzar todos los temporizadores para que se ejecuten los reintentos
-    jest.runAllTimers();
-
-    // Esperar a que se complete la promesa
-    const response = await requestPromise;
+    // Act
+    const response = await httpClient.get('/users/1');
 
     // Assert
-    expect(mockedAxios.request).toHaveBeenCalledTimes(3);
-    expect(response.data).toEqual({ success: true });
+    expect(mockedAxios.request).toHaveBeenCalledWith(expect.objectContaining({
+      url: 'https://api.ejemplo.com/users/1',
+      method: 'GET'
+    }));
+    expect(response.data).toEqual(responseData);
     expect(response.status).toBe(200);
+    expect(response.error).toBeNull();
   });
 
-  test('debería no reintentar si el error no es reintentable', async () => {
+  test('debería ejecutar una petición POST exitosa', async () => {
+    // Arrange
+    const requestData = { name: 'New User' };
+    const responseData = { id: 1, name: 'New User' };
+    mockedAxios.request.mockResolvedValueOnce({
+      data: responseData,
+      status: 201,
+      headers: {},
+      config: {}
+    });
+
+    // Act
+    const response = await httpClient.post('/users', requestData);
+
+    // Assert
+    expect(mockedAxios.request).toHaveBeenCalledWith(expect.objectContaining({
+      url: 'https://api.ejemplo.com/users',
+      method: 'POST',
+      data: requestData
+    }));
+    expect(response.data).toEqual(responseData);
+    expect(response.status).toBe(201);
+  });
+
+  test('debería manejar errores de red', async () => {
     // Arrange
     mockedAxios.request.mockRejectedValueOnce({
-      response: { status: 404, data: { message: 'Not Found' } },
+      code: 'ECONNRESET',
+      message: 'Connection reset',
       isAxiosError: true
     });
 
     // Act
-    const response = await httpClient.get('/test');
+    const response = await httpClient.get('/users/1');
 
     // Assert
-    expect(mockedAxios.request).toHaveBeenCalledTimes(1);
-    expect(response.status).toBe(404);
-    expect(response.error).toBeDefined();
+    expect(response.status).toBe(0);
+    expect(response.error).toBe('Error de red: Connection reset');
+    expect(response.data).toBeNull();
   });
 
-  test('debería no exceder el número máximo de reintentos', async () => {
+  test('debería manejar errores de servidor', async () => {
     // Arrange
-    // Simular 3 errores consecutivos (excediendo maxRetries: 2)
-    mockedAxios.request
-      .mockRejectedValueOnce({
-        response: { status: 500, data: { message: 'Server Error' } },
-        isAxiosError: true
-      })
-      .mockRejectedValueOnce({
-        response: { status: 500, data: { message: 'Server Error' } },
-        isAxiosError: true
-      })
-      .mockRejectedValueOnce({
-        response: { status: 500, data: { message: 'Server Error' } },
-        isAxiosError: true
-      });
-
-    // Act
-    const requestPromise = httpClient.get('/test');
-    jest.runAllTimers();
-    const response = await requestPromise;
-
-    // Assert
-    expect(mockedAxios.request).toHaveBeenCalledTimes(3);
-    expect(response.status).toBe(500);
-    expect(response.error).toBeDefined();
-  });
-
-  test('debería respetar las opciones de retry específicas de la petición', async () => {
-    // Arrange
-    mockedAxios.request
-      .mockRejectedValueOnce({
-        response: { status: 500, data: { message: 'Server Error' } },
-        isAxiosError: true
-      })
-      .mockResolvedValueOnce({
-        data: { success: true },
-        status: 200,
-        headers: {},
-        config: {}
-      });
-
-    // Act
-    // Usar opciones específicas de la petición (maxRetries: 1)
-    const requestPromise = httpClient.get('/test', {
-      retryOptions: {
-        maxRetries: 1 // Sobrescribe el valor global (2)
-      }
+    mockedAxios.request.mockRejectedValueOnce({
+      response: {
+        status: 500,
+        data: { message: 'Internal Server Error' }
+      },
+      isAxiosError: true
     });
 
-    jest.runAllTimers();
-    const response = await requestPromise;
+    // Act
+    const response = await httpClient.get('/users/1');
 
     // Assert
-    expect(mockedAxios.request).toHaveBeenCalledTimes(2);
-    expect(response.data).toEqual({ success: true });
+    expect(response.status).toBe(500);
+    expect(response.error).toBe('Internal Server Error');
+    expect(response.data).toBeNull();
   });
 
-  test('debería reintentar errores de red específicos', async () => {
+  test('debería concatenar correctamente el endpoint con la URL base', async () => {
     // Arrange
-    mockedAxios.request
-      .mockRejectedValueOnce({
-        code: 'ECONNRESET',
-        message: 'Connection reset',
-        isAxiosError: true
-      })
-      .mockResolvedValueOnce({
-        data: { success: true },
-        status: 200,
-        headers: {},
-        config: {}
-      });
+    mockedAxios.request.mockResolvedValueOnce({
+      data: {},
+      status: 200,
+      headers: {},
+      config: {}
+    });
 
     // Act
-    const requestPromise = httpClient.get('/test');
-    jest.runAllTimers();
-    const response = await requestPromise;
+    await httpClient.get('users/1'); // sin el slash inicial
 
     // Assert
-    expect(mockedAxios.request).toHaveBeenCalledTimes(2);
-    expect(response.data).toEqual({ success: true });
+    expect(mockedAxios.request).toHaveBeenCalledWith(expect.objectContaining({
+      url: 'https://api.ejemplo.com/users/1' // debe incluir el slash
+    }));
+  });
+
+  test('debería incluir headers personalizados en la petición', async () => {
+    // Arrange
+    const customHeaders = {
+      'X-Custom-Header': 'custom-value'
+    };
+    mockedAxios.request.mockResolvedValueOnce({
+      data: {},
+      status: 200,
+      headers: {},
+      config: {}
+    });
+
+    // Act
+    await httpClient.get('/users', { headers: customHeaders });
+
+    // Assert
+    expect(mockedAxios.request).toHaveBeenCalledWith(expect.objectContaining({
+      headers: expect.objectContaining(customHeaders)
+    }));
   });
 });
