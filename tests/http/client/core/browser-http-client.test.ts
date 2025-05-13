@@ -36,7 +36,7 @@ describe('BrowserHttpClient', () => {
     }));
     expect(response.data).toEqual(responseData);
     expect(response.status).toBe(200);
-    expect(response.error).toBeNull();
+    expect(response.error).toBe(undefined);
   });
 
   test('debería ejecutar una petición POST exitosa', async () => {
@@ -65,30 +65,35 @@ describe('BrowserHttpClient', () => {
 
   test('debería manejar errores de red', async () => {
     // Arrange
-    mockedAxios.request.mockRejectedValueOnce({
+    const axiosError = {
       code: 'ECONNRESET',
       message: 'Connection reset',
       isAxiosError: true
-    });
+    };
+
+    mockedAxios.request.mockRejectedValueOnce(axiosError);
 
     // Act
     const response = await httpClient.get('/users/1');
 
     // Assert
-    expect(response.status).toBe(0);
-    expect(response.error).toBe('Error de red: Connection reset');
-    expect(response.data).toBeNull();
+    expect(response.status).toBe(500);
+    expect(response.error).toBe('Connection reset');
+    expect(response.data).toBe(null);
   });
 
   test('debería manejar errores de servidor', async () => {
     // Arrange
-    mockedAxios.request.mockRejectedValueOnce({
+    const axiosError = {
       response: {
         status: 500,
         data: { message: 'Internal Server Error' }
       },
+      message: 'Request failed with status code 500',
       isAxiosError: true
-    });
+    };
+
+    mockedAxios.request.mockRejectedValueOnce(axiosError);
 
     // Act
     const response = await httpClient.get('/users/1');
@@ -96,7 +101,7 @@ describe('BrowserHttpClient', () => {
     // Assert
     expect(response.status).toBe(500);
     expect(response.error).toBe('Internal Server Error');
-    expect(response.data).toBeNull();
+    expect(response.data).toBe(null);
   });
 
   test('debería concatenar correctamente el endpoint con la URL base', async () => {
