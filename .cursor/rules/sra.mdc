@@ -10,7 +10,7 @@ alwaysApply: true
 ---
 
 #### 🧠 Regla 1: Principio de Responsabilidad Única (SRP)
-Cada archivo, clase o función debe cumplir con una sola función clara. Si una función realiza más de una tarea (como validación, transformación y formateo), debe dividirse en unidades separadas.
+Cada archivo, clase o función debe cumplir con una sola función clara. Si una función realiza más de una tarea (como validación, transformación y formateo), debe dividirse en unidades separadas. Además, un archivo no debe superar las 300 líneas de código.
 
 ---
 
