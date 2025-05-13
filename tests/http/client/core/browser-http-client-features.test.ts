@@ -31,12 +31,25 @@ const localStorageMock = (function() {
     },
     clear: function() {
       store = {};
+    },
+    // Añadir propiedades faltantes para cumplir con Storage
+    length: 0,
+    key: function(index: number): string | null {
+      return Object.keys(store)[index] || null;
     }
-  };
+  } as Storage;
 })();
 
+// Simular window global para entorno Node
+if (typeof global.window === 'undefined') {
+  global.window = {} as any;
+}
+
+// Crear global.localStorage
+global.localStorage = localStorageMock;
+
 // Reemplazar el localStorage del navegador con nuestro mock
-Object.defineProperty(window, 'localStorage', {
+Object.defineProperty(global.window, 'localStorage', {
   value: localStorageMock
 });
 
@@ -46,7 +59,7 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
-    localStorage.clear();
+    global.localStorage.clear();
 
     httpClient = new BrowserHttpClient();
   });
@@ -307,6 +320,7 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
             'Request-Header': 'request'  // Añadido
           })
         })
+
       );
     });
 
@@ -339,8 +353,8 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
 
     test('debería usar el timeout específico de la petición sobre el global', async () => {
       // Arrange
-      const globalTimeout = 5000; // 5 segundos
-      const requestTimeout = 2000; // 2 segundos
+      const globalTimeout = 5000;
+      const requestTimeout = 2000;
 
       httpClient.initialize({
         baseUrl: 'https://api.ejemplo.com',
@@ -377,7 +391,7 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
       });
 
       // Simular token en localStorage
-      localStorage.setItem('auth_token', authToken);
+      global.localStorage.setItem('auth_token', authToken);
 
       mockedAxios.request.mockResolvedValueOnce({
         data: {},
