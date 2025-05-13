@@ -11,6 +11,7 @@ export interface RequestOptions {
   cache?: boolean | number;
   tags?: string[];
   withAuth?: boolean;
+  retryOptions?: RetryOptions;
 }
 
 export interface ApiResponse<T = any> {
@@ -77,6 +78,23 @@ export interface CacheConfig {
   maxSize?: number;
   storage?: 'memory' | 'localStorage' | 'sessionStorage';
   invalidateOnMutation?: boolean;
+}
+
+// Configuración de reintento automático
+export interface RetryConfig {
+  enabled: boolean;
+  maxRetries: number;
+  initialDelay: number;
+  backoffFactor: number;
+  retryableStatusCodes: number[];
+  retryableErrors: string[];
+}
+
+export interface RetryOptions {
+  enabled?: boolean;
+  maxRetries?: number;
+  initialDelay?: number;
+  backoffFactor?: number;
 }
 
 // Configuración de métricas

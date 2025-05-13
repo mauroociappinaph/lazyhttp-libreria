@@ -15,77 +15,132 @@ export class BrowserHttpClient extends BaseHttpClient {
    * Implementación específica de request para navegador usando axios
    */
   async request<T>(method: HttpMethod, url: string, data?: any, options?: RequestOptions): Promise<ApiResponse<T>> {
-    // URL completa (añadir baseUrl si es necesaria)
-    const fullUrl = this.buildRequestUrl(url);
+    // Contador de intentos para retry
+    let retryCount = 0;
 
-    // Preparar headers incluyendo autenticación si se requiere
-    const headers = this.prepareHeaders(
-      options?.headers || {},
-      options?.withAuth !== undefined ? options.withAuth : false
-    );
+    // Función interna para hacer la petición y manejar los reintentos
+    const executeRequest = async (): Promise<ApiResponse<T>> => {
+      try {
+        // URL completa (añadir baseUrl si es necesaria)
+        const fullUrl = this.buildRequestUrl(url);
 
-    // Añadir parámetros de query si existen
-    const urlWithParams = options?.params
-      ? HttpUtils.addQueryParams(fullUrl, options.params)
-      : fullUrl;
+        // Preparar headers incluyendo autenticación si se requiere
+        const headers = this.prepareHeaders(
+          options?.headers || {},
+          options?.withAuth !== undefined ? options.withAuth : false
+        );
 
-    try {
-      // Ejecutar petición con axios
-      const response = await axios.request<T>({
-        method,
-        url: urlWithParams,
-        data,
-        headers,
-        timeout: options?.timeout || this.defaultTimeout
-      });
+        // Añadir parámetros de query si existen
+        const urlWithParams = options?.params
+          ? HttpUtils.addQueryParams(fullUrl, options.params)
+          : fullUrl;
 
-      // Registrar métricas si están habilitadas
-      if (this.metricsConfig.enabled) {
-        this.trackActivity('request');
-        if (this.metricsConfig.trackPerformance) {
-          // Implementar tracking de tiempo de respuesta
-        }
-      }
+        // Ejecutar petición con axios
+        const response = await axios.request<T>({
+          method,
+          url: urlWithParams,
+          data,
+          headers,
+          timeout: options?.timeout || this.defaultTimeout
+        });
 
-      // Formar respuesta estándar
-      return {
-        data: response.data,
-        status: response.status,
-        headers: response.headers as Record<string, string>,
-        config: response.config
-      };
-    } catch (error) {
-      // Gestión de errores específica para axios
-      if (isAxiosError(error)) {
-        // Si es un error 401 y hay token, intentar renovarlo
-        if (error.response?.status === 401 && this.getAccessToken() && this.authConfig.autoRefresh) {
-          try {
-            // Implementación de renovación de token
-            // ...
-
-            // Reintentar petición con nuevo token
-            return this.request(method, url, data, options);
-          } catch (refreshError) {
-            // Si falla el refresh, devolver error original
+        // Registrar métricas si están habilitadas
+        if (this.metricsConfig.enabled) {
+          this.trackActivity('request');
+          if (this.metricsConfig.trackPerformance) {
+            // Implementar tracking de tiempo de respuesta
           }
         }
 
+        // Formar respuesta estándar
         return {
-          data: null as unknown as T,
-          status: error.response?.status || 500,
-          headers: error.response?.headers as Record<string, string> || {},
-          error: error.response?.data?.message || error.message
+          data: response.data,
+          status: response.status,
+          headers: response.headers as Record<string, string>,
+          config: response.config
         };
-      }
+      } catch (error) {
+        // Gestión de errores específica para axios
+        if (isAxiosError(error)) {
+          // Si es un error 401 y hay token, intentar renovarlo
+          if (error.response?.status === 401 && this.getAccessToken() && this.authConfig.autoRefresh) {
+            try {
+              // Implementación de renovación de token
+              // ...
 
-      // Error genérico
-      return {
-        data: null as unknown as T,
-        status: 500,
-        headers: {},
-        error: this.parseErrorMessage(error)
-      };
-    }
+              // Reintentar petición con nuevo token
+              return this.request(method, url, data, options);
+            } catch (refreshError) {
+              // Si falla el refresh, devolver error original
+            }
+          }
+
+          const errorResponse = {
+            data: null as unknown as T,
+            status: error.response?.status || 500,
+            headers: error.response?.headers as Record<string, string> || {},
+            error: error.response?.data?.message || error.message,
+            code: error.code
+          };
+
+          // Evaluar si se debe reintentar la petición
+          if (this.shouldRetry(errorResponse, retryCount, options?.retryOptions)) {
+            // Incrementar contador de intentos
+            retryCount++;
+
+            // Calcular tiempo de espera con backoff exponencial
+            const delay = this.calculateRetryDelay(retryCount, options?.retryOptions);
+
+            // Registrar intento fallido en métricas si están habilitadas
+            if (this.metricsConfig.enabled) {
+              this.trackActivity('retry');
+            }
+
+            // Esperar el tiempo calculado antes de reintentar
+            await new Promise(resolve => setTimeout(resolve, delay));
+
+            // Reintentar la petición
+            return executeRequest();
+          }
+
+          return errorResponse;
+        }
+
+        // Error genérico
+        const genericError = {
+          data: null as unknown as T,
+          status: 500,
+          headers: {},
+          error: this.parseErrorMessage(error),
+          code: (error as any).code
+        };
+
+        // Evaluar si se debe reintentar la petición
+        if (this.shouldRetry(genericError, retryCount, options?.retryOptions)) {
+          // Incrementar contador de intentos
+          retryCount++;
+
+          // Calcular tiempo de espera con backoff exponencial
+          const delay = this.calculateRetryDelay(retryCount, options?.retryOptions);
+
+          // Registrar intento fallido en métricas si están habilitadas
+          if (this.metricsConfig.enabled) {
+            this.trackActivity('retry');
+          }
+
+          // Esperar el tiempo calculado antes de reintentar
+          await new Promise(resolve => setTimeout(resolve, delay));
+
+          // Reintentar la petición
+          return executeRequest();
+        }
+
+        return genericError;
+      }
+    };
+
+    // Iniciar el proceso de petición
+    return executeRequest();
   }
 
   // Implementaciones específicas para navegador

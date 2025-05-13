@@ -378,6 +378,12 @@ interface RequestOptions {
   retries?: number;
   retryDelay?: number;
   retryCondition?: (error: any) => boolean;
+  retryOptions?: {
+    enabled?: boolean;
+    maxRetries?: number;
+    initialDelay?: number;
+    backoffFactor?: number;
+  };
   withAuth?: boolean;
   cache?: boolean | CacheOptions;
   stream?: boolean | StreamOptions;
@@ -399,96 +405,4 @@ interface ProgressEvent {
   total: number;
   percentage: number;
 }
-```
-
-### Response Format
-
-```typescript
-interface ApiResponse<T> {
-  data: T;
-  status: number;
-  statusText: string;
-  headers: Record<string, string>;
-  config: RequestConfig;
-  request: any;
-}
-
-interface RequestConfig {
-  url: string;
-  method: string;
-  baseURL: string;
-  headers: Record<string, string>;
-  params: Record<string, any>;
-  timeout: number;
-  retries: number;
-  retryDelay: number;
-}
-```
-
-## Best Practices
-
-### Error Handling
-
-- Always use try-catch blocks for error handling
-- Implement proper error logging
-- Use retries for transient failures
-- Handle specific error cases appropriately
-
-### Performance
-
-- Use caching for frequently accessed data
-- Implement proper timeout values
-- Use streaming for large files
-- Monitor metrics for performance issues
-
-### Security
-
-- Never store sensitive data in code
-- Use environment variables for credentials
-- Implement proper authentication
-- Validate all input data
-
-### TypeScript
-
-- Use proper type definitions
-- Implement interfaces for request/response data
-- Use generics for type safety
-- Enable strict mode
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Connection Timeouts**
-
-   - Check network connectivity
-   - Verify server availability
-   - Adjust timeout settings
-
-2. **Authentication Errors**
-
-   - Verify credentials
-   - Check token expiration
-   - Validate authentication configuration
-
-3. **Rate Limiting**
-
-   - Implement proper retry strategy
-   - Use caching to reduce requests
-   - Monitor rate limits
-
-4. **Memory Issues**
-   - Use streaming for large responses
-   - Implement proper cache size limits
-   - Monitor memory usage
-
-### Debug Mode
-
-```typescript
-// Enable debug mode
-http.initialize({
-  debug: true,
-});
-
-// Debug logs will be printed to console
 ```

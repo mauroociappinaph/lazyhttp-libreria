@@ -1,4 +1,4 @@
-import { HttpImplementation, RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, CacheConfig, MetricsConfig, ProxyConfig, HttpMethod } from '../types';
+import { HttpImplementation, RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, CacheConfig, MetricsConfig, ProxyConfig, HttpMethod, RetryConfig, RetryOptions } from '../types';
 import { HttpUtils } from '../utils/http-utils';
 
 /**
@@ -18,6 +18,14 @@ export abstract class BaseHttpClient implements HttpImplementation {
   protected authConfig: Partial<AuthConfig> = {};
   protected cacheConfig: Partial<CacheConfig> = { enabled: false, ttl: 300000 };
   protected metricsConfig: Partial<MetricsConfig> = { enabled: false };
+  protected retryConfig: Partial<RetryConfig> = {
+    enabled: false,
+    maxRetries: 3,
+    initialDelay: 300,
+    backoffFactor: 2,
+    retryableStatusCodes: [408, 429, 500, 502, 503, 504],
+    retryableErrors: ['ECONNRESET', 'ETIMEDOUT', 'ECONNREFUSED']
+  };
   protected proxyConfig?: ProxyConfig;
 
   // Métodos abstractos que deben implementar las clases derivadas
@@ -33,6 +41,7 @@ export abstract class BaseHttpClient implements HttpImplementation {
     if (config.auth) this.authConfig = { ...this.authConfig, ...config.auth };
     if (config.cache) this.cacheConfig = { ...this.cacheConfig, ...config.cache };
     if (config.metrics) this.metricsConfig = { ...this.metricsConfig, ...config.metrics };
+    if (config.retry) this.retryConfig = { ...this.retryConfig, ...config.retry };
     if (config.proxy) this.proxyConfig = config.proxy;
 
     // Permitir que las implementaciones específicas realicen inicialización adicional
@@ -150,5 +159,42 @@ export abstract class BaseHttpClient implements HttpImplementation {
   // Configuración de proxy
   configureProxy(config: ProxyConfig): void {
     this.proxyConfig = config;
+  }
+
+  // Método auxiliar para calcular el tiempo de espera con backoff exponencial
+  protected calculateRetryDelay(retryCount: number, options?: RetryOptions): number {
+    const initialDelay = options?.initialDelay || this.retryConfig.initialDelay || 300;
+    const backoffFactor = options?.backoffFactor || this.retryConfig.backoffFactor || 2;
+
+    // Fórmula: initialDelay * (backoffFactor ^ retryCount)
+    return initialDelay * Math.pow(backoffFactor, retryCount);
+  }
+
+  // Método para determinar si se debe reintentar una petición
+  protected shouldRetry(error: any, retryCount: number, options?: RetryOptions): boolean {
+    // Si el retry está desactivado o se alcanzó el número máximo de intentos
+    const isEnabled = options?.enabled !== undefined
+      ? options.enabled
+      : this.retryConfig.enabled;
+
+    if (!isEnabled) return false;
+
+    const maxRetries = options?.maxRetries !== undefined
+      ? options.maxRetries
+      : (this.retryConfig.maxRetries || 3);
+
+    if (retryCount >= maxRetries) return false;
+
+    // Comprobar si el código de estado es reintentable
+    if (error.status && this.retryConfig.retryableStatusCodes?.includes(error.status)) {
+      return true;
+    }
+
+    // Comprobar si el tipo de error es reintentable
+    if (error.code && this.retryConfig.retryableErrors?.includes(error.code)) {
+      return true;
+    }
+
+    return false;
   }
 }

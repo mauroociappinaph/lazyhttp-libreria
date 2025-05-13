@@ -378,6 +378,12 @@ interface RequestOptions {
   retries?: number;
   retryDelay?: number;
   retryCondition?: (error: any) => boolean;
+  retryOptions?: {
+    enabled?: boolean;
+    maxRetries?: number;
+    initialDelay?: number;
+    backoffFactor?: number;
+  };
   withAuth?: boolean;
   cache?: boolean | CacheOptions;
   stream?: boolean | StreamOptions;

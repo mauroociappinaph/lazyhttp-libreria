@@ -1,0 +1,117 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+📐 HTTPLazy - Design & Extension Rules
+
+Este archivo define las reglas arquitectónicas para extender y mantener la biblioteca httplazy de forma modular, escalable y robusta.
+
+✅ Reglas de Extensibilidad
+
+1. Regla de Dominio Independiente
+
+Cada funcionalidad nueva debe estar encapsulada en un dominio independiente sin dependencias cruzadas.
+
+Ejemplos:
+
+/auth/ → manejo de OAuth2, JWT, API Keys
+
+/metrics/ → integraciones con Prometheus, Datadog
+
+/cache/ → adaptadores para Memory, Redis, etc.
+
+2. Regla del Adaptador
+
+Toda nueva integración externa debe implementarse como un adaptador que extiende una clase o interfaz base.
+
+Ejemplos:
+
+WebSocketHttpClient ➝ extiende BaseHttpClient
+
+RedisCacheManager ➝ implementa ICacheManager
+
+DatadogMetricsTracker ➝ implementa IMetricsTracker
+
+3. Regla de Interceptor Composable
+
+Interceptors deben ser composables, encadenables y desacoplados del cliente.
+
+client.useInterceptor(new RetryInterceptor({ retries: 3 }));
+client.useInterceptor(new AuthInterceptor(tokenManager));
+
+4. Regla del Cliente Mock
+
+Toda lógica del cliente debe poder testearse con un MockHttpClient sin conexión externa.
+
+MockHttpClient implementa IHttpClient y simula errores, timeouts, respuestas controladas.
+
+5. Regla del Provider de Autenticación
+
+Las estrategias de autenticación deben ser intercambiables vía una interfaz IAuthProvider.
+
+Ejemplos:
+
+JWTAuthProvider
+
+OAuth2Provider
+
+ApiKeyAuthProvider
+
+6. Regla de Inicialización Extendida
+
+Toda subclase de cliente o manager debe poder extender onInitialize() sin afectar el núcleo.
+
+Permite configurar o precargar comportamientos específicos.
+
+7. Regla del Registro de Componentes
+
+Toda implementación nueva debe registrarse en una fábrica o en un contenedor de servicios.
+
+Ejemplos:
+
+HttpManagersFactory.register('redis', RedisCacheManager)
+
+AuthProvidersRegistry.register('oauth2', OAuth2Provider)
+
+8. Regla de Contrato Estructurado
+
+Todos los módulos deben respetar contratos definidos en /types/index.ts.
+
+Esto garantiza reemplazabilidad y evita errores de integración.
+
+9. Regla del Selector por Entorno
+
+Debe haber una capa que seleccione automáticamente implementaciones según el entorno.
+
+Ejemplos:
+
+Si window está definido, usar BrowserHttpClient
+
+Si process existe, usar NodeHttpClient
+
+10. Regla de Reportabilidad
+
+Todas las acciones críticas deben poder ser interceptadas o medidas (trazabilidad/métricas).
+
+Aplica a: request, response, error, retry, timeout, etc.
+
+📌 Sugerencia de estructura de carpetas
+
+/src
+  /auth
+  /cache
+  /metrics
+  /http
+    /client
+    /server
+    /common
+  /testing
+  /protocols
+    /grpc
+    /websocket
+  /types
+  /factories
+  /interceptors
+
+Estas reglas permiten escalar httplazy con nuevas capacidades sin romper la base del sistema ni generar deuda técnica. Cualquier contribución o extensión futura debe respetar este conjunto de reglas.

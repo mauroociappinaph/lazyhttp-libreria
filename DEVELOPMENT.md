@@ -92,7 +92,46 @@ http/
 ├── http-core.ts          # Implementación central
 ├── http-auth.ts          # Funcionalidad de autenticación
 ├── http-cache.ts         # Sistema de caché
+├── http-retry.ts         # Sistema de reintentos automáticos
 └── ...                   # Otros módulos
+```
+
+## Funcionalidades Implementadas
+
+### Sistema de Reintentos Automáticos
+
+La biblioteca incluye un sistema de reintentos automáticos con backoff exponencial para peticiones fallidas:
+
+- **Configuración global**: Establecer parámetros de reintentos a nivel de cliente
+- **Personalización por petición**: Modificar comportamiento para peticiones específicas
+- **Backoff exponencial**: Incremento progresivo del tiempo entre reintentos
+- **Detección inteligente**: Identificación automática de errores reintentables
+- **Integración con métricas**: Tracking de reintentos para análisis
+
+Para extender o modificar el sistema de reintentos:
+
+```typescript
+// Ejemplo de implementación personalizada
+class MiHttpClient extends BaseHttpClient {
+  protected shouldRetry(
+    error: any,
+    retryCount: number,
+    options?: RetryOptions
+  ): boolean {
+    // Implementación personalizada de lógica de reintentos
+
+    // Primero verificar la implementación base
+    const baseDecision = super.shouldRetry(error, retryCount, options);
+
+    // Añadir lógica adicional
+    if (error.status === 418) {
+      // "I'm a teapot"
+      return false; // No reintentar en este caso específico
+    }
+
+    return baseDecision;
+  }
+}
 ```
 
 ## Reglas de Desarrollo
