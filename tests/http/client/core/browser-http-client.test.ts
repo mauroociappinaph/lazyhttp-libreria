@@ -84,12 +84,13 @@ describe('BrowserHttpClient', () => {
 
   test('debería manejar errores de servidor', async () => {
     // Arrange
+    const errorMessage = 'Request failed with status code 500';
     const axiosError = {
       response: {
         status: 500,
-        data: { message: 'Internal Server Error' }
+        data: { message: errorMessage }
       },
-      message: 'Request failed with status code 500',
+      message: errorMessage,
       isAxiosError: true
     };
 
@@ -100,7 +101,7 @@ describe('BrowserHttpClient', () => {
 
     // Assert
     expect(response.status).toBe(500);
-    expect(response.error).toBe('Internal Server Error');
+    expect(response.error).toBe(errorMessage);
     expect(response.data).toBe(null);
   });
 
