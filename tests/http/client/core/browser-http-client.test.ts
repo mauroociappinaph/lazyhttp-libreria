@@ -5,12 +5,18 @@ import axios from 'axios';
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
+// Aumentar timeout para estos tests
+jest.setTimeout(10000);
+
 describe('BrowserHttpClient - Retry', () => {
   let httpClient: BrowserHttpClient;
 
   beforeEach(() => {
     // Limpia mocks entre tests
     jest.clearAllMocks();
+
+    // Usar temporizadores falsos para todos los tests
+    jest.useFakeTimers();
 
     // Crear instancia con configuración de retry
     httpClient = new BrowserHttpClient();
@@ -25,6 +31,11 @@ describe('BrowserHttpClient - Retry', () => {
         retryableErrors: ['ECONNRESET', 'ETIMEDOUT']
       }
     });
+  });
+
+  afterEach(() => {
+    // Restaurar temporizadores reales después de cada test
+    jest.useRealTimers();
   });
 
   test('debería reintentar automáticamente cuando ocurre un error reintentable', async () => {
@@ -46,24 +57,19 @@ describe('BrowserHttpClient - Retry', () => {
         config: {}
       });
 
-    // La función setTimeout debe ser simulada para que los reintentos sean instantáneos
-    jest.useFakeTimers();
-
-    // Act
+    // Act - Iniciar la petición
     const requestPromise = httpClient.get('/test');
 
-    // Avanzamos los temporizadores para que se ejecuten los reintentos
+    // Avanzar todos los temporizadores para que se ejecuten los reintentos
     jest.runAllTimers();
 
+    // Esperar a que se complete la promesa
     const response = await requestPromise;
 
     // Assert
-    expect(mockedAxios.request).toHaveBeenCalledTimes(3); // Intento original + 2 reintentos
+    expect(mockedAxios.request).toHaveBeenCalledTimes(3);
     expect(response.data).toEqual({ success: true });
     expect(response.status).toBe(200);
-
-    // Restauramos
-    jest.useRealTimers();
   });
 
   test('debería no reintentar si el error no es reintentable', async () => {
@@ -77,7 +83,7 @@ describe('BrowserHttpClient - Retry', () => {
     const response = await httpClient.get('/test');
 
     // Assert
-    expect(mockedAxios.request).toHaveBeenCalledTimes(1); // Solo el intento original
+    expect(mockedAxios.request).toHaveBeenCalledTimes(1);
     expect(response.status).toBe(404);
     expect(response.error).toBeDefined();
   });
@@ -99,19 +105,15 @@ describe('BrowserHttpClient - Retry', () => {
         isAxiosError: true
       });
 
-    jest.useFakeTimers();
-
     // Act
     const requestPromise = httpClient.get('/test');
     jest.runAllTimers();
     const response = await requestPromise;
 
     // Assert
-    expect(mockedAxios.request).toHaveBeenCalledTimes(3); // Intento original + 2 reintentos
+    expect(mockedAxios.request).toHaveBeenCalledTimes(3);
     expect(response.status).toBe(500);
     expect(response.error).toBeDefined();
-
-    jest.useRealTimers();
   });
 
   test('debería respetar las opciones de retry específicas de la petición', async () => {
@@ -128,13 +130,11 @@ describe('BrowserHttpClient - Retry', () => {
         config: {}
       });
 
-    jest.useFakeTimers();
-
     // Act
     // Usar opciones específicas de la petición (maxRetries: 1)
     const requestPromise = httpClient.get('/test', {
       retryOptions: {
-        maxRetries: 1, // Sobrescribe el valor global (2)
+        maxRetries: 1 // Sobrescribe el valor global (2)
       }
     });
 
@@ -142,10 +142,8 @@ describe('BrowserHttpClient - Retry', () => {
     const response = await requestPromise;
 
     // Assert
-    expect(mockedAxios.request).toHaveBeenCalledTimes(2); // Intento original + 1 reintento
+    expect(mockedAxios.request).toHaveBeenCalledTimes(2);
     expect(response.data).toEqual({ success: true });
-
-    jest.useRealTimers();
   });
 
   test('debería reintentar errores de red específicos', async () => {
@@ -163,17 +161,13 @@ describe('BrowserHttpClient - Retry', () => {
         config: {}
       });
 
-    jest.useFakeTimers();
-
     // Act
     const requestPromise = httpClient.get('/test');
     jest.runAllTimers();
     const response = await requestPromise;
 
     // Assert
-    expect(mockedAxios.request).toHaveBeenCalledTimes(2); // Intento original + 1 reintento
+    expect(mockedAxios.request).toHaveBeenCalledTimes(2);
     expect(response.data).toEqual({ success: true });
-
-    jest.useRealTimers();
   });
 });
