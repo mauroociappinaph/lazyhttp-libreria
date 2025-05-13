@@ -38,8 +38,9 @@ describe('HttpAuthManager', () => {
     const user = { id: '123', name: 'Test User' };
 
     // Act
-    authManager.storeUser('user', user);
-    const retrievedUser = authManager.getUser('user');
+    authManager.storeToken('user', JSON.stringify(user));
+    const userToken = authManager.getToken('user');
+    const retrievedUser = userToken ? JSON.parse(userToken) : null;
 
     // Assert
     expect(retrievedUser).toEqual(user);
@@ -50,8 +51,8 @@ describe('HttpAuthManager', () => {
     const refreshToken = 'refresh-token-123';
 
     // Act
-    authManager.storeRefreshToken('refresh_token', refreshToken);
-    const retrievedRefreshToken = authManager.getRefreshToken('refresh_token');
+    authManager.storeToken('refresh_token', refreshToken);
+    const retrievedRefreshToken = authManager.getToken('refresh_token');
 
     // Assert
     expect(retrievedRefreshToken).toBe(refreshToken);
