@@ -349,28 +349,28 @@ Esta estrategia ayuda a evitar sobrecargas en el servidor y mejora la probabilid
 
 ### Interceptores
 
-```javascript
+```typescript
+import { httpInstance } from "httplazy";
+
 // Interceptor de petición
-http._setupInterceptors((config) => {
-  // Modificar la petición antes de enviarla
+httpInstance.interceptors.request.use((config) => {
   config.headers = config.headers || {};
-  config.headers["X-Client-Version"] = "1.0.0";
-
-  // Registrar la petición
-  console.log("Petición saliente:", config.url);
-
+  config.headers["X-Custom-Header"] = "MiValorPersonalizado";
+  console.log("Interceptor de petición: config final", config);
   return config;
-}, "request");
+});
 
 // Interceptor de respuesta
-http._setupInterceptors((response) => {
-  // Modificar la respuesta antes de entregarla
-  if (response.data && response.data.results) {
-    response.data = response.data.results; // Extraer datos
+httpInstance.interceptors.response.use(
+  (response) => {
+    console.log("Interceptor de respuesta: respuesta recibida", response);
+    return response;
+  },
+  (error) => {
+    console.error("Interceptor de error:", error);
+    return Promise.reject(error);
   }
-
-  return response;
-}, "response");
+);
 ```
 
 ### Métricas y Actividad

@@ -91,6 +91,6 @@ export function createAxiosInstance() {
 }
 
 /**
- * Instancia global de Axios
+ * Instancia global de HTTP (Axios)
  */
-export const axiosInstance = createAxiosInstance();
+export const httpInstance = createAxiosInstance();
