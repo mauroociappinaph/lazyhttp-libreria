@@ -406,3 +406,57 @@ interface ProgressEvent {
   percentage: number;
 }
 ```
+
+## Best Practices
+
+### Error Handling
+
+- Always use try-catch blocks for error handling
+- Implement proper error logging
+- Use retries for transient failures
+- Handle specific error cases appropriately
+
+### Automatic Retries with Exponential Backoff
+
+HttpLazy provides an automatic retry system with exponential backoff to improve application resilience against temporary network or service failures:
+
+```typescript
+// Global retry configuration
+http.initialize({
+  // Other configurations...
+  retry: {
+    enabled: true, // Enable automatic retries
+    maxRetries: 3, // Maximum number of attempts
+    initialDelay: 300, // Initial delay between attempts (ms)
+    backoffFactor: 2, // Exponential growth factor
+    retryableStatusCodes: [408, 429, 500, 502, 503, 504], // HTTP codes to retry
+    retryableErrors: ["ECONNRESET", "ETIMEDOUT", "ECONNREFUSED"], // Network errors to retry
+  },
+});
+
+// Per-request customization
+const response = await http.get("/api/users", {
+  retryOptions: {
+    enabled: true,
+    maxRetries: 5, // Override global configuration
+    initialDelay: 500, // Custom initial delay
+    backoffFactor: 1.5, // Custom factor
+  },
+});
+```
+
+The time between retries follows an exponential growth formula:
+
+```
+wait_time = initialDelay * (backoffFactor ^ retry_number)
+```
+
+For example, with `initialDelay = 300ms` and `backoffFactor = 2`:
+
+- First retry: waits 300ms
+- Second retry: waits 600ms
+- Third retry: waits 1200ms
+
+This strategy reduces load on already stressed services and improves chances of success when problems are temporary.
+
+### Performance

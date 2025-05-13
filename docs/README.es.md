@@ -440,6 +440,49 @@ interface RequestConfig {
 - Usar reintentos para fallos transitorios
 - Manejar casos específicos de error apropiadamente
 
+### Reintentos Automáticos con Backoff Exponencial
+
+HttpLazy proporciona un sistema de reintentos automáticos con backoff exponencial para mejorar la resiliencia de las aplicaciones ante fallos temporales de red o servicios:
+
+```typescript
+// Configuración global de reintentos
+http.initialize({
+  // Otras configuraciones...
+  retry: {
+    enabled: true, // Activa los reintentos automáticos
+    maxRetries: 3, // Número máximo de intentos
+    initialDelay: 300, // Tiempo inicial entre intentos (ms)
+    backoffFactor: 2, // Factor de crecimiento exponencial
+    retryableStatusCodes: [408, 429, 500, 502, 503, 504], // Códigos HTTP a reintentar
+    retryableErrors: ["ECONNRESET", "ETIMEDOUT", "ECONNREFUSED"], // Errores de red a reintentar
+  },
+});
+
+// Personalización por petición
+const response = await http.get("/api/usuarios", {
+  retryOptions: {
+    enabled: true,
+    maxRetries: 5, // Sobrescribe la configuración global
+    initialDelay: 500, // Demora inicial personalizada
+    backoffFactor: 1.5, // Factor personalizado
+  },
+});
+```
+
+El tiempo entre reintentos sigue una fórmula de crecimiento exponencial:
+
+```
+tiempo_espera = initialDelay * (backoffFactor ^ número_intento)
+```
+
+Por ejemplo, con `initialDelay = 300ms` y `backoffFactor = 2`:
+
+- Primer reintento: espera 300ms
+- Segundo reintento: espera 600ms
+- Tercer reintento: espera 1200ms
+
+Esta estrategia reduce la carga en servicios ya sobrecargados y mejora las posibilidades de éxito cuando los problemas son temporales.
+
 ### Rendimiento
 
 - Usar caché para datos frecuentemente accedidos
