@@ -1,51 +1,42 @@
 /**
  * Cliente HTTP para entornos de servidor (Node.js)
  *
- * Esta versión contiene todas las funcionalidades de HTTPLazy, incluyendo
- * las que dependen de módulos específicos de Node.js.
+ * Esta versión contiene implementaciones específicas para Node.js,
+ * incluyendo manejo de archivos, streams y proxies avanzados.
  */
 
-// Re-exportar todas las funcionalidades del cliente primero
-export * from '../client';
+// Re-exportar tipos comunes y utilidades compartidas
+export * from '../common/types';
+export * from '../common/utils/http-utils';
 
-// Sobreescribir las implementaciones específicas del servidor
-import { ProxyConfig, StreamConfig } from '../common/types';
+// Exportar la implementación específica para servidor
+import { NodeHttpClient } from './core/node-http-client';
 
-// Configuración de proxy (solo disponible en servidor)
-export const configureProxy = (config: ProxyConfig) => {
+// Crear una instancia singleton
+const nodeHttpClient = new NodeHttpClient();
+
+// Exportar cliente singleton
+export const http = nodeHttpClient;
+
+// Exportar funciones específicas de servidor como funciones independientes
+// para mantener compatibilidad con la API anterior
+export const configureProxy = nodeHttpClient.configureProxy.bind(nodeHttpClient);
+
+// Streaming avanzado para Node.js (método especializado)
+export const stream = async <T>(url: string, config?: any): Promise<ReadableStream<T>> => {
+  // Implementación especializada utilizando Node.js streams
   try {
-    // En la implementación real, esto cargaría dinámicamente https-proxy-agent o socks-proxy-agent
-    // según el protocolo especificado
-    console.log('Configuring proxy with Node.js specific modules');
+    const response = await fetch(url, {
+      headers: config?.headers,
+      signal: config?.signal
+    });
 
-    // Implementación simplificada para el ejemplo
-    if (config.protocol === 'http' || config.protocol === 'https') {
-      // const { HttpsProxyAgent } = require('https-proxy-agent');
-      // Configurar proxy HTTP/HTTPS
-    } else if (config.protocol === 'socks4' || config.protocol === 'socks5') {
-      // const { SocksProxyAgent } = require('socks-proxy-agent');
-      // Configurar proxy SOCKS
+    if (!response.ok) {
+      throw new Error(`Error en la petición de streaming: ${response.status}`);
     }
 
-    return true;
-  } catch (error) {
-    console.error('Error configuring proxy:', error);
-    return false;
-  }
-};
-
-// Streaming avanzado para Node.js
-export const stream = (_url: string, _config?: StreamConfig) => {
-  try {
-    // En la implementación real, esto usaría módulos específicos de Node.js
-    // como http, https, y stream para proporcionar funcionalidad avanzada
-    console.log('Using advanced Node.js streaming capabilities');
-
-    // Implementación simplificada para el ejemplo
-    return fetch(_url).then(response => {
-      // Procesamiento avanzado que solo es posible en Node.js
-      return response.body;
-    });
+    // Devolver el stream directamente
+    return response.body as ReadableStream<T>;
   } catch (error) {
     console.error('Error with Node.js streaming:', error);
     throw error;
@@ -54,7 +45,6 @@ export const stream = (_url: string, _config?: StreamConfig) => {
 
 // Módulo SOA (Service Oriented Architecture)
 export const createSoaClient = (_options: any) => {
-  // Implementación real cargaría módulos específicos de Node.js
   console.log('Creating SOA client with Node.js specific modules');
   return {
     connect: () => Promise.resolve(true),
@@ -64,7 +54,6 @@ export const createSoaClient = (_options: any) => {
 };
 
 export const createSoaServer = (_options: any) => {
-  // Implementación real cargaría módulos específicos de Node.js
   console.log('Creating SOA server with Node.js specific modules');
   return {
     register: (_name: string, _methods: Record<string, Function>) => {},

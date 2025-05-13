@@ -10,6 +10,7 @@ export interface RequestOptions {
   retries?: number;
   cache?: boolean | number;
   tags?: string[];
+  withAuth?: boolean;
 }
 
 export interface ApiResponse<T = any> {
@@ -17,6 +18,7 @@ export interface ApiResponse<T = any> {
   status: number;
   headers: Record<string, string>;
   config?: any;
+  error?: string;
 }
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
