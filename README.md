@@ -57,6 +57,7 @@
 - [Internacionalización](#internacionalización)
 - [Recursos Adicionales](#recursos-adicionales)
 - [Subida de archivos optimizada (upload)](#subida-de-archivos-optimizada-upload)
+- [Compatibilidad con librerías que esperan promesas rechazadas](#compatibilidad-con-librerías-que-esperan-promesas-rechazadas)
 
 ## Descripción General
 
@@ -580,61 +581,42 @@ configureProxy({
 });
 ```
 
-## Filosofía de diseño: ¿Por qué `{ data, error }` en lugar de Promesas rechazadas?
+## Compatibilidad con librerías que esperan promesas rechazadas
 
-HttpLazy adopta el patrón de respuesta `{ data, error }` en todos sus métodos asíncronos, en vez de depender de Promesas rechazadas para los errores. Esta decisión tiene varias ventajas clave:
+Algunas librerías (como React Query, SWR, middlewares, etc.) esperan que las funciones que consumen retornen una promesa que se rechaza en caso de error (es decir, que lancen una excepción). Por defecto, HttpLazy retorna siempre un objeto `{ data, error, status }` y **no lanza excepción**. Puedes adaptar el comportamiento fácilmente con un helper:
 
-- **Consistencia:** Todas las respuestas, exitosas o con error, tienen la misma estructura. No necesitas mezclar `try/catch` con chequeos de propiedades.
-- **Previsibilidad:** Nunca tendrás errores inesperados que se "escapen" de una promesa rechazada. El flujo de control es siempre explícito.
-- **Mejor experiencia en UI:** En frameworks como React, puedes manejar loading, error y data en un solo lugar, sin ramas de control duplicadas.
-- **Facilita testing:** Los tests pueden verificar la propiedad `error` directamente, sin tener que capturar excepciones.
-- **Evita errores silenciosos:** Los errores de red, validación y negocio siempre llegan en la respuesta, no se pierden en un catch global.
+### Helper: lanzar excepción solo si hay error
 
-### Ejemplo comparativo
-
-**Con HttpLazy:**
-
-```js
-const { data, error } = await http.getAll("/api/usuarios");
-if (error) {
-  mostrarError(error);
-} else {
-  mostrarDatos(data);
+```typescript
+export function ensureSuccess<T>(response: {
+  data: T;
+  error?: any;
+  status: number;
+}): T {
+  if (response.error)
+    throw Object.assign(new Error(response.error.message), response.error, {
+      status: response.status,
+    });
+  return response.data;
 }
 ```
 
-**Con Promesas rechazadas (fetch/axios):**
+### Ejemplo de uso
 
-```js
-try {
-  const resp = await axios.get("/api/usuarios");
-  mostrarDatos(resp.data);
-} catch (error) {
-  mostrarError(error);
+```typescript
+// Uso normal (patrón HttpLazy)
+const resp = await http.getAll("/api/users");
+if (resp.error) {
+  // Manejo uniforme
+  showError(resp.error.message);
 }
+
+// Uso con librerías que esperan promesas rechazadas
+const data = ensureSuccess(await http.getAll("/api/users"));
+// Si hay error, se lanza como excepción y puedes usar try/catch o integrarlo con React Query, etc.
 ```
 
-> El patrón `{ data, error }` es especialmente útil en aplicaciones modernas, donde el manejo de errores de red, validación y negocio debe ser uniforme y predecible.
-
-### ¿Cuándo es contraproducente el patrón `{ data, error }`?
-
-El patrón `{ data, error }` es ideal para la mayoría de los casos, pero puede ser **contraproducente** si integras HttpLazy con librerías o utilidades que esperan Promesas que pueden ser rechazadas, por ejemplo:
-
-- Algunos hooks de React (`useSWR`, `useQuery`, etc.)
-- Utilidades como `Promise.all`, `Promise.race`, etc.
-- Middlewares o frameworks que esperan errores lanzados para flujos de control
-
-**¿Qué hacer en estos casos?**
-
-Adapta el resultado manualmente:
-
-```js
-const { data, error } = await http.get("...");
-if (error) throw error; // Para compatibilidad con librerías que esperan Promesas rechazadas
-return data;
-```
-
-Así puedes seguir usando HttpLazy y mantener la compatibilidad con cualquier ecosistema.
+> **Ventaja:** Así puedes mantener el flujo uniforme y predecible de HttpLazy en tu app, pero lanzar excepciones solo cuando lo necesitas para integraciones externas, sin perder ninguna ventaja del patrón `{ data, error }`.
 
 ## Manejo de Errores
 
