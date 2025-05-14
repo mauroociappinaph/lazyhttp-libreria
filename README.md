@@ -41,6 +41,7 @@
   - [Organización del Código](#organización-del-código)
   - [Patrones de Uso](#patrones-de-uso)
   - [Optimización](#optimización)
+  - [Tests](#tests)
 - [Solución de Problemas](#solución-de-problemas)
   - [Errores CORS](#errores-cors)
   - [Errores de Módulos Faltantes en Next.js](#errores-de-módulos-faltantes-en-nextjs)
@@ -170,6 +171,54 @@ await http.patch("https://api.example.com/users/123", {
 // Eliminar recurso
 await http.del("https://api.example.com/users/123");
 ```
+
+---
+
+#### Tipado de respuestas y acceso seguro a propiedades
+
+Cuando la respuesta de tu API tiene una estructura conocida (por ejemplo, un login que retorna un token), puedes tipar la respuesta para que TypeScript reconozca correctamente las propiedades y evitar errores como:
+
+> La propiedad 'token' no existe en el tipo '{}'.ts(2339)
+
+**Ejemplo recomendado:**
+
+```typescript
+// Define el tipo esperado de la respuesta de login
+interface LoginResponse {
+  token: string;
+}
+
+// Uso correcto con tipado genérico
+const { data } = await http.post<LoginResponse>(
+  "https://fakestoreapi.com/auth/login",
+  { username: "user", password: "pass" }
+);
+
+const token = data?.token; // TypeScript reconoce 'token'
+
+// Usar el token en la siguiente petición
+await http.get("https://fakestoreapi.com/products/1", {
+  headers: { Authorization: `Bearer ${token}` },
+});
+```
+
+**También funciona con promesas encadenadas:**
+
+```typescript
+http
+  .post<LoginResponse>("https://fakestoreapi.com/auth/login", {
+    username: "user",
+    password: "pass",
+  })
+  .then(({ data }) => {
+    const token = data?.token;
+    return http.get("https://fakestoreapi.com/products/1", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  });
+```
+
+> **Nota:** Todos los métodos principales (`get`, `post`, etc.) de HttpLazy aceptan un tipo genérico para que puedas tipar la respuesta según tu API y aprovechar el autocompletado y validación de TypeScript.
 
 ### Solicitudes Concurrentes
 
@@ -1020,6 +1069,98 @@ export const authService = {
      ]);
    }
    ```
+
+### Tests
+
+#### Cómo probar errores HTTP (404, 500, etc.)
+
+Para asegurar que tu aplicación maneja correctamente los errores HTTP (como 404 Not Found o 500 Internal Server Error), puedes simular estos escenarios de varias formas:
+
+#### 1. Usando endpoints de prueba
+
+Utiliza endpoints públicos que siempre devuelven un error:
+
+```js
+// 404 Not Found
+const resp = await http.get("https://httpstat.us/404");
+console.log(resp.status); // 404
+console.log(resp.error); // Mensaje de error descriptivo
+
+// 500 Internal Server Error
+const resp2 = await http.get("https://httpstat.us/500");
+console.log(resp2.status); // 500
+console.log(resp2.error); // Mensaje de error descriptivo
+```
+
+#### 2. Mockeando en tests
+
+En tus tests unitarios, puedes mockear el método para devolver un error simulado:
+
+```js
+jest.spyOn(http, "get").mockResolvedValue({
+  data: null,
+  error: "Recurso no encontrado",
+  status: 404,
+});
+const resp = await http.get("/api/fake");
+expect(resp.status).toBe(404);
+expect(resp.error).toBe("Recurso no encontrado");
+```
+
+#### 3. Usando servidores locales
+
+Puedes levantar un servidor local que devuelva el código de error deseado para pruebas más avanzadas.
+
+#### Recomendaciones
+
+- Siempre verifica la propiedad `error` y el `status` en tus tests y en la UI.
+- Simula tanto errores de cliente (4xx) como de servidor (5xx) para asegurar una cobertura completa.
+
+### Cancelación de solicitudes HTTP
+
+HttpLazy soporta cancelación de peticiones usando `AbortController` (en browser y Node.js moderno):
+
+```js
+const controller = new AbortController();
+
+const promesa = http.get("https://fakestoreapi.com/products", {
+  signal: controller.signal,
+  timeout: 5000,
+});
+
+// Para cancelar la petición:
+controller.abort();
+```
+
+- En Node.js moderno y browser, la cancelación es nativa.
+- Internamente, HttpLazy adapta el mecanismo para Axios/fetch según el entorno.
+- Puedes usarlo en cualquier método: `get`, `post`, `upload`, etc.
+
+### Headers y opciones de petición
+
+La forma recomendada y tipada de pasar headers y opciones es:
+
+```js
+http.get("https://fakestoreapi.com/products", {
+  headers: { "X-Request-ID": "12345" },
+  timeout: 5000,
+});
+```
+
+- **headers**: Deben ir dentro de la propiedad `headers`.
+- **timeout**: Es una opción de nivel superior.
+
+**No recomendado:**
+
+```js
+// Esto puede no funcionar correctamente:
+http.get("https://fakestoreapi.com/products", {
+  "X-Request-ID": "12345", // ❌ No irá como header
+  timeout: 5000,
+});
+```
+
+> Usa siempre la estructura `{ headers: { ... }, timeout: ... }` para máxima compatibilidad y autocompletado TypeScript.
 
 ## Solución de Problemas
 
