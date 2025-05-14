@@ -158,22 +158,27 @@ export class HttpCore {
   /**
    * Sube archivos y campos de formulario de manera optimizada (Node.js y browser)
    * Soporta múltiples archivos por campo (arrays)
+   * Permite desactivar validación de archivos (validateFiles: false) y validar tamaño máximo (maxFileSize)
    * @param endpoint URL destino
    * @param fields Objeto con campos (puede incluir paths, streams, strings, buffers o arrays de estos)
-   * @param options Opciones adicionales de la petición
+   * @param options Opciones adicionales de la petición y validación
    */
   async upload<T = any>(
     endpoint: string,
     fields: Record<string, any>,
-    options?: Omit<RequestOptions, 'method' | 'body'>
+    options?: Omit<RequestOptions, 'method' | 'body'> & {
+      validateFiles?: boolean;
+      maxFileSize?: number;
+    }
   ): Promise<ApiResponse<T>> {
     // Node.js
     if (typeof window === 'undefined') {
       const { buildNodeFormData } = await import('./common/utils/http-upload.utils');
-      const { form, headers } = buildNodeFormData(fields);
+      const { validateFiles, maxFileSize, ...restOptions } = options || {};
+      const { form, headers } = buildNodeFormData(fields, undefined, { validateFiles, maxFileSize });
       return this.post(endpoint, form, {
-        ...options,
-        headers: { ...(options?.headers || {}), ...headers }
+        ...restOptions,
+        headers: { ...(restOptions.headers || {}), ...headers }
       });
     } else {
       // Browser: usar FormData nativo y soportar arrays
