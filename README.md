@@ -1175,6 +1175,53 @@ await http.upload("https://fakestoreapi.com/upload", {
 - El campo se repetirá en el FormData por cada archivo.
 - Puedes combinar campos simples y arrays.
 
+### Errores esperados en upload
+
+- Si un archivo no existe o no es válido, la respuesta tendrá un error:
+  - `El archivo './noexiste.txt' no existe o no es un archivo válido (campo 'archivo')`
+- Si un archivo excede el tamaño máximo permitido:
+  - `Archivo './grande.txt' excede el tamaño máximo permitido (1048576 bytes)`
+- El error siempre vendrá en la propiedad `error` de la respuesta, nunca como excepción (a menos que sea un error de uso de la API).
+
+### Desactivar validación de archivos (casos avanzados)
+
+Puedes desactivar la validación de existencia/tamaño de archivos usando la opción `validateFiles: false`:
+
+```js
+await http.upload(url, fields, { validateFiles: false });
+```
+
+Esto es útil si quieres delegar la validación al backend o subir streams especiales.
+
+### Validar tamaño máximo de archivos
+
+Puedes limitar el tamaño máximo de cada archivo (en bytes) usando la opción `maxFileSize`:
+
+```js
+await http.upload(url, fields, { maxFileSize: 1024 * 1024 }); // 1MB
+```
+
+Si algún archivo excede el límite, la respuesta tendrá un error claro.
+
+### Ejemplo de manejo de errores
+
+```js
+const resp = await http.upload(
+  "https://api.com/upload",
+  {
+    archivo: "./grande.txt",
+  },
+  { maxFileSize: 1024 * 1024 }
+);
+
+if (resp.error) {
+  console.error("Error al subir archivo:", resp.error);
+  // Ejemplo: "Archivo './grande.txt' excede el tamaño máximo permitido (1048576 bytes)"
+} else {
+  console.log("Subida exitosa:", resp.data);
+}
+```
+
 ## Comparativa con Alternativas
 
 | Característica             | HttpLazy              | Axios                | Fetch API                    |
