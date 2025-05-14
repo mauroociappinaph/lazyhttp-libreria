@@ -175,7 +175,13 @@ export class HttpCore {
     if (typeof window === 'undefined') {
       const { buildNodeFormData } = await import('./common/utils/http-upload.utils');
       const { validateFiles, maxFileSize, ...restOptions } = options || {};
-      const { form, headers } = buildNodeFormData(fields, undefined, { validateFiles, maxFileSize });
+      let form, headers;
+      try {
+        ({ form, headers } = buildNodeFormData(fields, undefined, { validateFiles, maxFileSize }));
+      } catch (err) {
+        // Devuelvo el error como ApiResponse, no como excepción
+        return { data: null, error: err instanceof Error ? err.message : String(err), status: 0 };
+      }
       return this.post(endpoint, form, {
         ...restOptions,
         headers: { ...(restOptions.headers || {}), ...headers }
