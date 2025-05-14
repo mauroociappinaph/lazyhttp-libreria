@@ -122,6 +122,7 @@ const data = await resp.json();
   - [Métricas y Actividad](#métricas-y-actividad)
     - [Logging Personalizado](#logging-personalizado)
   - [Streaming (Servidor)](#streaming-servidor)
+  - [Servidor HTTP Minimalista (Node.js)](#servidor-http-minimalista-nodejs)
   - [Proxies (Servidor)](#proxies-servidor)
   - [Retry Automático con Backoff Exponencial](#retry-automático-con-backoff-exponencial)
 - [Manejo de Errores](#manejo-de-errores)
@@ -742,6 +743,34 @@ import { stream } from "httplazy/client";
 const textStream = await stream("https://api.example.com/events");
 // Procesar stream con las APIs del navegador
 ```
+
+### Servidor HTTP Minimalista (Node.js)
+
+A partir de la versión 2.x, puedes levantar un servidor HTTP funcional en Node.js con una sola línea usando `HttpLazyServer`:
+
+```typescript
+import { HttpLazyServer } from "httplazy";
+
+const app = new HttpLazyServer();
+app.start();
+```
+
+- El puerto por defecto es 3000, pero puedes pasarlo como opción: `new HttpLazyServer({ port: 4000 })`.
+- Puedes agregar rutas fácilmente:
+
+```typescript
+app.get("/ping", (req, res) => res.json({ ok: true }));
+```
+
+#### Desarrollo con recarga automática
+
+Ya viene integrado `nodemon` para desarrollo. Simplemente ejecuta:
+
+```bash
+npm run dev
+```
+
+Esto levantará tu servidor y recargará automáticamente ante cualquier cambio en tu archivo de entrada (`index.js` o `index.ts`).
 
 ### Proxies (Servidor)
 
@@ -1952,3 +1981,31 @@ console.log(results); // [3, 12]
 - Ideal para microservicios, gateways, y sistemas distribuidos.
 
 > Consulta la documentación extendida o el código fuente para ver más ejemplos avanzados y patrones de integración.
+
+### Servidor HTTP Minimalista (Node.js)
+
+A partir de la versión 2.x, puedes levantar un servidor HTTP funcional en Node.js con una sola línea usando `HttpLazyServer`:
+
+```typescript
+import { HttpLazyServer } from "httplazy";
+
+const app = new HttpLazyServer();
+app.start();
+```
+
+- El puerto por defecto es 3000, pero puedes pasarlo como opción: `new HttpLazyServer({ port: 4000 })`.
+- Puedes agregar rutas fácilmente:
+
+```typescript
+app.get("/ping", (req, res) => res.json({ ok: true }));
+```
+
+#### Desarrollo con recarga automática
+
+Ya viene integrado `nodemon` para desarrollo. Simplemente ejecuta:
+
+```bash
+npm run dev
+```
+
+Esto levantará tu servidor y recargará automáticamente ante cualquier cambio en tu archivo de entrada (`index.js` o `index.ts`).

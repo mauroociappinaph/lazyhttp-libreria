@@ -61,3 +61,10 @@ export const createSoaServer = (_options: any) => {
     stop: () => Promise.resolve()
   };
 };
+
+// --- HttpLazyServer: Servidor HTTP minimalista y fácil de usar ---
+import { HttpLazyServer } from './core/httplazy-server';
+
+export { HttpLazyServer };
+
+// Exportar la clase como parte de la API pública del dominio server
