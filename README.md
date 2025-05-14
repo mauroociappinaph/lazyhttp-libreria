@@ -58,6 +58,7 @@
 - [Recursos Adicionales](#recursos-adicionales)
 - [Subida de archivos optimizada (upload)](#subida-de-archivos-optimizada-upload)
 - [Compatibilidad con librerías que esperan promesas rechazadas](#compatibilidad-con-librerías-que-esperan-promesas-rechazadas)
+- [Clientes HTTP múltiples](#clientes-http-múltiples)
 
 ## Descripción General
 
@@ -1466,8 +1467,6 @@ const resp = await http.upload("https://fakestoreapi.com/upload", {
 if (resp.error) {
   console.error("Error al subir archivo:", resp.error);
   // "El archivo './noexiste.txt' no existe o no es un archivo válido (campo 'archivo')"
-} else {
-  console.log("Subida exitosa:", resp.data);
 }
 ```
 
@@ -1521,3 +1520,161 @@ const resp = await http.upload(
 | **Soporte para Proxy**     | ✅ (Servidor)         | ✅                   | ❌                           |
 | **Reintentos automáticos** | ✅ (Exponential)      | ❌ (Requires config) | ❌                           |
 | **Métricas integradas**    | ✅                    | ❌                   | ❌                           |
+
+## Clientes HTTP múltiples
+
+A partir de la versión 2.x, puedes crear tantas instancias de cliente HTTP como necesites, cada una con su propia configuración, headers, interceptores o autenticación. Esto es ideal para proyectos que consumen múltiples APIs o requieren contextos de autenticación distintos.
+
+### Ejemplo en TypeScript
+
+```typescript
+import { HttpCore } from "httplazy";
+
+// Opciones para el primer cliente
+const clientA = new HttpCore.HttpCore({
+  baseUrl: "https://api.empresaA.com",
+  defaultHeaders: {
+    Authorization: "Bearer tokenA",
+    "X-App": "A",
+  },
+  timeout: 8000,
+});
+
+// Opciones para el segundo cliente
+const clientB = new HttpCore.HttpCore({
+  baseUrl: "https://api.empresaB.com",
+  defaultHeaders: {
+    Authorization: "Bearer tokenB",
+    "X-App": "B",
+  },
+  timeout: 5000,
+});
+
+// Cada cliente es totalmente independiente
+const { data: dataA } = await clientA.getAll("/usuarios");
+const { data: dataB } = await clientB.getAll("/clientes");
+
+// Puedes agregar interceptores o configuración específica a cada uno
+clientA.useInterceptor(new MiInterceptorPersonalizado());
+clientB.useInterceptor(new OtroInterceptor());
+```
+
+- Cada instancia mantiene su propio estado, configuración y middlewares.
+- Puedes usar tantas instancias como necesites en tu aplicación.
+- Esto es equivalente a `axios.create()` pero con el enfoque modular y tipado de HTTPLazy.
+
+> **Recomendación:** Si tienes muchas APIs o contextos, considera crear una pequeña factoría para centralizar la creación de clientes y evitar duplicación de lógica.
+
+### Ejemplo de factoría para clientes HTTP
+
+Si tu proyecto consume muchas APIs o necesitas crear clientes con configuraciones dinámicas, puedes centralizar la lógica en una factoría. Así evitas duplicación y facilitas el mantenimiento.
+
+```typescript
+// lib/httpClientFactory.ts
+import { HttpCore } from "httplazy";
+
+interface ClientConfig {
+  baseUrl: string;
+  token?: string;
+  timeout?: number;
+}
+
+export class HttpClientFactory {
+  private static instances: Record<string, HttpCore.HttpCore> = {};
+
+  static getClient(key: string, config: ClientConfig): HttpCore.HttpCore {
+    if (!this.instances[key]) {
+      this.instances[key] = new HttpCore.HttpCore({
+        baseUrl: config.baseUrl,
+        defaultHeaders: config.token
+          ? { Authorization: `Bearer ${config.token}` }
+          : {},
+        timeout: config.timeout || 5000,
+      });
+    }
+    return this.instances[key];
+  }
+}
+```
+
+**Uso:**
+
+```typescript
+import { HttpClientFactory } from "./lib/httpClientFactory";
+
+const apiA = HttpClientFactory.getClient("apiA", {
+  baseUrl: "https://api.empresaA.com",
+  token: "tokenA",
+  timeout: 8000,
+});
+
+const apiB = HttpClientFactory.getClient("apiB", {
+  baseUrl: "https://api.empresaB.com",
+  token: "tokenB",
+  timeout: 5000,
+});
+
+// Peticiones independientes
+const { data: usersA } = await apiA.getAll("/usuarios");
+const { data: usersB } = await apiB.getAll("/clientes");
+```
+
+- La factoría asegura que cada cliente se crea una sola vez por clave.
+- Puedes extender la lógica para añadir interceptores, logging, etc.
+
+---
+
+### Ejemplo avanzado: múltiples clientes en un contexto real
+
+Supón que tienes un microservicio de usuarios y otro de productos, cada uno con autenticación y configuración distinta:
+
+```typescript
+import { HttpCore } from "httplazy";
+
+// Cliente para microservicio de usuarios
+const userClient = new HttpCore.HttpCore({
+  baseUrl: "https://api.usuarios.com",
+  defaultHeaders: { Authorization: "Bearer userToken" },
+});
+
+// Cliente para microservicio de productos
+const productClient = new HttpCore.HttpCore({
+  baseUrl: "https://api.productos.com",
+  defaultHeaders: { Authorization: "Bearer productToken" },
+});
+
+// Obtener datos de ambos servicios en paralelo
+const [users, products] = await Promise.all([
+  userClient.getAll("/users"),
+  productClient.getAll("/products"),
+]);
+
+console.log("Usuarios:", users.data);
+console.log("Productos:", products.data);
+```
+
+Esto te permite desacoplar la lógica de cada dominio, mantener la seguridad y la configuración separada, y escalar tu aplicación de forma limpia y mantenible.
+
+#### Ejemplo: Interceptor manual para respuestas 401 (redirigir al login)
+
+Si necesitas manejar la redirección al login de forma personalizada cuando el servidor responde con un 401 (no autorizado), puedes agregar un interceptor de error así:
+
+```typescript
+import { http } from "httplazy";
+
+// Interceptor de error para manejar 401 y redirigir al login
+dhttp.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error?.status === 401) {
+      // Redirige al login (puedes usar window.location o tu router)
+      window.location.href = "/login";
+      // Opcional: limpiar tokens, cerrar sesión, etc.
+    }
+    return Promise.reject(error);
+  }
+);
+```
+
+- Este patrón es útil si necesitas lógica personalizada o integración con frameworks como React Router, Next.js, etc.
+- Si usas la configuración integrada (`configureAuth`), la redirección automática ya está soportada y no necesitas este interceptor.
