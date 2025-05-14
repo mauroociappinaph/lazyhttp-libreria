@@ -427,6 +427,95 @@ httpInstance.interceptors.response.use(
 );
 ```
 
+---
+
+## Interceptores avanzados: composición, reutilización y testabilidad
+
+A diferencia de Axios, **HttpLazy** permite crear interceptores como **clases independientes, composables y reutilizables**. Esto aporta mayor escalabilidad, testabilidad y separación de responsabilidades en proyectos grandes.
+
+### Ventajas sobre Axios
+
+- **Composición real:** Puedes encadenar y combinar interceptores como piezas de Lego.
+- **Reutilización:** Los interceptores pueden compartirse entre diferentes clientes o contextos.
+- **Desacoplamiento:** Cada interceptor es una clase o función independiente, fácil de testear y mantener.
+- **Testabilidad:** Puedes mockear, reemplazar o extender interceptores fácilmente.
+- **Consistencia:** Fomenta el principio de responsabilidad única y la arquitectura limpia.
+
+### Ejemplo: interceptor como clase
+
+```typescript
+import {
+  RequestInterceptor,
+  ResponseInterceptor,
+  InterceptorContext,
+} from "httplazy/types/interceptors/interceptors.types";
+
+// Un interceptor de logging reutilizable
+export class LoggingInterceptor
+  implements RequestInterceptor, ResponseInterceptor
+{
+  id = "LoggingInterceptor";
+  order = 100;
+
+  intercept(context: InterceptorContext): InterceptorContext {
+    console.log("[LOG] Request", context);
+    return context;
+  }
+
+  interceptResponse(response: any, context: InterceptorContext): any {
+    console.log("[LOG] Response", response);
+    return response;
+  }
+}
+```
+
+### Encadenar y reutilizar interceptores
+
+```typescript
+import { HttpCore } from "httplazy";
+import { LoggingInterceptor } from "./logging.interceptor";
+import { RetryInterceptor } from "httplazy/interceptors";
+
+const client = new HttpCore.HttpCore();
+client.useInterceptor(new LoggingInterceptor());
+client.useInterceptor(new RetryInterceptor({ retries: 3 }));
+
+// Ahora todas las peticiones de este cliente pasarán por ambos interceptores
+```
+
+### Test unitario de un interceptor
+
+```typescript
+import { LoggingInterceptor } from "./logging.interceptor";
+
+describe("LoggingInterceptor", () => {
+  it("debería loguear la petición", () => {
+    const interceptor = new LoggingInterceptor();
+    const context = {
+      url: "/api",
+      method: "GET",
+      headers: {},
+      data: null,
+      timestamp: Date.now(),
+    };
+    expect(() => interceptor.intercept(context)).not.toThrow();
+  });
+});
+```
+
+### Comparativa rápida con Axios
+
+| Característica       | Axios                           | HttpLazy                                     |
+| -------------------- | ------------------------------- | -------------------------------------------- |
+| Registro             | `.interceptors.request.use(fn)` | `.useInterceptor(new MiInterceptor())`       |
+| Tipo                 | Funciones/callbacks             | Clases/objetos composables                   |
+| Composición          | Limitada (orden de registro)    | Composable, encadenable, desacoplado         |
+| Reutilización        | Difícil entre instancias        | Fácil, puedes compartir interceptores        |
+| Testabilidad         | Media                           | Alta (puedes mockear interceptores)          |
+| Separación de lógica | Menor (todo en un callback)     | Alta (cada interceptor es una unidad lógica) |
+
+> **Recomendación:** Usa interceptores como clases en proyectos medianos o grandes para máxima escalabilidad y mantenibilidad.
+
 ### Métricas y Actividad
 
 ```javascript
