@@ -55,6 +55,7 @@
 - [Seguridad](#seguridad)
 - [Internacionalización](#internacionalización)
 - [Recursos Adicionales](#recursos-adicionales)
+- [Subida de archivos optimizada (upload)](#subida-de-archivos-optimizada-upload)
 
 ## Descripción General
 
