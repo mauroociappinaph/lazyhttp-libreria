@@ -239,7 +239,12 @@ export abstract class BaseHttpClient implements HttpImplementation {
   /**
    * Método interno que las subclases deben usar en vez de request para acceder a los transformadores activos
    */
-  protected async _requestWithTransforms<T>(method: HttpMethod, url: string, data?: any, options?: RequestOptions): Promise<ApiResponse<T>> {
+  protected async _requestWithTransforms<T>(
+    _method: HttpMethod,
+    _url: string,
+    _data?: any,
+    _options?: RequestOptions
+  ): Promise<ApiResponse<T>> {
     throw new Error('Debe ser implementado por la subclase');
   }
 }
