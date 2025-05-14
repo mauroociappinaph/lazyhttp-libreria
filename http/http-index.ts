@@ -61,13 +61,12 @@ export const http = new HttpClient() as HttpImplementation & {
 
 // Bind HTTP methods directly from the http instance
 export const request = http.request.bind(http);
-export const get = http.get.bind(http);
 export const getAll = http.getAll.bind(http);
 export const getById = http.getById.bind(http);
 export const post = http.post.bind(http);
 export const put = http.put.bind(http);
 export const patch = http.patch.bind(http);
-export const del = http.delete.bind(http); // 'delete' is a reserved word in JavaScript
+export const del = http.delete.bind(http);
 
 // Bind authentication methods directly from the http instance
 export const configureAuth = http.configureAuth.bind(http);
