@@ -875,19 +875,19 @@ We welcome contributions to improve HttpLazy. You can contribute in several ways
 
 ## Comparison with Alternatives
 
-| Feature                | HttpLazy           | Axios                | Fetch API                    |
-| ---------------------- | ------------------ | -------------------- | ---------------------------- |
-| **Size (approx)**      | ~12KB min+gzip     | ~14KB min+gzip       | Native                       |
-| **Universal support**  | ✅ (Client/Server) | ✅                   | ✅ (Limited in Node)         |
-| **TypeScript**         | ✅ Complete        | ✅ Complete          | Limited                      |
-| **Interceptors**       | ✅                 | ✅                   | ❌ (Requires implementation) |
-| **Integrated cache**   | ✅                 | ❌                   | ❌                           |
-| **Cancellation**       | ✅                 | ✅                   | ✅                           |
-| **Authentication**     | ✅ Integrated      | ❌ (Manual)          | ❌ (Manual)                  |
-| **Streaming support**  | ✅                 | ✅ (Basic)           | ✅                           |
-| **Proxy support**      | ✅ (Server)        | ✅                   | ❌                           |
-| **Automatic retries**  | ✅                 | ❌ (Requires config) | ❌                           |
-| **Integrated metrics** | ✅                 | ❌                   | ❌                           |
+| Feature               | HttpLazy           | Axios                | Fetch API                    |
+| --------------------- | ------------------ | -------------------- | ---------------------------- |
+| **Size (approx)**     | ~12KB min+gzip     | ~14KB min+gzip       | Native                       |
+| **Universal support** | ✅ (Client/Server) | ✅                   | ✅ (Limited in Node)         |
+| **TypeScript**        | ✅ Complete        | ✅ Complete          | Limited                      |
+| **Interceptors**      | ✅                 | ✅                   | ❌ (Requires implementation) |
+| **Integrated cache**  | ✅                 | ❌                   | ❌                           |
+| **Cancellation**      | ✅                 | ✅                   | ✅                           |
+| **Authentication**    | ✅ Built-in        | ❌ (Manual)          | ❌ (Manual)                  |
+| **Streaming support** | ✅                 | ✅ (Basic)           | ✅                           |
+| **Proxy support**     | ✅ (Server)        | ✅                   | ❌                           |
+| **Auto-retries**      | ✅ (Exponential)   | ❌ (Requires config) | ❌                           |
+| **Built-in metrics**  | ✅                 | ❌                   | ❌                           |
 
 ### Why choose HttpLazy?
 

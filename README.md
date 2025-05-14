@@ -5,6 +5,29 @@
 [![npm version](https://img.shields.io/npm/v/httplazy)](https://www.npmjs.com/package/httplazy)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-4.5+-blue)](https://www.typescriptlang.org/)
+![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)
+![Bundle size](https://img.shields.io/bundlephobia/minzip/httplazy)
+[![Open Issues](https://img.shields.io/github/issues/mauroociappina/lazyhttp-libreria)](https://github.com/mauroociappina/lazyhttp-libreria/issues)
+[![Pull Requests](https://img.shields.io/github/issues-pr/mauroociappina/lazyhttp-libreria)](https://github.com/mauroociappina/lazyhttp-libreria/pulls)
+
+## 🚦 Comparativa Visual
+
+| Característica             | ![HTTPLazy](https://img.shields.io/badge/-HTTPLazy-blue) | ![Axios](https://img.shields.io/badge/-Axios-green) | ![Fetch API](https://img.shields.io/badge/-Fetch%20API-yellow) |
+| -------------------------- | :------------------------------------------------------: | :-------------------------------------------------: | :------------------------------------------------------------: |
+| **Tamaño (min+gzip)**      |                         🟦 ~12KB                         |                      🟩 ~14KB                       |                           🟨 Nativo                            |
+| **Soporte universal**      |                    ✅ Cliente/Server                     |                         ✅                          |                        ⚠️ Limitado Node                        |
+| **TypeScript**             |                       ✅ Completo                        |                     ✅ Completo                     |                          ⚠️ Limitado                           |
+| **Interceptores**          |                            ✅                            |                         ✅                          |                               ❌                               |
+| **Caché integrada**        |                            ✅                            |                         ❌                          |                               ❌                               |
+| **Cancelación**            |                            ✅                            |                         ✅                          |                               ✅                               |
+| **Autenticación**          |                       ✅ Integrada                       |                     ❌ (Manual)                     |                          ❌ (Manual)                           |
+| **Streaming**              |                            ✅                            |                     ✅ (Básico)                     |                               ✅                               |
+| **Proxy**                  |                      ✅ (Servidor)                       |                         ✅                          |                               ❌                               |
+| **Reintentos automáticos** |                     ✅ (Exponencial)                     |                         ❌                          |                               ❌                               |
+| **Métricas integradas**    |                            ✅                            |                         ❌                          |                               ❌                               |
+| **Benchmarks públicos**    |                            ❌                            |                         ❌                          |                               ❌                               |
+
+> 🟦 = Mejor opción para proyectos modernos y universales
 
 ## ¿Por qué elegir HTTPLazy frente a Axios o Fetch?
 
@@ -133,6 +156,54 @@ const data = await resp.json();
 - [Clientes HTTP múltiples](#clientes-http-múltiples)
 
 ---
+
+## 🍳 Recetas y Ejemplos de Uso Real
+
+### Autenticación JWT/OAuth2
+
+```typescript
+import { http } from "httplazy";
+http.configureAuth({ type: "jwt", token: "mi-token" });
+const { data } = await http.getAll("/usuarios");
+```
+
+### Subida de Archivos
+
+```typescript
+const formData = new FormData();
+formData.append("file", archivo);
+const { data, error } = await http.post("/api/upload", formData);
+```
+
+### Uso en Next.js API Routes
+
+```typescript
+import { http } from "httplazy/server";
+export async function GET(request) {
+  const response = await http.getAll("https://api.com/productos");
+  return Response.json(response.data);
+}
+```
+
+### Integración con React Query
+
+```typescript
+import { useQuery } from "react-query";
+import { http } from "httplazy";
+const { data, error } = useQuery(["usuarios"], () =>
+  http.getAll("/usuarios").then((r) => r.data)
+);
+```
+
+## 🏆 Buenas Prácticas
+
+- Usa instancias separadas para cada API o contexto.
+- Centraliza la lógica HTTP en servicios por dominio.
+- Maneja errores siempre con la propiedad `error`.
+- Usa caché para datos poco cambiantes.
+- Aplica interceptores para logging, métricas y autenticación.
+- Documenta tus servicios y helpers.
+- Usa tipado explícito en todas las respuestas.
 
 ## Preguntas Frecuentes (FAQ)
 
@@ -1421,31 +1492,17 @@ async function fetchData(): Promise<ApiResponse<UserType[]>> {
 
 Estamos abiertos a contribuciones para mejorar HttpLazy. Puedes contribuir de varias formas:
 
-### Cómo Contribuir
+### 🤝 Cómo Contribuir
 
-1. **Fork del repositorio**: Crea tu propio fork del proyecto desde GitHub
-2. **Clona**: `git clone https://github.com/tu-usuario/lazyhttp-libreria.git`
-3. **Instala**: `npm install` para instalar dependencias
-4. **Crea una rama**: `git checkout -b nombre-caracteristica`
-5. **Desarrolla**: Implementa tu característica o corrección
-6. **Prueba**: Ejecuta `npm test` para asegurar que todo funciona
-7. **Compila**: `npm run build` para verificar la compilación
-8. **Commit**: `git commit -m "feat: descripción de tu cambio"`
-9. **Push**: `git push origin nombre-caracteristica`
-10. **Crea un Pull Request**: Abre un PR en GitHub con una descripción detallada
+1. Haz un **fork** del repositorio
+2. Clona tu fork: `git clone ...`
+3. Crea una rama: `git checkout -b mi-feature`
+4. Haz tus cambios y pruebas (`npm test`)
+5. Haz commit siguiendo Conventional Commits
+6. Sube tu rama: `git push origin mi-feature`
+7. Abre un **Pull Request** y describe tu cambio
 
-### Guías de Estilo
-
-- Seguimos las convenciones de TypeScript estándar
-- Usamos ESLint con la configuración del proyecto
-- Todos los cambios deben incluir pruebas
-- Documentar cualquier nueva API o cambio en la API existente
-
-### Proceso de Revisión
-
-- Cada PR es revisado por al menos un mantenedor del proyecto
-- Los CI checks deben pasar (tests, linting, tipado)
-- El código debe seguir las [Convenciones de Código](#convenciones-de-código)
+> ¡Toda contribución es bienvenida! Consulta la [Guía de Contribución](#guía-de-contribución) para más detalles.
 
 ## Casos de Uso Específicos
 
@@ -1631,9 +1688,9 @@ const resp = await http.upload(
 | **Caché integrada**        | ✅                    | ❌                   | ❌                           |
 | **Cancelación**            | ✅                    | ✅                   | ✅                           |
 | **Autenticación**          | ✅ Integrada          | ❌ (Manual)          | ❌ (Manual)                  |
-| **Soporte para Streaming** | ✅                    | ✅ (Básico)          | ✅                           |
-| **Soporte para Proxy**     | ✅ (Servidor)         | ✅                   | ❌                           |
-| **Reintentos automáticos** | ✅ (Exponential)      | ❌ (Requires config) | ❌                           |
+| **Streaming**              | ✅                    | ✅ (Básico)          | ✅                           |
+| **Proxy**                  | ✅ (Servidor)         | ✅                   | ❌                           |
+| **Reintentos automáticos** | ✅ (Exponencial)      | ❌ (Requires config) | ❌                           |
 | **Métricas integradas**    | ✅                    | ❌                   | ❌                           |
 
 ### Diferencias técnicas restantes frente a Axios
@@ -1812,3 +1869,86 @@ dhttp.interceptors.response.use(
 
 - Este patrón es útil si necesitas lógica personalizada o integración con frameworks como React Router, Next.js, etc.
 - Si usas la configuración integrada (`configureAuth`), la redirección automática ya está soportada y no necesitas este interceptor.
+
+---
+
+## Arquitectura Orientada a Servicios (SOA)
+
+> **HttpLazy** incluye soporte nativo para exponer y consumir servicios bajo el paradigma SOA (Service Oriented Architecture), facilitando la creación de microservicios y la comunicación entre sistemas desacoplados.
+
+### ¿Qué es SOA en HttpLazy?
+
+- Permite definir y publicar servicios (métodos remotos) en un servidor Node.js de forma tipada y modular.
+- Los clientes pueden consumir estos servicios de manera transparente, con tipado TypeScript y manejo de errores uniforme.
+- Ideal para arquitecturas distribuidas, microservicios, o integración entre sistemas heterogéneos.
+
+### Ventajas
+
+- **Desacoplamiento:** Los servicios se exponen y consumen por nombre, no por rutas HTTP rígidas.
+- **Batching:** Permite agrupar múltiples llamadas a servicios en una sola petición (optimización de red).
+- **Tipado:** Contratos claros y reutilizables entre cliente y servidor.
+- **Extensible:** Puedes agregar/quitar servicios en caliente.
+
+### Ejemplo: Crear un Servidor SOA
+
+```typescript
+import { createSoaServer } from "httplazy/server";
+
+const mathService = {
+  async sum(a: number, b: number) {
+    return a + b;
+  },
+  async multiply(a: number, b: number) {
+    return a * b;
+  },
+};
+
+const server = createSoaServer({
+  port: 4000,
+  services: {
+    math: mathService,
+  },
+});
+
+await server.start();
+console.log("SOA server running on port 4000");
+```
+
+### Ejemplo: Consumir servicios SOA desde un cliente
+
+```typescript
+import { createSoaClient } from "httplazy/client";
+
+const client = createSoaClient({
+  serviceUrl: "http://localhost:4000/services",
+});
+
+const result = await client.callService("math", "sum", [2, 3]);
+console.log(result); // 5
+
+// Llamada batch
+const results = await client.callBatch([
+  { serviceName: "math", method: "sum", params: [1, 2] },
+  { serviceName: "math", method: "multiply", params: [3, 4] },
+]);
+console.log(results); // [3, 12]
+```
+
+### API SOA disponible
+
+- `createSoaServer(config)`: Crea y expone servicios en el servidor.
+- `createSoaClient(config)`: Permite consumir servicios remotos.
+- `callService(serviceName, method, params, options?)`: Llama a un método remoto.
+- `callBatch(calls, options?)`: Llama a varios métodos en una sola petición.
+- `getServiceDefinition(serviceName)`: Obtiene la definición de un servicio.
+- `addService(name, implementation)`: Agrega un servicio en caliente (servidor).
+- `removeService(name)`: Elimina un servicio (servidor).
+
+### Notas y recomendaciones
+
+- El endpoint por defecto es `/services` (configurable).
+- Soporta CORS y configuración avanzada.
+- El cliente puede usar autenticación y headers personalizados.
+- Ideal para microservicios, gateways, y sistemas distribuidos.
+
+> Consulta la documentación extendida o el código fuente para ver más ejemplos avanzados y patrones de integración.
