@@ -126,7 +126,7 @@ import { http } from "httplazy/server";
 import { http } from "httplazy";
 
 // Petición GET
-const { data, error } = await http.get("https://api.example.com/users");
+const { data, error } = await http.getAll("https://api.example.com/users");
 if (error) {
   console.error("Error:", error.message);
 } else {
@@ -140,7 +140,7 @@ const response = await http.post("https://api.example.com/users", {
 });
 
 // Petición con parámetros de consulta
-const searchResponse = await http.get("https://api.example.com/search", {
+const searchResponse = await http.getAll("https://api.example.com/search", {
   params: {
     q: "javascript",
     page: 1,
@@ -207,7 +207,6 @@ http.initialize({
 | Método                                       | Descripción                                     | Parámetros                                                                                                                                     |
 | -------------------------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | `http.request(method, url, data?, options?)` | Método genérico para cualquier tipo de petición | `method`: Tipo de petición (GET, POST, etc)<br>`url`: URL del endpoint<br>`data`: Datos a enviar (opcional)<br>`options`: Opciones adicionales |
-| `http.get(url, options?)`                    | Petición GET                                    | `url`: URL del endpoint<br>`options`: Opciones adicionales                                                                                     |
 | `http.getAll(url, options?)`                 | Petición GET optimizada para listados           | `url`: URL del endpoint<br>`options`: Opciones adicionales                                                                                     |
 | `http.getById(url, id, options?)`            | Petición GET para un recurso específico         | `url`: URL base<br>`id`: Identificador del recurso<br>`options`: Opciones adicionales                                                          |
 | `http.post(url, data?, options?)`            | Petición POST                                   | `url`: URL del endpoint<br>`data`: Datos a enviar<br>`options`: Opciones adicionales                                                           |
@@ -301,13 +300,13 @@ http.invalidateCache("/users/*"); // Invalidar usando patrones
 http.invalidateCacheByTags(["users"]); // Invalidar por etiquetas
 
 // Usar caché en peticiones específicas
-const { data } = await http.get("/users", {
+const { data } = await http.getAll("users", {
   cache: true, // Habilitar caché
   tags: ["users", "list"], // Asignar etiquetas
 });
 
 // Especificar TTL personalizado
-await http.get("/users", { cache: 3600 }); // 1 hora
+await http.getAll("users", { cache: 3600 }); // 1 hora
 ```
 
 ### Retry Automático con Backoff Exponencial
@@ -329,7 +328,7 @@ http.initialize({
 });
 
 // Usar retry en una petición específica
-const response = await http.get("https://api.ejemplo.com/datos", {
+const response = await http.getAll("https://api.ejemplo.com/datos", {
   retryOptions: {
     enabled: true, // Activa retry para esta petición
     maxRetries: 5, // Sobrescribe el número máximo de intentos
@@ -485,7 +484,7 @@ configureProxy({
 HttpLazy proporciona un manejo de errores consistente y predecible:
 
 ```javascript
-const { data, error, status } = await http.get("/api/users");
+const { data, error, status } = await http.getAll("/api/users");
 
 if (error) {
   // Manejar según código HTTP
@@ -524,7 +523,7 @@ if (error) {
 
 ```javascript
 try {
-  const response = await http.get("/api/data");
+  const response = await http.getAll("/api/data");
 
   if (response.error) {
     // Error HTTP con respuesta del servidor
@@ -573,7 +572,7 @@ Además de los códigos HTTP estándar, HttpLazy define códigos internos para s
 
 ```javascript
 // Ejemplo de manejo de códigos personalizados
-const { error } = await http.get("/api/users");
+const { error } = await http.getAll("/api/users");
 
 if (error) {
   switch (error.code) {
@@ -716,7 +715,7 @@ async function processApiError(error, retryFn) {
 async function fetchUserData() {
   try {
     setLoading(true);
-    const response = await userService.getUser();
+    const response = await userService.getAll();
 
     if (response.error) {
       const result = await processApiError(response.error, fetchUserData);
@@ -793,7 +792,7 @@ import { http } from "httplazy/server";
 
 export async function GET(request) {
   // Obtener productos desde un servicio externo
-  const response = await http.get("https://external-api.com/products");
+  const response = await http.getAll("https://external-api.com/products");
 
   if (response.error) {
     return Response.json(
@@ -852,7 +851,7 @@ http.initialize({
 });
 
 export const userService = {
-  getAll: () => http.get("/users"),
+  getAll: () => http.getAll("/users"),
   getById: (id) => http.getById("/users", id),
   create: (data) => http.post("/users", data),
   update: (id, data) => http.put(`/users/${id}`, data),
@@ -935,10 +934,10 @@ export const authService = {
 
    ```javascript
    // Datos que cambian poco
-   const config = await http.get("/api/config", { cache: 3600 }); // 1h
+   const config = await http.getAll("/api/config", { cache: 3600 }); // 1h
 
    // Datos que cambian con frecuencia
-   const notifications = await http.get("/api/notifications", { cache: 60 }); // 1min
+   const notifications = await http.getAll("/api/notifications", { cache: 60 }); // 1min
    ```
 
 2. **Invalidación selectiva**
@@ -954,8 +953,8 @@ export const authService = {
    // Precargar datos comunes durante la inicialización
    export async function initializeApp() {
      await Promise.all([
-       http.get("/api/config", { cache: true }),
-       http.get("/api/common-data", { cache: true }),
+       http.getAll("/api/config", { cache: true }),
+       http.getAll("/api/common-data", { cache: true }),
      ]);
    }
    ```
@@ -1001,7 +1000,7 @@ import { http } from "httplazy/client";
 import type { ApiResponse, RequestOptions } from "httplazy/client";
 
 async function fetchData(): Promise<ApiResponse<UserType[]>> {
-  return http.get<UserType[]>("/api/users");
+  return http.getAll<UserType[]>("/api/users");
 }
 ```
 
@@ -1018,7 +1017,7 @@ async function fetchData(): Promise<ApiResponse<UserType[]>> {
 │  │                 │    │      │  │                 │    │
 │  │  Core API       │    │      │  │  Core API       │    │
 │  │  - request()    │    │      │  │  - request()    │    │
-│  │  - get(), post()│    │      │  │  - get(), post()│    │
+│  │  - getAll()     │    │      │  │  - getAll()     │    │
 │  │  - auth, caché  │    │      │  │  - auth, caché  │    │
 │  │                 │    │      │  │                 │    │
 │  └────────┬────────┘    │      │  └────────┬────────┘    │
@@ -1049,7 +1048,7 @@ async function fetchData(): Promise<ApiResponse<UserType[]>> {
 ┌──────────┐    ┌────────────┐    ┌────────────┐    ┌────────────┐    ┌─────────┐
 │          │    │            │    │            │    │            │    │         │
 │ Llamada  │--->│Interceptor │--->│  Caché     │--->│ Solicitud  │--->│ Servidor│
-│ http.get │    │ Petición   │    │ ¿Presente? │    │   HTTP     │    │  API    │
+│ http.getAll│    │ Petición   │    │ ¿Presente? │    │   HTTP     │    │  API    │
 │          │    │            │    │            │    │            │    │         │
 └──────────┘    └────────────┘    └─────┬──────┘    └─────┬──────┘    └────┬────┘
                                         │                 │                │
