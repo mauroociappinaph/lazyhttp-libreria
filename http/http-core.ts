@@ -154,4 +154,31 @@ export class HttpCore {
     // Filtra los null para evitar errores de tipo
     return resultados.map(r => r.data).filter((d): d is T => d !== null);
   }
+
+  /**
+   * Sube archivos y campos de formulario de manera optimizada (Node.js y browser)
+   * @param endpoint URL destino
+   * @param fields Objeto con campos (puede incluir paths, streams, strings, buffers)
+   * @param options Opciones adicionales de la petición
+   */
+  async upload<T = any>(
+    endpoint: string,
+    fields: Record<string, any>,
+    options?: Omit<RequestOptions, 'method' | 'body'>
+  ): Promise<ApiResponse<T>> {
+    // Node.js
+    if (typeof window === 'undefined') {
+      const { buildNodeFormData } = await import('./common/utils/http-upload.utils');
+      const { form, headers } = buildNodeFormData(fields);
+      return this.post(endpoint, form, {
+        ...options,
+        headers: { ...(options?.headers || {}), ...headers }
+      });
+    } else {
+      // Browser: usar FormData nativo
+      const form = new FormData();
+      for (const key in fields) form.append(key, fields[key]);
+      return this.post(endpoint, form, options);
+    }
+  }
 }
