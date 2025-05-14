@@ -35,11 +35,19 @@ export class BrowserHttpClient extends BaseHttpClient {
           ? HttpUtils.addQueryParams(fullUrl, options.params)
           : fullUrl;
 
+        // --- Transformar data antes de enviar (transformRequest) ---
+        let requestData = data;
+        if (this.transformRequest.length > 0) {
+          for (const fn of this.transformRequest) {
+            requestData = fn(requestData);
+          }
+        }
+
         // Ejecutar petición con axios
         const response = await axios.request<T>({
           method,
           url: urlWithParams,
-          data,
+          data: requestData,
           headers,
           timeout: options?.timeout || this.defaultTimeout
         });
@@ -52,9 +60,17 @@ export class BrowserHttpClient extends BaseHttpClient {
           }
         }
 
+        // --- Transformar data de respuesta (transformResponse) ---
+        let responseData = response.data;
+        if (this.transformResponse.length > 0) {
+          for (const fn of this.transformResponse) {
+            responseData = fn(responseData);
+          }
+        }
+
         // Formar respuesta estándar
         return {
-          data: response.data,
+          data: responseData,
           status: response.status,
           headers: response.headers as Record<string, string>,
           config: response.config
@@ -141,6 +157,63 @@ export class BrowserHttpClient extends BaseHttpClient {
 
     // Iniciar el proceso de petición
     return executeRequest();
+  }
+
+  // Sobrescribo el método protegido para usar los transformadores activos
+  protected async _requestWithTransforms<T>(method: HttpMethod, url: string, data?: any, options?: RequestOptions): Promise<ApiResponse<T>> {
+    // Obtener los transformadores activos de la base
+    const transformRequestFns = (this as any)._activeTransformRequest || [];
+    const transformResponseFns = (this as any)._activeTransformResponse || [];
+
+    // --- Transformar data antes de enviar (transformRequest) ---
+    let requestData = data;
+    if (transformRequestFns.length > 0) {
+      for (const fn of transformRequestFns) {
+        requestData = fn(requestData);
+      }
+    }
+
+    // ... el resto igual que antes, pero usando requestData ...
+    try {
+      // URL completa (añadir baseUrl si es necesaria)
+      const fullUrl = this.buildRequestUrl(url);
+      const headers = this.prepareHeaders(
+        options?.headers || {},
+        options?.withAuth !== undefined ? options.withAuth : false
+      );
+      const urlWithParams = options?.params
+        ? HttpUtils.addQueryParams(fullUrl, options.params)
+        : fullUrl;
+      const response = await axios.request<T>({
+        method,
+        url: urlWithParams,
+        data: requestData,
+        headers,
+        timeout: options?.timeout || this.defaultTimeout
+      });
+      if (this.metricsConfig.enabled) {
+        this.trackActivity('request');
+        if (this.metricsConfig.trackPerformance) {
+          // Implementar tracking de tiempo de respuesta
+        }
+      }
+      // --- Transformar data de respuesta (transformResponse) ---
+      let responseData = response.data;
+      if (transformResponseFns.length > 0) {
+        for (const fn of transformResponseFns) {
+          responseData = fn(responseData);
+        }
+      }
+      return {
+        data: responseData,
+        status: response.status,
+        headers: response.headers as Record<string, string>,
+        config: response.config
+      };
+    } catch (error) {
+      // ... manejo de error igual ...
+      throw error;
+    }
   }
 
   // Implementaciones específicas para navegador

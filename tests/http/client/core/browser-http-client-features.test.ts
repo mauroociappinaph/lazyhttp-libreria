@@ -1,5 +1,7 @@
 import { BrowserHttpClient } from '../../../../http/client/core/browser-http-client';
 import axios from 'axios';
+import { RequestOptions } from '../../../../http/types/http.types';
+
 
 
 // Mock de axios
@@ -216,4 +218,68 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
   // debido a problemas con los temporizadores simulados
 
   // Nota: Los tests de Interceptors se han desactivado temporalmente
+
+  describe('Transformadores automáticos (request/response)', () => {
+    let httpClient: BrowserHttpClient;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      httpClient = new BrowserHttpClient();
+      httpClient.initialize({ baseUrl: 'https://api.ejemplo.com' });
+    });
+
+    test('aplica transformRequest global antes de enviar la data', async () => {
+      const transformFn = jest.fn((data) => ({ ...data, extra: true }));
+      httpClient.initialize({ transformRequest: transformFn });
+      mockedAxios.request.mockResolvedValueOnce({
+        data: { ok: true }, status: 200, headers: {}, config: {}
+      });
+      await httpClient.post('/test', { foo: 'bar' });
+      expect(transformFn).toHaveBeenCalledWith({ foo: 'bar' });
+      expect(mockedAxios.request).toHaveBeenCalledWith(expect.objectContaining({
+        data: { foo: 'bar', extra: true }
+      }));
+    });
+
+    test('aplica transformResponse global después de recibir la data', async () => {
+      const transformFn = jest.fn((data) => ({ ...data, transformed: true }));
+      httpClient.initialize({ transformResponse: transformFn });
+      mockedAxios.request.mockResolvedValueOnce({
+        data: { ok: true }, status: 200, headers: {}, config: {}
+      });
+      const resp = await httpClient.get('/test');
+      expect(transformFn).toHaveBeenCalledWith({ ok: true });
+      expect(resp.data).toEqual({ ok: true, transformed: true });
+    });
+
+    test('aplica transformadores por petición y sobreescribe los globales', async () => {
+      const globalTransform = jest.fn((data) => ({ ...data, global: true }));
+      const perRequestTransform = jest.fn((data) => ({ ...data, perRequest: true }));
+      httpClient.initialize({ transformRequest: globalTransform });
+      mockedAxios.request.mockResolvedValueOnce({
+        data: { ok: true }, status: 200, headers: {}, config: {}
+      });
+      await httpClient.post('/test', { foo: 1 }, { transformRequest: perRequestTransform } as RequestOptions);
+      expect(globalTransform).not.toHaveBeenCalled();
+      expect(perRequestTransform).toHaveBeenCalledWith({ foo: 1 });
+      expect(mockedAxios.request).toHaveBeenCalledWith(expect.objectContaining({
+        data: { foo: 1, perRequest: true }
+      }));
+    });
+
+    test('aplica múltiples transformadores en orden', async () => {
+      const t1 = jest.fn((data) => ({ ...data, t1: true }));
+      const t2 = jest.fn((data) => ({ ...data, t2: true }));
+      httpClient.initialize({ transformRequest: [t1, t2] });
+      mockedAxios.request.mockResolvedValueOnce({
+        data: { ok: true }, status: 200, headers: {}, config: {}
+      });
+      await httpClient.post('/test', { foo: 1 });
+      expect(t1).toHaveBeenCalledWith({ foo: 1 });
+      expect(t2).toHaveBeenCalledWith({ foo: 1, t1: true });
+      expect(mockedAxios.request).toHaveBeenCalledWith(expect.objectContaining({
+        data: { foo: 1, t1: true, t2: true }
+      }));
+    });
+  });
 });

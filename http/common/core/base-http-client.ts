@@ -27,9 +27,8 @@ export abstract class BaseHttpClient implements HttpImplementation {
     retryableErrors: ['ECONNRESET', 'ETIMEDOUT', 'ECONNREFUSED']
   };
   protected proxyConfig?: ProxyConfig;
-
-  // Métodos abstractos que deben implementar las clases derivadas
-  abstract request<T>(method: HttpMethod, url: string, data?: any, options?: RequestOptions): Promise<ApiResponse<T>>;
+  protected transformRequest: ((data: any) => any)[] = [];
+  protected transformResponse: ((data: any) => any)[] = [];
 
   // Método de inicialización común
   initialize(config: any): void {
@@ -43,6 +42,16 @@ export abstract class BaseHttpClient implements HttpImplementation {
     if (config.metrics) this.metricsConfig = { ...this.metricsConfig, ...config.metrics };
     if (config.retry) this.retryConfig = { ...this.retryConfig, ...config.retry };
     if (config.proxy) this.proxyConfig = config.proxy;
+    if (config.transformRequest) {
+      this.transformRequest = Array.isArray(config.transformRequest)
+        ? config.transformRequest
+        : [config.transformRequest];
+    }
+    if (config.transformResponse) {
+      this.transformResponse = Array.isArray(config.transformResponse)
+        ? config.transformResponse
+        : [config.transformResponse];
+    }
 
     // Permitir que las implementaciones específicas realicen inicialización adicional
     this.onInitialize(config);
@@ -196,5 +205,41 @@ export abstract class BaseHttpClient implements HttpImplementation {
     }
 
     return false;
+  }
+
+  async request<T>(method: HttpMethod, url: string, data?: any, options?: RequestOptions): Promise<ApiResponse<T>> {
+    // Combinar transformadores globales y de la petición
+    const transformRequestFns = [
+      ...this.transformRequest,
+      ...(options?.transformRequest
+        ? Array.isArray(options.transformRequest)
+          ? options.transformRequest
+          : [options.transformRequest]
+        : [])
+    ];
+    const transformResponseFns = [
+      ...this.transformResponse,
+      ...(options?.transformResponse
+        ? Array.isArray(options.transformResponse)
+          ? options.transformResponse
+          : [options.transformResponse]
+        : [])
+    ];
+    // Guardar temporalmente los transformadores para esta petición
+    (this as any)._activeTransformRequest = transformRequestFns;
+    (this as any)._activeTransformResponse = transformResponseFns;
+    // Llamar al método real (de la subclase)
+    const result = await this._requestWithTransforms<T>(method, url, data, options);
+    // Limpiar
+    delete (this as any)._activeTransformRequest;
+    delete (this as any)._activeTransformResponse;
+    return result;
+  }
+
+  /**
+   * Método interno que las subclases deben usar en vez de request para acceder a los transformadores activos
+   */
+  protected async _requestWithTransforms<T>(method: HttpMethod, url: string, data?: any, options?: RequestOptions): Promise<ApiResponse<T>> {
+    throw new Error('Debe ser implementado por la subclase');
   }
 }

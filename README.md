@@ -6,6 +6,78 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-4.5+-blue)](https://www.typescriptlang.org/)
 
+## ¿Por qué elegir HTTPLazy frente a Axios o Fetch?
+
+HTTPLazy es una alternativa moderna, minimalista y eficiente para realizar peticiones HTTP en JavaScript/TypeScript, diseñada para superar las limitaciones y el exceso de configuración de otras librerías populares. Aquí te mostramos por qué destaca:
+
+### 🚀 Rendimiento y Ligereza
+
+- **Tamaño reducido:** HTTPLazy pesa ~12KB min+gzip, siendo más ligera que Axios (~14KB) y sin dependencias pesadas.
+- **Optimización automática:** Elige internamente la mejor implementación según el entorno (fetch en navegador, http/https en Node.js), sin que tengas que preocuparte por nada.
+- **Tree-shaking real:** Solo se importa lo que usas, ideal para bundles modernos.
+
+### 🧩 Sintaxis Intuitiva y Sin Boilerplate
+
+- **API simple y coherente:** Olvídate de configurar instancias o escribir repetidamente try/catch. Todas las respuestas siguen el patrón `{ data, error, status }`.
+- **Menos código repetido:** Métodos como `getAll`, `getById`, `post`, `put`, `patch`, `del` y helpers para concurrencia (`all`) y tipado seguro.
+- **Tipado TypeScript completo:** Aprovecha autocompletado y validación de tipos en todas las operaciones.
+
+### ✨ Funcionalidades Únicas e Integradas
+
+- **Cancelación nativa:** Soporte para `AbortController` en todos los entornos.
+- **Retries automáticos:** Reintentos con backoff exponencial configurables por petición o globalmente.
+- **Caché inteligente:** Integración de caché en memoria, localStorage o sessionStorage, con TTL y etiquetas para invalidación.
+- **Interceptores composables:** Añade lógica antes/después de cada petición (autenticación, logging, métricas, etc.) de forma sencilla.
+- **Manejo de errores avanzado:** Clases de error especializadas y helpers para integración con React Query, SWR, etc.
+- **Múltiples clientes:** Crea tantas instancias de cliente como necesites, cada una con su propia configuración y middlewares.
+
+### 🌐 Compatibilidad Universal
+
+- **Funciona en Node.js y navegadores:** Arquitectura dual, sin hacks ni polyfills.
+- **Soporte para frameworks modernos:** Optimizada para Next.js, Remix, y aplicaciones isomórficas.
+- **Streaming, proxies y más:** Funcionalidades avanzadas disponibles en Node.js sin sacrificar compatibilidad en el navegador.
+
+---
+
+### Ejemplo comparativo
+
+**HTTPLazy:**
+
+```typescript
+const { data, error } = await http.getAll("/api/users");
+if (error) showError(error.message);
+```
+
+**Axios:**
+
+```typescript
+try {
+  const { data } = await axios.get("/api/users");
+} catch (error) {
+  showError(error.response?.data?.message || error.message);
+}
+```
+
+**Fetch:**
+
+```typescript
+const resp = await fetch("/api/users");
+if (!resp.ok) {
+  const error = await resp.json();
+  showError(error.message);
+}
+const data = await resp.json();
+```
+
+---
+
+### Resumen
+
+- **HTTPLazy** es ideal si buscas una librería HTTP minimalista, rápida, con sintaxis moderna y funcionalidades avanzadas integradas, sin sacrificar compatibilidad ni escalabilidad.
+- Es la opción perfecta para proyectos que requieren rendimiento, claridad y facilidad de mantenimiento, tanto en frontend como en backend.
+
+---
+
 ## Tabla de Contenidos
 
 - [Descripción General](#descripción-general)
@@ -1520,6 +1592,25 @@ const resp = await http.upload(
 | **Soporte para Proxy**     | ✅ (Servidor)         | ✅                   | ❌                           |
 | **Reintentos automáticos** | ✅ (Exponential)      | ❌ (Requires config) | ❌                           |
 | **Métricas integradas**    | ✅                    | ❌                   | ❌                           |
+
+### Diferencias técnicas restantes frente a Axios
+
+HTTPLazy cubre la mayoría de las funcionalidades modernas y ergonómicas de Axios, pero existen algunas diferencias técnicas menores:
+
+| Característica                                 | HTTPLazy  | Axios          |
+| ---------------------------------------------- | --------- | -------------- |
+| Transformadores automáticos (request/response) | ✅        | ✅             |
+| Progreso de subida/descarga de archivos        | Parcial\* | ✅             |
+| Cancelación de peticiones (`AbortController`)  | ✅        | ✅             |
+| CancelToken personalizado (legacy)             | ❌        | ✅ (deprecado) |
+| Adaptador HTTP personalizable a bajo nivel     | ❌        | ✅             |
+| Soporte para navegadores legacy (IE11+)        | ❌        | ✅             |
+| Serialización avanzada de query params         | Básica    | Avanzada       |
+
+> \*HTTPLazy permite subir archivos y cancelar peticiones, pero el seguimiento de progreso puede requerir integración manual adicional.
+
+**¿Por qué elegir HTTPLazy igualmente?**
+HTTPLazy está optimizada para proyectos modernos, priorizando ergonomía, rendimiento, tipado y compatibilidad universal (Node.js + browser). Si tu proyecto no depende de navegadores legacy ni de personalizaciones muy avanzadas del adaptador HTTP, HTTPLazy es una opción más ligera, clara y fácil de mantener.
 
 ## Clientes HTTP múltiples
 

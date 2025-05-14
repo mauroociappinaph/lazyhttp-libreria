@@ -2,18 +2,9 @@
  * Tipos comunes para cliente y servidor
  */
 
-// Tipos básicos de HTTP
-export interface RequestOptions {
-  headers?: Record<string, string>;
-  params?: Record<string, any>;
-  timeout?: number;
-  retries?: number;
-  cache?: boolean | number;
-  tags?: string[];
-  withAuth?: boolean;
-  retryOptions?: RetryOptions;
-}
+import type { RequestOptions } from '../../types/http.types';
 
+// Tipos básicos de HTTP
 export interface ApiResponse<T = any> {
   data: T;
   status: number;
@@ -134,3 +125,5 @@ export interface HttpImplementation {
   trackActivity(type: string): void;
   getCurrentMetrics(): any;
 }
+
+export type { RequestOptions } from '../../types/http.types';

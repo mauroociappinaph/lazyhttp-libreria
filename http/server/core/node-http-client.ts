@@ -39,9 +39,13 @@ export class NodeHttpClient extends BaseHttpClient {
   }
 
   /**
-   * Implementación específica de request para Node.js usando axios
+   * Sobrescribo el método protegido para usar los transformadores activos
    */
-  async request<T>(method: HttpMethod, url: string, data?: any, options?: RequestOptions): Promise<ApiResponse<T>> {
+  protected async _requestWithTransforms<T>(method: HttpMethod, url: string, data?: any, options?: RequestOptions): Promise<ApiResponse<T>> {
+    // Obtener los transformadores activos de la base
+    const transformRequestFns = (this as any)._activeTransformRequest || [];
+    const transformResponseFns = (this as any)._activeTransformResponse || [];
+
     // URL completa (añadir baseUrl si es necesaria)
     const fullUrl = this.buildRequestUrl(url);
 
@@ -76,9 +80,20 @@ export class NodeHttpClient extends BaseHttpClient {
       }
     }
 
+    // --- Transformar data antes de enviar (transformRequest) ---
+    let requestData = data;
+    if (transformRequestFns.length > 0) {
+      for (const fn of transformRequestFns) {
+        requestData = fn(requestData);
+      }
+    }
+
     try {
       // Ejecutar petición con axios
-      const response = await axios.request<T>(requestConfig);
+      const response = await axios.request<T>({
+        ...requestConfig,
+        data: requestData
+      });
 
       // Registrar métricas si están habilitadas
       if (this.metricsConfig.enabled) {
@@ -88,9 +103,17 @@ export class NodeHttpClient extends BaseHttpClient {
         }
       }
 
+      // --- Transformar data de respuesta (transformResponse) ---
+      let responseData = response.data;
+      if (transformResponseFns.length > 0) {
+        for (const fn of transformResponseFns) {
+          responseData = fn(responseData);
+        }
+      }
+
       // Formar respuesta estándar
       return {
-        data: response.data,
+        data: responseData,
         status: response.status,
         headers: response.headers as Record<string, string>,
         config: response.config
@@ -439,5 +462,12 @@ export class NodeHttpClient extends BaseHttpClient {
   private _isTokenExpired(expiration: number): boolean {
     const currentTime = Math.floor(Date.now() / 1000);
     return expiration < currentTime;
+  }
+
+  /**
+   * Implementación pública de request requerida por la clase base
+   */
+  async request<T>(method: HttpMethod, url: string, data?: any, options?: RequestOptions): Promise<ApiResponse<T>> {
+    return this._requestWithTransforms<T>(method, url, data, options);
   }
 }
