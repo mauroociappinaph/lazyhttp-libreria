@@ -429,92 +429,49 @@ httpInstance.interceptors.response.use(
 
 ---
 
-## Interceptores avanzados: composición, reutilización y testabilidad
+### Interceptores globales
 
-A diferencia de Axios, **HttpLazy** permite crear interceptores como **clases independientes, composables y reutilizables**. Esto aporta mayor escalabilidad, testabilidad y separación de responsabilidades en proyectos grandes.
+Puedes aplicar interceptores globales en HttpLazy de forma sencilla. Un interceptor global es aquel que afecta a todas las peticiones realizadas con una instancia de cliente (por ejemplo, la instancia singleton `http`).
 
-### Ventajas sobre Axios
-
-- **Composición real:** Puedes encadenar y combinar interceptores como piezas de Lego.
-- **Reutilización:** Los interceptores pueden compartirse entre diferentes clientes o contextos.
-- **Desacoplamiento:** Cada interceptor es una clase o función independiente, fácil de testear y mantener.
-- **Testabilidad:** Puedes mockear, reemplazar o extender interceptores fácilmente.
-- **Consistencia:** Fomenta el principio de responsabilidad única y la arquitectura limpia.
-
-### Ejemplo: interceptor como clase
+#### Ejemplo: interceptor global para toda la app
 
 ```typescript
-import {
-  RequestInterceptor,
-  ResponseInterceptor,
-  InterceptorContext,
-} from "httplazy/types/interceptors/interceptors.types";
+import { http } from "httplazy";
+import { LoggingInterceptor } from "./logging.interceptor";
 
-// Un interceptor de logging reutilizable
-export class LoggingInterceptor
-  implements RequestInterceptor, ResponseInterceptor
-{
-  id = "LoggingInterceptor";
-  order = 100;
-
-  intercept(context: InterceptorContext): InterceptorContext {
-    console.log("[LOG] Request", context);
-    return context;
-  }
-
-  interceptResponse(response: any, context: InterceptorContext): any {
-    console.log("[LOG] Response", response);
-    return response;
-  }
-}
+// Aplica el interceptor a TODAS las peticiones de la app
+http.useInterceptor(new LoggingInterceptor());
 ```
 
-### Encadenar y reutilizar interceptores
+Todas las peticiones hechas con `http.get`, `http.post`, etc., pasarán por ese interceptor.
+
+#### Interceptores globales por instancia personalizada
+
+Si creas una instancia personalizada de cliente, puedes tener interceptores globales solo para esa instancia:
 
 ```typescript
 import { HttpCore } from "httplazy";
-import { LoggingInterceptor } from "./logging.interceptor";
-import { RetryInterceptor } from "httplazy/interceptors";
+import { AuthInterceptor } from "./auth.interceptor";
 
-const client = new HttpCore.HttpCore();
-client.useInterceptor(new LoggingInterceptor());
-client.useInterceptor(new RetryInterceptor({ retries: 3 }));
+const customClient = new HttpCore.HttpCore();
+customClient.useInterceptor(new AuthInterceptor());
 
-// Ahora todas las peticiones de este cliente pasarán por ambos interceptores
+// Todas las peticiones hechas con customClient tendrán ese interceptor
 ```
 
-### Test unitario de un interceptor
+#### ¿Cómo limpiar o reemplazar interceptores globales?
+
+Puedes limpiar todos los interceptores de una instancia usando el método interno:
 
 ```typescript
-import { LoggingInterceptor } from "./logging.interceptor";
+// Limpiar todos los interceptores de la instancia global
+http._setupInterceptors();
 
-describe("LoggingInterceptor", () => {
-  it("debería loguear la petición", () => {
-    const interceptor = new LoggingInterceptor();
-    const context = {
-      url: "/api",
-      method: "GET",
-      headers: {},
-      data: null,
-      timestamp: Date.now(),
-    };
-    expect(() => interceptor.intercept(context)).not.toThrow();
-  });
-});
+// O para una instancia personalizada
+customClient._setupInterceptors();
 ```
 
-### Comparativa rápida con Axios
-
-| Característica       | Axios                           | HttpLazy                                     |
-| -------------------- | ------------------------------- | -------------------------------------------- |
-| Registro             | `.interceptors.request.use(fn)` | `.useInterceptor(new MiInterceptor())`       |
-| Tipo                 | Funciones/callbacks             | Clases/objetos composables                   |
-| Composición          | Limitada (orden de registro)    | Composable, encadenable, desacoplado         |
-| Reutilización        | Difícil entre instancias        | Fácil, puedes compartir interceptores        |
-| Testabilidad         | Media                           | Alta (puedes mockear interceptores)          |
-| Separación de lógica | Menor (todo en un callback)     | Alta (cada interceptor es una unidad lógica) |
-
-> **Recomendación:** Usa interceptores como clases en proyectos medianos o grandes para máxima escalabilidad y mantenibilidad.
+> **Nota:** Los interceptores son globales para la instancia donde los agregues. Si usas la instancia singleton `http`, el interceptor es global para toda la app. Si usas varias instancias, puedes tener diferentes interceptores globales por contexto.
 
 ### Métricas y Actividad
 
