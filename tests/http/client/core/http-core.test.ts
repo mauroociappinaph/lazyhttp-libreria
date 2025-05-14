@@ -90,3 +90,73 @@ describe('HttpCore.upload', () => {
     expect(resp.data).toEqual({ ok: true });
   });
 });
+
+describe('HttpCore.upload (múltiples archivos)', () => {
+  let http: HttpCore;
+
+  beforeEach(() => {
+    http = new HttpCore();
+  });
+
+  it('debe agregar múltiples archivos en un solo campo (Node.js)', async () => {
+    const postMock = jest.spyOn(http, 'post').mockResolvedValue({ data: { ok: true }, error: null, status: 200 });
+    jest.mock('../../../../http/common/utils/http-upload.utils', () => ({
+      buildNodeFormData: (fields: any) => ({
+        form: { _isFormData: true, fields },
+        headers: { 'content-type': 'multipart/form-data; boundary=abc123' }
+      })
+    }));
+    (global as any).window = undefined;
+    const fields = { archivos: ['./a.txt', './b.txt'], descripcion: 'multi' };
+    await http.upload('https://api.com/upload', fields);
+    expect(postMock).toHaveBeenCalledWith(
+      'https://api.com/upload',
+      expect.objectContaining({ _isFormData: true, fields }),
+      expect.anything()
+    );
+  });
+
+  it('debe agregar múltiples archivos en un solo campo (browser)', async () => {
+    (global as any).window = {};
+    const postMock = jest.spyOn(http, 'post').mockResolvedValue({ data: { ok: true }, error: null, status: 200 });
+    const file1 = { name: 'a.txt' };
+    const file2 = { name: 'b.txt' };
+    const fields = { archivos: [file1, file2], descripcion: 'multi' };
+    await http.upload('https://api.com/upload', fields);
+    // No podemos inspeccionar el FormData real, pero sí que se llama con FormData y los campos correctos
+    expect(postMock).toHaveBeenCalledWith(
+      'https://api.com/upload',
+      expect.any(FormData),
+      undefined
+    );
+  });
+});
+
+describe('HttpCore.upload (validación de archivos)', () => {
+  let http: HttpCore;
+
+  beforeEach(() => {
+    http = new HttpCore();
+  });
+
+  it('debe lanzar error si el archivo simple no existe (Node.js)', async () => {
+    // Mock buildNodeFormData para lanzar error
+    jest.mock('../../../../http/common/utils/http-upload.utils', () => ({
+      buildNodeFormData: () => { throw new Error("El archivo './noexiste.txt' no existe o no es un archivo válido (campo 'archivo')"); }
+    }));
+    (global as any).window = undefined;
+    await expect(
+      http.upload('https://api.com/upload', { archivo: './noexiste.txt' })
+    ).rejects.toThrow("El archivo './noexiste.txt' no existe o no es un archivo válido (campo 'archivo')");
+  });
+
+  it('debe lanzar error si algún archivo en array no existe (Node.js)', async () => {
+    jest.mock('../../../../http/common/utils/http-upload.utils', () => ({
+      buildNodeFormData: () => { throw new Error("El archivo './falso.txt' no existe o no es un archivo válido (campo 'archivos')"); }
+    }));
+    (global as any).window = undefined;
+    await expect(
+      http.upload('https://api.com/upload', { archivos: ['./a.txt', './falso.txt'] })
+    ).rejects.toThrow("El archivo './falso.txt' no existe o no es un archivo válido (campo 'archivos')");
+  });
+});
