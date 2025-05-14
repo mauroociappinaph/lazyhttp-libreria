@@ -132,6 +132,49 @@ const data = await resp.json();
 - [Compatibilidad con librerías que esperan promesas rechazadas](#compatibilidad-con-librerías-que-esperan-promesas-rechazadas)
 - [Clientes HTTP múltiples](#clientes-http-múltiples)
 
+---
+
+## Preguntas Frecuentes (FAQ)
+
+### ¿HTTPLazy soporta middlewares personalizados (interceptores), encadenables y asíncronos?
+
+Sí. HTTPLazy implementa el concepto de **interceptores** (request, response y error), que funcionan como middlewares. Puedes registrar varios interceptores por instancia, son composables y pueden ser asíncronos (`Promise`). Esto permite ejecutar lógica antes o después de cada petición, como autenticación, logging, métricas, etc.
+
+Ejemplo:
+
+```typescript
+client.useInterceptor(new MiInterceptorPersonalizado());
+client.useInterceptor(new OtroInterceptor());
+```
+
+---
+
+### ¿Responde automáticamente con JSON si el handler retorna un objeto?
+
+Sí, cuando usas los métodos estándar (`get`, `post`, etc.), si el servidor responde con JSON, HTTPLazy lo parsea automáticamente y lo expone como objeto. El header `Content-Type: application/json` se envía por defecto en las peticiones. Si implementas un servidor, asegúrate de que tu framework también responda correctamente con JSON.
+
+---
+
+### ¿HTTPLazy parsea automáticamente los parámetros de consulta (query) y el cuerpo (body) para JSON, x-www-form-urlencoded y otros formatos?
+
+- **Query:** Los parámetros (`params`) se agregan automáticamente a la URL.
+- **Body:** Por defecto, el body se serializa a JSON. Para `form-data` (archivos) hay helpers (`upload`). Para `x-www-form-urlencoded` debes serializarlo manualmente y establecer el header adecuado.
+
+---
+
+### ¿HTTPLazy es compatible con la API fetch nativa? ¿Acepta o expone objetos Request y Response como en fetch?
+
+No es 100% compatible. HTTPLazy usa Axios internamente, no la API fetch nativa. No acepta ni retorna objetos `Request`/`Response` nativos, pero la API es muy similar (métodos, headers, body, etc.). Puedes usar `AbortController` para cancelar peticiones.
+
+---
+
+### ¿HTTPLazy tiene benchmarks públicos? ¿Está optimizada para alta concurrencia o entornos serverless?
+
+- **Optimización:** HTTPLazy es ligera (~12KB min+gzip), soporta caché, reintentos automáticos, streaming y métricas integradas. Es compatible con entornos serverless y de alta concurrencia (Next.js, Vercel, AWS Lambda, etc.).
+- **Benchmarks públicos:** Actualmente no hay benchmarks publicados en la documentación.
+
+---
+
 ## Descripción General
 
 **HttpLazy** es una biblioteca HTTP moderna y flexible diseñada para simplificar las peticiones HTTP en aplicaciones JavaScript/TypeScript, tanto en entornos de navegador como de servidor (Node.js). Su arquitectura modular permite utilizarla en cualquier framework, con un soporte especial para aplicaciones universales (isomórficas) como Next.js, Remix o similares.
