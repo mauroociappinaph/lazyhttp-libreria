@@ -46,3 +46,47 @@ describe('HttpCore.all', () => {
     expect(resultado).toEqual([]);
   });
 });
+
+describe('HttpCore.upload', () => {
+  let http: HttpCore;
+
+  beforeEach(() => {
+    http = new HttpCore();
+  });
+
+  it('debe construir el FormData y llamar a post con los headers correctos (Node.js)', async () => {
+    // Mock de post para capturar argumentos
+    const postMock = jest.spyOn(http, 'post').mockResolvedValue({ data: { ok: true }, error: null, status: 200 });
+    // Mock dinámico de buildNodeFormData
+    jest.mock('../../../../http/common/utils/http-upload.utils', () => ({
+      buildNodeFormData: (fields: any) => ({
+        form: { _isFormData: true, fields },
+        headers: { 'content-type': 'multipart/form-data; boundary=abc123' }
+      })
+    }));
+    // Forzamos entorno Node
+    (global as any).window = undefined;
+    const fields = { archivo: './ejemplo.txt', descripcion: 'Test' };
+    const resp = await http.upload('https://api.com/upload', fields, { headers: { 'x-custom': '1' } });
+    expect(postMock).toHaveBeenCalledWith(
+      'https://api.com/upload',
+      expect.objectContaining({ _isFormData: true, fields }),
+      expect.objectContaining({ headers: expect.objectContaining({ 'content-type': expect.any(String), 'x-custom': '1' }) })
+    );
+    expect(resp.data).toEqual({ ok: true });
+  });
+
+  it('debe construir FormData nativo en browser', async () => {
+    // Simula entorno browser
+    (global as any).window = {};
+    const postMock = jest.spyOn(http, 'post').mockResolvedValue({ data: { ok: true }, error: null, status: 200 });
+    const fields = { archivo: 'file', descripcion: 'Test' };
+    const resp = await http.upload('https://api.com/upload', fields);
+    expect(postMock).toHaveBeenCalledWith(
+      'https://api.com/upload',
+      expect.any(FormData),
+      undefined
+    );
+    expect(resp.data).toEqual({ ok: true });
+  });
+});
