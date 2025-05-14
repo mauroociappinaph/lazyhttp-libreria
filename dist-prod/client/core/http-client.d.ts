@@ -1,6 +1,6 @@
+import { SocksProxyAgent } from 'socks-proxy-agent';
 import { HttpImplementation, RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, ProxyConfig, StreamConfig } from '../../http.types';
 import { HttpsProxyAgent } from 'https-proxy-agent';
-import { SocksProxyAgent } from 'socks-proxy-agent';
 import { HttpOperations } from './http-operations';
 export declare class HttpClient implements HttpImplementation, HttpOperations {
     private core;
@@ -8,6 +8,7 @@ export declare class HttpClient implements HttpImplementation, HttpOperations {
     private authManager;
     private configManager;
     constructor();
+    private initResourceAccessors;
     get _baseUrl(): string | undefined;
     set _baseUrl(url: string | undefined);
     get _frontendUrl(): string | undefined;
@@ -25,13 +26,38 @@ export declare class HttpClient implements HttpImplementation, HttpOperations {
     get _defaultStreamConfig(): StreamConfig | undefined;
     set _defaultStreamConfig(config: StreamConfig | undefined);
     request<T>(endpoint: string, options?: RequestOptions): Promise<ApiResponse<T>>;
-    get<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
-    getAll<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
-    getById<T>(endpoint: string, id: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
-    post<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
-    put<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
-    patch<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
-    delete<T>(endpoint: string, options?: Omit<RequestOptions, 'method'>): Promise<ApiResponse<T>>;
+    getMethod<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
+    getAllMethod<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
+    getByIdMethod<T>(endpoint: string, id: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
+    postMethod<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
+    putMethod<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
+    patchMethod<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
+    deleteMethod<T>(endpoint: string, options?: Omit<RequestOptions, 'method'>): Promise<ApiResponse<T>>;
+    streamMethod<T = unknown>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ReadableStream<T>>;
+    get: F & {
+        [resource: string]: F;
+    };
+    getAll: F & {
+        [resource: string]: F;
+    };
+    getById: F & {
+        [resource: string]: F;
+    };
+    post: F & {
+        [resource: string]: F;
+    };
+    put: F & {
+        [resource: string]: F;
+    };
+    patch: F & {
+        [resource: string]: F;
+    };
+    delete: F & {
+        [resource: string]: F;
+    };
+    stream: F & {
+        [resource: string]: F;
+    };
     _setupInterceptors(interceptor?: any, type?: 'request' | 'response'): void;
     configureAuth(config: AuthConfig): void;
     login(credentials: UserCredentials): Promise<AuthInfo>;
@@ -68,9 +94,10 @@ export declare class HttpClient implements HttpImplementation, HttpOperations {
     trackActivity(type: string): void;
     getCurrentMetrics(): any;
     configureProxy(config: ProxyConfig): void;
-    stream<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ReadableStream<T>>;
     _buildUrl(endpoint: string): string;
     _prepareHeaders(options: RequestOptions): Record<string, string>;
     _createProxyAgent(proxyConfig?: ProxyConfig): SocksProxyAgent | HttpsProxyAgent<string> | undefined;
     logger: import("../../http-logger").HttpLogger;
 }
+type F = (...args: any[]) => any;
+export {};

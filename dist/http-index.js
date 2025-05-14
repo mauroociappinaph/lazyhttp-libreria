@@ -1,11 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.loadSoaModule = exports.loadProxyModule = exports.loadStreamingModule = exports.deepFindLazy = exports.httpLogger = exports.getCurrentMetrics = exports.trackActivity = exports.configureMetrics = exports.invalidateCacheByTags = exports.invalidateCache = exports.configureCaching = exports.initialize = exports.getAccessToken = exports.getAuthenticatedUser = exports.isAuthenticated = exports.logout = exports.login = exports.configureAuth = exports.del = exports.patch = exports.put = exports.post = exports.getById = exports.getAll = exports.get = exports.request = exports.http = void 0;
+exports.loadSoaModule = exports.loadProxyModule = exports.loadStreamingModule = exports.deepFindLazy = exports.httpLogger = exports.getCurrentMetrics = exports.trackActivity = exports.configureMetrics = exports.invalidateCacheByTags = exports.invalidateCache = exports.configureCaching = exports.initialize = exports.getAccessToken = exports.getAuthenticatedUser = exports.isAuthenticated = exports.logout = exports.login = exports.configureAuth = exports.del = exports.patch = exports.put = exports.post = exports.getById = exports.getAll = exports.request = exports.http = void 0;
 const tslib_1 = require("tslib");
 const http_client_1 = require("./client/core/http-client");
 exports.http = new http_client_1.HttpClient();
 exports.request = exports.http.request.bind(exports.http);
-exports.get = exports.http.get.bind(exports.http);
 exports.getAll = exports.http.getAll.bind(exports.http);
 exports.getById = exports.http.getById.bind(exports.http);
 exports.post = exports.http.post.bind(exports.http);

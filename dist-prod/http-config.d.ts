@@ -32,4 +32,4 @@ export declare const AUTH_ENDPOINTS: {
     LOGOUT: string;
 };
 export declare function createAxiosInstance(): import("axios").AxiosInstance;
-export declare const axiosInstance: import("axios").AxiosInstance;
+export declare const httpInstance: import("axios").AxiosInstance;

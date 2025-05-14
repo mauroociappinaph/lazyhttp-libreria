@@ -22,7 +22,6 @@ export declare const http: HttpImplementation & {
     _defaultStreamConfig?: StreamConfig;
 };
 export declare const request: <T>(endpoint: string, options?: RequestOptions) => Promise<ApiResponse<T>>;
-export declare const get: <T>(endpoint: string, options?: Omit<RequestOptions, "method" | "body">) => Promise<ApiResponse<T>>;
 export declare const getAll: <T>(endpoint: string, options?: Omit<RequestOptions, "method" | "body">) => Promise<ApiResponse<T>>;
 export declare const getById: <T>(endpoint: string, id: string, options?: Omit<RequestOptions, "method" | "body">) => Promise<ApiResponse<T>>;
 export declare const post: <T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, "method" | "body">) => Promise<ApiResponse<T>>;

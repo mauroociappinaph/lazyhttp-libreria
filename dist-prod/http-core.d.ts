@@ -14,4 +14,5 @@ export declare class HttpCore {
     put<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
     patch<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
     delete<T>(endpoint: string, options?: Omit<RequestOptions, 'method'>): Promise<ApiResponse<T>>;
+    all<T = any>(urls: string[], options?: Omit<RequestOptions, 'method' | 'body'>): Promise<T[]>;
 }
