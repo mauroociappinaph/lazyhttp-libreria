@@ -93,16 +93,21 @@ httplazy/
 
 ### Importación según entorno
 
-```javascript
-// Detección automática (recomendado)
-import { http } from "httplazy";
-
-// Específicamente para navegador
-import { http } from "httplazy/client";
-
-// Específicamente para Node.js
-import { http } from "httplazy/server";
-```
+> ⚠️ **Importante:**
+>
+> A partir de la versión 2.x, la forma recomendada de usar HttpLazy es **instanciando manualmente el cliente**. La importación directa de `http` está deprecada y puede no estar disponible en futuras versiones.
+>
+> **Nueva forma recomendada:**
+>
+> ```js
+> import { HttpCore } from "httplazy";
+> const http = new HttpCore.HttpCore();
+> // Ahora puedes usar http.get, http.post, etc.
+> ```
+>
+> Esto permite crear múltiples clientes con configuraciones independientes y mejora la escalabilidad y testabilidad del código.
+>
+> Si encuentras ejemplos con `import { http } from 'httplazy'`, actualízalos siguiendo este patrón.
 
 ### Comparativa de funcionalidades
 
