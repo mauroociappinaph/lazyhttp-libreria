@@ -139,24 +139,53 @@ describe('HttpCore.upload (validación de archivos)', () => {
     http = new HttpCore();
   });
 
-  it('debe lanzar error si el archivo simple no existe (Node.js)', async () => {
-    // Mock buildNodeFormData para lanzar error
+  it('debe devolver error si el archivo simple no existe (Node.js)', async () => {
     jest.mock('../../../../http/common/utils/http-upload.utils', () => ({
       buildNodeFormData: () => { throw new Error("El archivo './noexiste.txt' no existe o no es un archivo válido (campo 'archivo')"); }
     }));
     (global as any).window = undefined;
-    await expect(
-      http.upload('https://api.com/upload', { archivo: './noexiste.txt' })
-    ).rejects.toThrow("El archivo './noexiste.txt' no existe o no es un archivo válido (campo 'archivo')");
+    const resp = await http.upload('https://api.com/upload', { archivo: './noexiste.txt' });
+    expect(resp.error).toMatch(/no existe o no es un archivo válido/);
   });
 
-  it('debe lanzar error si algún archivo en array no existe (Node.js)', async () => {
+  it('debe devolver error si algún archivo en array no existe (Node.js)', async () => {
     jest.mock('../../../../http/common/utils/http-upload.utils', () => ({
       buildNodeFormData: () => { throw new Error("El archivo './falso.txt' no existe o no es un archivo válido (campo 'archivos')"); }
     }));
     (global as any).window = undefined;
-    await expect(
-      http.upload('https://api.com/upload', { archivos: ['./a.txt', './falso.txt'] })
-    ).rejects.toThrow("El archivo './falso.txt' no existe o no es un archivo válido (campo 'archivos')");
+    const resp = await http.upload('https://api.com/upload', { archivos: ['./a.txt', './falso.txt'] });
+    expect(resp.error).toMatch(/no existe o no es un archivo válido/);
+  });
+});
+
+describe('HttpCore.upload (validación de tamaño y validateFiles)', () => {
+  let http: HttpCore;
+
+  beforeEach(() => {
+    http = new HttpCore();
+  });
+
+  it('debe devolver error si el archivo excede el tamaño máximo (Node.js)', async () => {
+    jest.mock('../../../../http/common/utils/http-upload.utils', () => ({
+      buildNodeFormData: () => { throw new Error("Archivo './grande.txt' excede el tamaño máximo permitido (1048576 bytes)"); }
+    }));
+    (global as any).window = undefined;
+    const resp = await http.upload('https://api.com/upload', { archivo: './grande.txt' }, { maxFileSize: 1048576 });
+    expect(resp.error).toMatch(/excede el tamaño máximo permitido/);
+  });
+
+  it('no debe devolver error si validateFiles es false aunque el archivo no exista (Node.js)', async () => {
+    jest.mock('../../../../http/common/utils/http-upload.utils', () => ({
+      buildNodeFormData: (fields: any, _r: any, opts: any) => {
+        if (opts.validateFiles === false) {
+          return { form: { _isFormData: true, fields }, headers: { 'content-type': 'multipart/form-data' } };
+        }
+        throw new Error('No debería llamarse con validateFiles=true en este test');
+      }
+    }));
+    (global as any).window = undefined;
+    const resp = await http.upload('https://api.com/upload', { archivo: './noexiste.txt' }, { validateFiles: false });
+    expect(resp.error).toBeUndefined();
+    expect(resp.data).toBeDefined();
   });
 });
