@@ -1154,6 +1154,27 @@ async function uploadMultipleFiles(files) {
 }
 ```
 
+### Subir múltiples archivos en un solo campo
+
+Puedes pasar un array de paths, streams, File o Blob para subir varios archivos bajo el mismo campo:
+
+```js
+// Node.js
+await http.upload("https://fakestoreapi.com/upload", {
+  archivos: ["./a.txt", "./b.txt"], // varios archivos en un solo campo
+  descripcion: "Subida múltiple",
+});
+
+// Browser
+await http.upload("https://fakestoreapi.com/upload", {
+  archivos: [file1, file2], // File o Blob
+  descripcion: "Subida múltiple",
+});
+```
+
+- El campo se repetirá en el FormData por cada archivo.
+- Puedes combinar campos simples y arrays.
+
 ## Comparativa con Alternativas
 
 | Característica             | HttpLazy              | Axios                | Fetch API                    |

@@ -157,8 +157,9 @@ export class HttpCore {
 
   /**
    * Sube archivos y campos de formulario de manera optimizada (Node.js y browser)
+   * Soporta múltiples archivos por campo (arrays)
    * @param endpoint URL destino
-   * @param fields Objeto con campos (puede incluir paths, streams, strings, buffers)
+   * @param fields Objeto con campos (puede incluir paths, streams, strings, buffers o arrays de estos)
    * @param options Opciones adicionales de la petición
    */
   async upload<T = any>(
@@ -175,9 +176,16 @@ export class HttpCore {
         headers: { ...(options?.headers || {}), ...headers }
       });
     } else {
-      // Browser: usar FormData nativo
+      // Browser: usar FormData nativo y soportar arrays
       const form = new FormData();
-      for (const key in fields) form.append(key, fields[key]);
+      for (const key in fields) {
+        const value = fields[key];
+        if (Array.isArray(value)) {
+          value.forEach((item) => form.append(key, item));
+        } else {
+          form.append(key, value);
+        }
+      }
       return this.post(endpoint, form, options);
     }
   }
