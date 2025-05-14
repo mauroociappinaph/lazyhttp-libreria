@@ -389,6 +389,87 @@ configureProxy({
 });
 ```
 
+## Service Oriented Architecture (SOA)
+
+> **HttpLazy** natively supports exposing and consuming services using the SOA (Service Oriented Architecture) paradigm, making it easy to build microservices and enable communication between decoupled systems.
+
+### What is SOA in HttpLazy?
+
+- Define and publish services (remote methods) on a Node.js server in a typed and modular way.
+- Clients can consume these services transparently, with TypeScript typing and uniform error handling.
+- Ideal for distributed architectures, microservices, or integration between heterogeneous systems.
+
+### Advantages
+
+- **Decoupling:** Services are exposed and consumed by name, not by rigid HTTP routes.
+- **Batching:** Group multiple service calls into a single request (network optimization).
+- **Typing:** Clear, reusable contracts between client and server.
+- **Extensible:** Add or remove services at runtime.
+
+### Example: Creating a SOA Server
+
+```typescript
+import { createSoaServer } from "httplazy/server";
+
+const mathService = {
+  async sum(a: number, b: number) {
+    return a + b;
+  },
+  async multiply(a: number, b: number) {
+    return a * b;
+  },
+};
+
+const server = createSoaServer({
+  port: 4000,
+  services: {
+    math: mathService,
+  },
+});
+
+await server.start();
+console.log("SOA server running on port 4000");
+```
+
+### Example: Consuming SOA Services from a Client
+
+```typescript
+import { createSoaClient } from "httplazy/client";
+
+const client = createSoaClient({
+  serviceUrl: "http://localhost:4000/services",
+});
+
+const result = await client.callService("math", "sum", [2, 3]);
+console.log(result); // 5
+
+// Batch call
+const results = await client.callBatch([
+  { serviceName: "math", method: "sum", params: [1, 2] },
+  { serviceName: "math", method: "multiply", params: [3, 4] },
+]);
+console.log(results); // [3, 12]
+```
+
+### SOA API Available
+
+- `createSoaServer(config)`: Create and expose services on the server.
+- `createSoaClient(config)`: Consume remote services.
+- `callService(serviceName, method, params, options?)`: Call a remote method.
+- `callBatch(calls, options?)`: Call multiple methods in a single request.
+- `getServiceDefinition(serviceName)`: Get the definition of a service.
+- `addService(name, implementation)`: Add a service at runtime (server).
+- `removeService(name)`: Remove a service (server).
+
+### Notes and Recommendations
+
+- The default endpoint is `/services` (configurable).
+- Supports CORS and advanced configuration.
+- The client can use authentication and custom headers.
+- Ideal for microservices, gateways, and distributed systems.
+
+> See the extended documentation or source code for more advanced examples and integration patterns.
+
 ## Error Handling
 
 HttpLazy provides consistent and predictable error handling:
