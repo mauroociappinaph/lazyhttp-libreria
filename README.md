@@ -1222,6 +1222,65 @@ if (resp.error) {
 }
 ```
 
+### Validación y manejo de errores en upload
+
+El método `upload` realiza validaciones automáticas en Node.js:
+
+- Verifica que los archivos existan y sean válidos antes de subirlos (por defecto).
+- Permite limitar el tamaño máximo de los archivos con la opción `maxFileSize` (en bytes).
+- Si ocurre un error de validación, **la respuesta tendrá la propiedad `error` con un mensaje descriptivo**. Nunca se lanza una excepción inesperada.
+
+#### Ejemplo: manejo de error por archivo inexistente
+
+```js
+const resp = await http.upload("https://fakestoreapi.com/upload", {
+  archivo: "./noexiste.txt",
+  descripcion: "Intento fallido",
+});
+
+if (resp.error) {
+  console.error("Error al subir archivo:", resp.error);
+  // "El archivo './noexiste.txt' no existe o no es un archivo válido (campo 'archivo')"
+} else {
+  console.log("Subida exitosa:", resp.data);
+}
+```
+
+#### Ejemplo: limitar tamaño máximo de archivo
+
+```js
+const resp = await http.upload(
+  "https://fakestoreapi.com/upload",
+  {
+    archivo: "./grande.txt",
+  },
+  { maxFileSize: 1024 * 1024 }
+); // 1MB
+if (resp.error) {
+  // "Archivo './grande.txt' excede el tamaño máximo permitido (1048576 bytes)"
+}
+```
+
+#### Desactivar validación de archivos (casos avanzados)
+
+Puedes desactivar la validación de existencia/tamaño de archivos usando la opción `validateFiles: false`:
+
+```js
+const resp = await http.upload(
+  "https://fakestoreapi.com/upload",
+  {
+    archivo: "./noexiste.txt",
+  },
+  { validateFiles: false }
+);
+// No se valida la existencia ni el tamaño, se envía el campo tal cual
+```
+
+#### Buenas prácticas en tests
+
+- Mockea el método `post` y el helper de FormData en tus tests para evitar dependencias de red o de archivos reales.
+- Verifica siempre la propiedad `error` en la respuesta para manejar cualquier validación fallida.
+
 ## Comparativa con Alternativas
 
 | Característica             | HttpLazy              | Axios                | Fetch API                    |
