@@ -485,6 +485,62 @@ configureProxy({
 });
 ```
 
+## Filosofía de diseño: ¿Por qué `{ data, error }` en lugar de Promesas rechazadas?
+
+HttpLazy adopta el patrón de respuesta `{ data, error }` en todos sus métodos asíncronos, en vez de depender de Promesas rechazadas para los errores. Esta decisión tiene varias ventajas clave:
+
+- **Consistencia:** Todas las respuestas, exitosas o con error, tienen la misma estructura. No necesitas mezclar `try/catch` con chequeos de propiedades.
+- **Previsibilidad:** Nunca tendrás errores inesperados que se "escapen" de una promesa rechazada. El flujo de control es siempre explícito.
+- **Mejor experiencia en UI:** En frameworks como React, puedes manejar loading, error y data en un solo lugar, sin ramas de control duplicadas.
+- **Facilita testing:** Los tests pueden verificar la propiedad `error` directamente, sin tener que capturar excepciones.
+- **Evita errores silenciosos:** Los errores de red, validación y negocio siempre llegan en la respuesta, no se pierden en un catch global.
+
+### Ejemplo comparativo
+
+**Con HttpLazy:**
+
+```js
+const { data, error } = await http.getAll("/api/usuarios");
+if (error) {
+  mostrarError(error);
+} else {
+  mostrarDatos(data);
+}
+```
+
+**Con Promesas rechazadas (fetch/axios):**
+
+```js
+try {
+  const resp = await axios.get("/api/usuarios");
+  mostrarDatos(resp.data);
+} catch (error) {
+  mostrarError(error);
+}
+```
+
+> El patrón `{ data, error }` es especialmente útil en aplicaciones modernas, donde el manejo de errores de red, validación y negocio debe ser uniforme y predecible.
+
+### ¿Cuándo es contraproducente el patrón `{ data, error }`?
+
+El patrón `{ data, error }` es ideal para la mayoría de los casos, pero puede ser **contraproducente** si integras HttpLazy con librerías o utilidades que esperan Promesas que pueden ser rechazadas, por ejemplo:
+
+- Algunos hooks de React (`useSWR`, `useQuery`, etc.)
+- Utilidades como `Promise.all`, `Promise.race`, etc.
+- Middlewares o frameworks que esperan errores lanzados para flujos de control
+
+**¿Qué hacer en estos casos?**
+
+Adapta el resultado manualmente:
+
+```js
+const { data, error } = await http.get("...");
+if (error) throw error; // Para compatibilidad con librerías que esperan Promesas rechazadas
+return data;
+```
+
+Así puedes seguir usando HttpLazy y mantener la compatibilidad con cualquier ecosistema.
+
 ## Manejo de Errores
 
 HttpLazy proporciona un manejo de errores consistente y predecible:
