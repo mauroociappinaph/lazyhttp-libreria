@@ -31,11 +31,14 @@ export const errorHandler: HttpErrorHandler = {
     // 2. Errores de Axios
     else if (isAxiosError(error)) {
       const axiosError = new HttpAxiosError();
+      // Extraer mensaje de error específico de la respuesta de la API si está disponible
+      const apiErrorMessage = error.response?.data?.message || error.response?.data?.error;
+
       response = {
         data: null,
-        error: axiosError.details?.description || HttpAxiosError.ERROR_MESSAGES.AXIOS_ERROR,
+        error: apiErrorMessage || axiosError.details?.description || HttpAxiosError.ERROR_MESSAGES.AXIOS_ERROR,
         status: error.response?.status || 0,
-        details: axiosError.details
+        details: error.response?.data || axiosError.details
       };
     }
     // 3. Errores de aborto
