@@ -37,9 +37,17 @@ export class BrowserHttpClient extends BaseHttpClient {
 
         // --- Transformar data antes de enviar (transformRequest) ---
         let requestData = data;
-        if (this.transformRequest.length > 0) {
-          for (const fn of this.transformRequest) {
-            requestData = fn(requestData);
+        let requestTransformers = options?.transformRequest || this.transformRequest;
+
+        if (!Array.isArray(requestTransformers)) {
+          requestTransformers = [requestTransformers];
+        }
+
+        if (requestTransformers.length > 0) {
+          for (const fn of requestTransformers) {
+            if(fn) { // Asegurarse que la función existe
+              requestData = fn(requestData);
+            }
           }
         }
 
