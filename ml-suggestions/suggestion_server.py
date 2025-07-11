@@ -3,7 +3,7 @@ from flask_cors import CORS
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
-import pickle
+import joblib  # Reemplazado pickle por joblib para mayor seguridad
 import os
 import re
 
@@ -11,7 +11,7 @@ app = Flask(__name__)
 CORS(app)  # Permite peticiones desde JavaScript
 
 # Rutas a archivos
-MODEL_PATH = 'data/error_model.pkl'
+MODEL_PATH = 'data/error_model.joblib' # Cambiada la extensión del modelo
 DATA_PATH = 'data/error_data.csv'
 
 # Variables globales
@@ -49,6 +49,10 @@ def initialize():
     """Inicializa el modelo y los datos"""
     global model, data
 
+    # Crear directorios si no existen
+    if not os.path.exists('data'):
+        os.makedirs('data')
+
     # Crear dataframe vacío si no existe
     if not os.path.exists(DATA_PATH):
         data = pd.DataFrame(columns=[
@@ -61,14 +65,21 @@ def initialize():
 
     # Cargar modelo o crear uno nuevo
     if os.path.exists(MODEL_PATH):
-        with open(MODEL_PATH, 'rb') as f:
-            model = pickle.load(f)
+        try:
+            model = joblib.load(MODEL_PATH)
+        except Exception as e:
+            print(f"Error al cargar el modelo: {e}. Se creará uno nuevo.")
+            # Si el modelo está corrupto, lo reiniciamos
+            if os.path.exists(MODEL_PATH):
+                os.remove(MODEL_PATH)
+            train_model()
     else:
         model = RandomForestClassifier()
         # Entrenar con datos predeterminados si no hay
         if len(data) < 5:
             seed_initial_data()
-            train_model()
+        train_model()
+
 
 def seed_initial_data():
     """Agrega algunos datos iniciales para empezar"""
@@ -129,13 +140,29 @@ def train_model():
     global model, data
 
     if len(data) < 3:  # Necesitamos al menos algunos ejemplos
+        # Si no hay suficientes datos, creamos un modelo vacío pero no lo entrenamos
+        model = RandomForestClassifier()
         return
 
     # Preparar datos de entrenamiento
     X = []
     y = []
 
-    for _, row in data.iterrows():
+    # Asegurarnos que la columna 'suggestion' existe y no tiene NaNs
+    if 'suggestion' not in data.columns or data['suggestion'].isnull().all():
+        print("No hay datos de sugerencias para entrenar el modelo.")
+        model = RandomForestClassifier()
+        return
+
+    # Filtrar filas donde la sugerencia no es nula
+    trainable_data = data.dropna(subset=['suggestion'])
+
+    if len(trainable_data) < 3:
+        print("No hay suficientes datos válidos para entrenar el modelo.")
+        model = RandomForestClassifier()
+        return
+
+    for _, row in trainable_data.iterrows():
         error_info = {
             'error_type': row['error_type'],
             'status_code': row['status_code'],
@@ -150,8 +177,7 @@ def train_model():
     model.fit(X, y)
 
     # Guardar el modelo
-    with open(MODEL_PATH, 'wb') as f:
-        pickle.dump(model, f)
+    joblib.dump(model, MODEL_PATH)
 
 @app.route('/suggest', methods=['POST'])
 def suggest():
@@ -160,9 +186,11 @@ def suggest():
 
     # Obtener datos del error
     error_info = request.json
+    if not error_info:
+        return jsonify({'error': 'Cuerpo de la petición vacío o no es JSON'}), 400
 
     # Si no hay modelo entrenado o pocos datos, dar respuesta genérica
-    if model is None or len(data) < 5:
+    if model is None or not hasattr(model, 'predict') or len(data) < 5:
         error_type = error_info.get('error_type', '')
 
         # Respuestas predeterminadas basadas en el tipo
@@ -179,16 +207,24 @@ def suggest():
     features = extract_features(error_info)
 
     # Predecir sugerencia
-    suggestion = model.predict([features])[0]
-    return jsonify({'suggestion': suggestion})
+    try:
+        suggestion = model.predict([features])[0]
+        return jsonify({'suggestion': suggestion})
+    except Exception as e:
+        print(f"Error durante la predicción: {e}")
+        return jsonify({'suggestion': 'Ocurrió un error al procesar la sugerencia.'})
+
 
 @app.route('/feedback', methods=['POST'])
 def feedback():
     """Recibe retroalimentación sobre si la sugerencia fue útil"""
     global data
 
-    # Recibir datos
+    # Recibir y validar datos
     feedback_data = request.json
+    if not feedback_data or not all(k in feedback_data for k in ['error_type', 'status_code', 'url_pattern', 'method', 'message', 'suggestion', 'was_helpful']):
+        return jsonify({'error': 'Faltan campos en los datos de feedback'}), 400
+
 
     # Agregar a los datos
     data = pd.concat([data, pd.DataFrame([feedback_data])], ignore_index=True)
