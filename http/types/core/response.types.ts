@@ -26,6 +26,31 @@ export interface ErrorDetails {
 }
 
 /**
+ * Metadatos completos de la respuesta HTTP
+ */
+export interface FullResponseMetadata {
+  /** Cabeceras enviadas en la solicitud */
+  requestHeaders: Record<string, string>;
+  /** Cabeceras recibidas en la respuesta */
+  responseHeaders: Record<string, string>;
+  /** Tiempos detallados de la solicitud (HAR-like) */
+  timing: {
+    requestStart?: number;
+    dnsLookupEnd?: number;
+    connectEnd?: number;
+    secureConnectionEnd?: number;
+    requestEnd?: number;
+    responseStart?: number;
+    responseEnd?: number;
+    [key: string]: number | undefined;
+  };
+  /** Cuerpo crudo de la respuesta (string o Buffer) */
+  rawBody: string | Uint8Array;
+  /** Detalles enriquecidos del error (si aplica) */
+  errorDetails?: ErrorDetails;
+}
+
+/**
  * Respuesta genérica de la API
  */
 export interface ApiResponse<T> {
@@ -53,6 +78,11 @@ export interface ApiResponse<T> {
    * Detalles adicionales del error (si lo hay)
    */
   details?: ErrorDetails;
+
+  /**
+   * Metadatos completos de la respuesta (opcional)
+   */
+  fullMeta?: FullResponseMetadata;
 }
 
 /**
