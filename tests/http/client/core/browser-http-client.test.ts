@@ -1,25 +1,21 @@
 import { BrowserHttpClient } from '../../../../http/client/core/browser-http-client';
-import axios from 'axios';
+import axios, { AxiosError, InternalAxiosRequestConfig, isAxiosError } from 'axios';
 
-// Mock de axios
-jest.mock('axios');
-const mockedAxios = axios as jest.Mocked<typeof axios>;
+// Mock solo del método request de axios
+jest.spyOn(axios, 'request');
 
 describe('BrowserHttpClient', () => {
   let httpClient: BrowserHttpClient;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    httpClient = new BrowserHttpClient();
-    httpClient.initialize({
-      baseUrl: 'https://api.ejemplo.com'
-    });
+    httpClient = new BrowserHttpClient({ baseUrl: 'https://api.ejemplo.com' });
   });
 
   test('debería ejecutar una petición GET exitosa', async () => {
     // Arrange
     const responseData = { id: 1, name: 'Test' };
-    mockedAxios.request.mockResolvedValueOnce({
+    (axios.request as jest.Mock).mockResolvedValueOnce({
       data: responseData,
       status: 200,
       headers: {},
@@ -30,7 +26,7 @@ describe('BrowserHttpClient', () => {
     const response = await httpClient.get('/users/1');
 
     // Assert
-    expect(mockedAxios.request).toHaveBeenCalledWith(expect.objectContaining({
+    expect(axios.request).toHaveBeenCalledWith(expect.objectContaining({
       url: 'https://api.ejemplo.com/users/1',
       method: 'GET'
     }));
@@ -43,7 +39,7 @@ describe('BrowserHttpClient', () => {
     // Arrange
     const requestData = { name: 'New User' };
     const responseData = { id: 1, name: 'New User' };
-    mockedAxios.request.mockResolvedValueOnce({
+    (axios.request as jest.Mock).mockResolvedValueOnce({
       data: responseData,
       status: 201,
       headers: {},
@@ -54,7 +50,7 @@ describe('BrowserHttpClient', () => {
     const response = await httpClient.post('/users', requestData);
 
     // Assert
-    expect(mockedAxios.request).toHaveBeenCalledWith(expect.objectContaining({
+    expect(axios.request).toHaveBeenCalledWith(expect.objectContaining({
       url: 'https://api.ejemplo.com/users',
       method: 'POST',
       data: requestData
@@ -65,13 +61,17 @@ describe('BrowserHttpClient', () => {
 
   test('debería manejar errores de red', async () => {
     // Arrange
-    const axiosError = {
-      code: 'ECONNRESET',
-      message: 'Connection reset',
-      isAxiosError: true
-    };
+    const axiosError = new AxiosError(
+      'Connection reset',
+      'ECONNRESET',
+      { headers: {} } as InternalAxiosRequestConfig<any>,
+      {},
+      undefined
+    );
+    axiosError.toJSON = () => ({});
+    console.log('isAxiosError:', isAxiosError(axiosError));
 
-    mockedAxios.request.mockRejectedValueOnce(axiosError);
+    (axios.request as jest.Mock).mockRejectedValueOnce(axiosError);
 
     // Act
     const response = await httpClient.get('/users/1');
@@ -85,16 +85,22 @@ describe('BrowserHttpClient', () => {
   test('debería manejar errores de servidor', async () => {
     // Arrange
     const errorMessage = 'Request failed with status code 500';
-    const axiosError = {
-      response: {
+    const axiosError = new AxiosError(
+      errorMessage,
+      undefined,
+      { headers: {} } as InternalAxiosRequestConfig<any>,
+      {},
+      {
         status: 500,
-        data: { message: errorMessage }
-      },
-      message: errorMessage,
-      isAxiosError: true
-    };
+        data: { message: errorMessage },
+        headers: {},
+        config: { headers: {} as any }, // fix: headers tipado
+        statusText: '', // fix: requerido por AxiosResponse
+      }
+    );
+    axiosError.toJSON = () => ({});
 
-    mockedAxios.request.mockRejectedValueOnce(axiosError);
+    (axios.request as jest.Mock).mockRejectedValueOnce(axiosError);
 
     // Act
     const response = await httpClient.get('/users/1');
@@ -107,7 +113,7 @@ describe('BrowserHttpClient', () => {
 
   test('debería concatenar correctamente el endpoint con la URL base', async () => {
     // Arrange
-    mockedAxios.request.mockResolvedValueOnce({
+    (axios.request as jest.Mock).mockResolvedValueOnce({
       data: {},
       status: 200,
       headers: {},
@@ -118,7 +124,7 @@ describe('BrowserHttpClient', () => {
     await httpClient.get('users/1'); // sin el slash inicial
 
     // Assert
-    expect(mockedAxios.request).toHaveBeenCalledWith(expect.objectContaining({
+    expect(axios.request).toHaveBeenCalledWith(expect.objectContaining({
       url: 'https://api.ejemplo.com/users/1' // debe incluir el slash
     }));
   });
@@ -128,7 +134,7 @@ describe('BrowserHttpClient', () => {
     const customHeaders = {
       'X-Custom-Header': 'custom-value'
     };
-    mockedAxios.request.mockResolvedValueOnce({
+    (axios.request as jest.Mock).mockResolvedValueOnce({
       data: {},
       status: 200,
       headers: {},
@@ -139,7 +145,7 @@ describe('BrowserHttpClient', () => {
     await httpClient.get('/users', { headers: customHeaders });
 
     // Assert
-    expect(mockedAxios.request).toHaveBeenCalledWith(expect.objectContaining({
+    expect(axios.request).toHaveBeenCalledWith(expect.objectContaining({
       headers: expect.objectContaining(customHeaders)
     }));
   });

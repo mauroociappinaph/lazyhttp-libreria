@@ -4,9 +4,8 @@ import { RequestOptions } from '../../../../http/types/http.types';
 
 
 
-// Mock de axios
-jest.mock('axios');
-const mockedAxios = axios as jest.Mocked<typeof axios>;
+// Mock solo del método request de axios
+jest.spyOn(axios, 'request');
 
 // Mock de interceptorsManager
 jest.mock('../../../../http/interceptors/http-interceptors-manager', () => ({
@@ -61,7 +60,7 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     global.localStorage.clear();
-    httpClient = new BrowserHttpClient();
+    httpClient = new BrowserHttpClient({});
   });
 
   describe('Configuración Personalizada', () => {
@@ -74,7 +73,7 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
         headers: customHeaders
       });
 
-      mockedAxios.request.mockResolvedValueOnce({
+      (axios.request as jest.Mock).mockResolvedValueOnce({
         data: {},
         status: 200,
         headers: {},
@@ -85,7 +84,7 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
       await httpClient.get('/test');
 
       // Assert
-      expect(mockedAxios.request).toHaveBeenCalledWith(
+      expect(axios.request).toHaveBeenCalledWith(
         expect.objectContaining({
           headers: expect.objectContaining(customHeaders)
         })
@@ -102,7 +101,7 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
         headers: globalHeaders
       });
 
-      mockedAxios.request.mockResolvedValueOnce({
+      (axios.request as jest.Mock).mockResolvedValueOnce({
         data: {},
         status: 200,
         headers: {},
@@ -113,7 +112,7 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
       await httpClient.get('/test', { headers: requestHeaders });
 
       // Assert - Los headers de la petición deben sobrescribir los globales
-      expect(mockedAxios.request).toHaveBeenCalledWith(
+      expect(axios.request).toHaveBeenCalledWith(
         expect.objectContaining({
           headers: expect.objectContaining({
             'X-Api-Key': 'request-key', // Sobrescrito
@@ -133,7 +132,7 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
         timeout: customTimeout
       });
 
-      mockedAxios.request.mockResolvedValueOnce({
+      (axios.request as jest.Mock).mockResolvedValueOnce({
         data: {},
         status: 200,
         headers: {},
@@ -144,7 +143,7 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
       await httpClient.get('/test');
 
       // Assert
-      expect(mockedAxios.request).toHaveBeenCalledWith(
+      expect(axios.request).toHaveBeenCalledWith(
         expect.objectContaining({
           timeout: customTimeout
         })
@@ -161,7 +160,7 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
         timeout: globalTimeout
       });
 
-      mockedAxios.request.mockResolvedValueOnce({
+      (axios.request as jest.Mock).mockResolvedValueOnce({
         data: {},
         status: 200,
         headers: {},
@@ -172,7 +171,7 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
       await httpClient.get('/test', { timeout: requestTimeout });
 
       // Assert
-      expect(mockedAxios.request).toHaveBeenCalledWith(
+      expect(axios.request).toHaveBeenCalledWith(
         expect.objectContaining({
           timeout: requestTimeout
         })
@@ -183,6 +182,15 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
       // Arrange
       const authToken = 'test-auth-token';
 
+      // Simular token en localStorage ANTES de crear el cliente
+      global.localStorage.setItem('auth_token', authToken);
+
+      httpClient = new BrowserHttpClient({
+        baseUrl: 'https://api.ejemplo.com',
+        auth: {
+          tokenKey: 'auth_token'
+        }
+      });
       httpClient.initialize({
         baseUrl: 'https://api.ejemplo.com',
         auth: {
@@ -190,10 +198,7 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
         }
       });
 
-      // Simular token en localStorage
-      global.localStorage.setItem('auth_token', authToken);
-
-      mockedAxios.request.mockResolvedValueOnce({
+      (axios.request as jest.Mock).mockResolvedValueOnce({
         data: {},
         status: 200,
         headers: {},
@@ -204,7 +209,7 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
       await httpClient.get('/test', { withAuth: true });
 
       // Assert
-      expect(mockedAxios.request).toHaveBeenCalledWith(
+      expect(axios.request).toHaveBeenCalledWith(
         expect.objectContaining({
           headers: expect.objectContaining({
             'Authorization': `Bearer ${authToken}`
@@ -224,19 +229,21 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
-      httpClient = new BrowserHttpClient();
+      jest.restoreAllMocks();
+      jest.spyOn(axios, 'request');
+      httpClient = new BrowserHttpClient({});
       httpClient.initialize({ baseUrl: 'https://api.ejemplo.com' });
     });
 
     test('aplica transformRequest global antes de enviar la data', async () => {
       const transformFn = jest.fn((data) => ({ ...data, extra: true }));
       httpClient.initialize({ transformRequest: transformFn });
-      mockedAxios.request.mockResolvedValueOnce({
+      (axios.request as jest.Mock).mockResolvedValueOnce({
         data: { ok: true }, status: 200, headers: {}, config: {}
       });
       await httpClient.post('/test', { foo: 'bar' });
       expect(transformFn).toHaveBeenCalledWith({ foo: 'bar' });
-      expect(mockedAxios.request).toHaveBeenCalledWith(expect.objectContaining({
+      expect(axios.request).toHaveBeenCalledWith(expect.objectContaining({
         data: { foo: 'bar', extra: true }
       }));
     });
@@ -244,7 +251,7 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
     test('aplica transformResponse global después de recibir la data', async () => {
       const transformFn = jest.fn((data) => ({ ...data, transformed: true }));
       httpClient.initialize({ transformResponse: transformFn });
-      mockedAxios.request.mockResolvedValueOnce({
+      (axios.request as jest.Mock).mockResolvedValueOnce({
         data: { ok: true }, status: 200, headers: {}, config: {}
       });
       const resp = await httpClient.get('/test');
@@ -256,13 +263,13 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
       const globalTransform = jest.fn((data) => ({ ...data, global: true }));
       const perRequestTransform = jest.fn((data) => ({ ...data, perRequest: true }));
       httpClient.initialize({ transformRequest: globalTransform });
-      mockedAxios.request.mockResolvedValueOnce({
+      (axios.request as jest.Mock).mockResolvedValueOnce({
         data: { ok: true }, status: 200, headers: {}, config: {}
       });
       await httpClient.post('/test', { foo: 1 }, { transformRequest: perRequestTransform } as RequestOptions);
       expect(globalTransform).not.toHaveBeenCalled();
       expect(perRequestTransform).toHaveBeenCalledWith({ foo: 1 });
-      expect(mockedAxios.request).toHaveBeenCalledWith(expect.objectContaining({
+      expect(axios.request).toHaveBeenCalledWith(expect.objectContaining({
         data: { foo: 1, perRequest: true }
       }));
     });
@@ -271,13 +278,13 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
       const t1 = jest.fn((data) => ({ ...data, t1: true }));
       const t2 = jest.fn((data) => ({ ...data, t2: true }));
       httpClient.initialize({ transformRequest: [t1, t2] });
-      mockedAxios.request.mockResolvedValueOnce({
+      (axios.request as jest.Mock).mockResolvedValueOnce({
         data: { ok: true }, status: 200, headers: {}, config: {}
       });
       await httpClient.post('/test', { foo: 1 });
       expect(t1).toHaveBeenCalledWith({ foo: 1 });
       expect(t2).toHaveBeenCalledWith({ foo: 1, t1: true });
-      expect(mockedAxios.request).toHaveBeenCalledWith(expect.objectContaining({
+      expect(axios.request).toHaveBeenCalledWith(expect.objectContaining({
         data: { foo: 1, t1: true, t2: true }
       }));
     });
