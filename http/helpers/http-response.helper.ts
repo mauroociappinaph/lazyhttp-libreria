@@ -1,6 +1,7 @@
 import { HttpResponseProcessor } from '../http.types';
 import { AxiosResponse } from 'axios';
-import { ApiResponse, FullResponseMetadata } from '../types/core/response.types';
+import { ApiResponse } from '../types/core/response.types';
+import { FullResponseMetadata } from '../types/core/response.types';
 
 /**
  * Implementación del procesador de respuestas HTTP
@@ -48,11 +49,27 @@ export const responseProcessor: HttpResponseProcessor = {
     });
 
     // Construir metadatos completos
+    const timing: FullResponseMetadata['timing'] = {
+      requestStart: metaOpcional?.timing?.requestStart ?? Date.now(),
+      responseEnd: metaOpcional?.timing?.responseEnd ?? Date.now()
+    };
+    let rawBody: string | Buffer = '';
+    if (metaOpcional?.rawBody) {
+      if (typeof Buffer !== 'undefined' && metaOpcional.rawBody instanceof Uint8Array) {
+        rawBody = Buffer.from(metaOpcional.rawBody);
+      } else if (typeof metaOpcional.rawBody === 'string') {
+        rawBody = metaOpcional.rawBody;
+      } else if (typeof Buffer !== 'undefined' && metaOpcional.rawBody instanceof Buffer) {
+        rawBody = metaOpcional.rawBody;
+      } else {
+        rawBody = String(metaOpcional.rawBody);
+      }
+    }
     const fullMeta: FullResponseMetadata = {
       requestHeaders: metaOpcional?.requestHeaders || {},
       responseHeaders: normalizedResponseHeaders,
-      timing: metaOpcional?.timing || {},
-      rawBody: metaOpcional?.rawBody || '',
+      timing,
+      rawBody,
       errorDetails: undefined
     };
 
@@ -63,6 +80,6 @@ export const responseProcessor: HttpResponseProcessor = {
       status: status,
       ...(Object.keys(meta).length > 0 ? { meta } : {}),
       fullMeta
-    };
+    } as ApiResponse<T>;
   }
 };

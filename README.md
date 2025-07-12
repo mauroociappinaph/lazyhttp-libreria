@@ -112,7 +112,7 @@ import { http } from 'httplazy/server';
 
 ---
 
-# 🇪🇸 Español
+
 
 ## 🚦 Comparativa Visual
 

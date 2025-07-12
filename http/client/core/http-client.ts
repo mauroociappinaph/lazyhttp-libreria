@@ -210,38 +210,72 @@ export class HttpClient implements HttpImplementation, HttpOperations {
     this.propertyManager.streamConfig = config;
   }
 
+  /**
+   * Garantiza que la respuesta siempre tenga el campo fullMeta
+   */
+  private ensureFullMeta<T>(response: ApiResponse<T>, context: { endpoint: string, method: string, options?: any }) : ApiResponse<T> {
+    if (response && typeof response === 'object' && 'fullMeta' in response && response.fullMeta) {
+      return response;
+    }
+    // Si no existe, agregar un fullMeta mínimo
+    let errorDetails: any = undefined;
+    if (response && typeof response.error === 'object' && response.error !== null && 'details' in response.error) {
+      errorDetails = (response.error as any).details;
+    }
+    return {
+      ...response,
+      fullMeta: {
+        requestHeaders: context.options?.headers || ({} as Record<string, string>),
+        responseHeaders: (response && typeof response === 'object' && 'headers' in response && response.headers)
+          ? (response.headers as Record<string, string>)
+          : ({} as Record<string, string>),
+        timing: { requestStart: Date.now(), responseEnd: Date.now() },
+        rawBody: typeof response.data === 'string' ? response.data : '',
+        errorDetails
+      }
+    };
+  }
+
   // Métodos HTTP (implementa HttpOperations)
   async request<T>(endpoint: string, options: RequestOptions = {}): Promise<ApiResponse<T>> {
-    return this.core.request<T>(endpoint, options);
+    const resp = await this.core.request<T>(endpoint, options);
+    return this.ensureFullMeta(resp, { endpoint, method: options.method || 'GET', options });
   }
 
   // Métodos base para los resource accessors
   async getMethod<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
-    return this.core.get<T>(endpoint, options);
+    const resp = await this.core.get<T>(endpoint, options);
+    return this.ensureFullMeta(resp, { endpoint, method: 'GET', options });
   }
 
   async getAllMethod<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
-    return this.core.getAll<T>(endpoint, options);
+    const resp = await this.core.getAll<T>(endpoint, options);
+    return this.ensureFullMeta(resp, { endpoint, method: 'GET', options });
   }
 
   async getByIdMethod<T>(endpoint: string, id: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
-    return this.core.getById<T>(endpoint, id, options);
+    const resp = await this.core.getById<T>(endpoint, id, options);
+    return this.ensureFullMeta(resp, { endpoint, method: 'GET', options });
   }
 
   async postMethod<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
-    return this.core.post<T>(endpoint, body, options);
+    const resp = await this.core.post<T>(endpoint, body, options);
+    return this.ensureFullMeta(resp, { endpoint, method: 'POST', options });
   }
 
   async putMethod<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
-    return this.core.put<T>(endpoint, body, options);
+    const resp = await this.core.put<T>(endpoint, body, options);
+    return this.ensureFullMeta(resp, { endpoint, method: 'PUT', options });
   }
 
   async patchMethod<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
-    return this.core.patch<T>(endpoint, body, options);
+    const resp = await this.core.patch<T>(endpoint, body, options);
+    return this.ensureFullMeta(resp, { endpoint, method: 'PATCH', options });
   }
 
   async deleteMethod<T>(endpoint: string, options?: Omit<RequestOptions, 'method'>): Promise<ApiResponse<T>> {
-    return this.core.delete<T>(endpoint, options);
+    const resp = await this.core.delete<T>(endpoint, options);
+    return this.ensureFullMeta(resp, { endpoint, method: 'DELETE', options });
   }
 
   async streamMethod<T = unknown>(endpoint: string, options: Omit<RequestOptions, 'method' | 'body'> = {}): Promise<ReadableStream<T>> {

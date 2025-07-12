@@ -105,6 +105,17 @@ export interface ApiResponse<T> {
     solution: string;
     example?: string;
   };
+
+  /**
+   * Advanced response metadata (request/response headers, timing, rawBody, errorDetails)
+   */
+  fullMeta?: {
+    requestHeaders: Record<string, string>;
+    responseHeaders: Record<string, string>;
+    timing: { requestStart: number; responseEnd: number };
+    rawBody: string | Buffer;
+    errorDetails?: any;
+  };
 }
 
 /**

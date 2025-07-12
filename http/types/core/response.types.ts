@@ -35,17 +35,17 @@ export interface FullResponseMetadata {
   responseHeaders: Record<string, string>;
   /** Tiempos detallados de la solicitud (HAR-like) */
   timing: {
-    requestStart?: number;
+    requestStart: number;
+    responseEnd: number;
     dnsLookupEnd?: number;
     connectEnd?: number;
     secureConnectionEnd?: number;
     requestEnd?: number;
     responseStart?: number;
-    responseEnd?: number;
     [key: string]: number | undefined;
   };
   /** Cuerpo crudo de la respuesta (string o Buffer) */
-  rawBody: string | Uint8Array;
+  rawBody: string | Buffer;
   /** Detalles enriquecidos del error (si aplica) */
   errorDetails?: ErrorDetails;
 }
