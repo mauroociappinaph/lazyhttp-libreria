@@ -16,6 +16,7 @@ export interface ApiResponse<T> {
     data: T | null;
     error: string | null;
     status: number;
+    code?: string;
     meta?: Record<string, any>;
     details?: {
         description: string;
