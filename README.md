@@ -112,26 +112,24 @@ import { http } from 'httplazy/server';
 
 ---
 
+## 🚦 Visual Comparison
 
+| Feature                | ![HTTPLazy](https://img.shields.io/badge/-HTTPLazy-blue) | ![Axios](https://img.shields.io/badge/-Axios-green) | ![Fetch API](https://img.shields.io/badge/-Fetch%20API-yellow) |
+| ---------------------- | :------------------------------------------------------: | :-------------------------------------------------: | :------------------------------------------------------------: |
+| **Size (min+gzip)**    |                         🟦 ~12KB                         |                      🟩 ~14KB                       |                           🟨 Native                            |
+| **Universal support**  |                     ✅ Client/Server                     |                         ✅                          |                        ⚠️ Limited Node                         |
+| **TypeScript**         |                         ✅ Full                          |                       ✅ Full                       |                           ⚠️ Limited                           |
+| **Interceptors**       |                            ✅                            |                         ✅                          |                               ❌                               |
+| **Integrated cache**   |                            ✅                            |                         ❌                          |                               ❌                               |
+| **Cancellation**       |                            ✅                            |                         ✅                          |                               ✅                               |
+| **Authentication**     |                      ✅ Integrated                       |                     ❌ (Manual)                     |                          ❌ (Manual)                           |
+| **Streaming**          |                            ✅                            |                     ✅ (Basic)                      |                               ✅                               |
+| **Proxy**              |                       ✅ (Server)                        |                         ✅                          |                               ❌                               |
+| **Automatic retries**  |                     ✅ (Exponential)                     |                         ❌                          |                               ❌                               |
+| **Integrated metrics** |                            ✅                            |                         ❌                          |                               ❌                               |
+| **Public benchmarks**  |                            ❌                            |                         ❌                          |                               ❌                               |
 
-## 🚦 Comparativa Visual
-
-| Característica             | ![HTTPLazy](https://img.shields.io/badge/-HTTPLazy-blue) | ![Axios](https://img.shields.io/badge/-Axios-green) | ![Fetch API](https://img.shields.io/badge/-Fetch%20API-yellow) |
-| -------------------------- | :------------------------------------------------------: | :-------------------------------------------------: | :------------------------------------------------------------: |
-| **Tamaño (min+gzip)**      |                         🟦 ~12KB                         |                      🟩 ~14KB                       |                           🟨 Nativo                            |
-| **Soporte universal**      |                    ✅ Cliente/Server                     |                         ✅                          |                        ⚠️ Limitado Node                        |
-| **TypeScript**             |                       ✅ Completo                        |                     ✅ Completo                     |                          ⚠️ Limitado                           |
-| **Interceptores**          |                            ✅                            |                         ✅                          |                               ❌                               |
-| **Caché integrada**        |                            ✅                            |                         ❌                          |                               ❌                               |
-| **Cancelación**            |                            ✅                            |                         ✅                          |                               ✅                               |
-| **Autenticación**          |                       ✅ Integrada                       |                     ❌ (Manual)                     |                          ❌ (Manual)                           |
-| **Streaming**              |                            ✅                            |                     ✅ (Básico)                     |                               ✅                               |
-| **Proxy**                  |                      ✅ (Servidor)                       |                         ✅                          |                               ❌                               |
-| **Reintentos automáticos** |                     ✅ (Exponencial)                     |                         ❌                          |                               ❌                               |
-| **Métricas integradas**    |                            ✅                            |                         ❌                          |                               ❌                               |
-| **Benchmarks públicos**    |                            ❌                            |                         ❌                          |                               ❌                               |
-
-> 🟦 = Mejor opción para proyectos modernos y universales
+> 🟦 = Best option for modern and universal projects
 
 ## ¿Por qué elegir HTTPLazy frente a Axios o Fetch?
 
@@ -625,6 +623,12 @@ console.log(response.fullMeta);
 - Access `response.fullMeta` after any request (`get`, `post`, `put`, etc.).
 - Use the metadata for debugging, logging, or generating cURL commands.
 - On errors, check `fullMeta.errorDetails` for in-depth diagnostics.
+
+> **Note:** The `rawBody` field in `fullMeta` can be either a `string` (for text responses or in browser environments) or a `Buffer` (for binary responses in Node.js). To safely handle it, you can use:
+>
+> ```ts
+> const asString = typeof rawBody === 'string' ? rawBody : rawBody.toString('utf-8');
+> ```
 
 > **Note:** The presence and completeness of some fields may depend on the environment (browser/Node.js) and the HTTP adapter used.
 

@@ -20,8 +20,14 @@ export declare function handleRefreshTokenFailure(): Promise<void>;
 export declare function initialize(): Promise<void>;
 export declare const _handleError: (error: unknown) => ApiResponse<never>;
 export declare const _executeRequest: <T>(endpoint: string, method: HttpMethod, headers: Record<string, string>, body: unknown | undefined, signal: AbortSignal) => Promise<AxiosResponse<T>>;
-export declare const _processResponse: <T>(response: AxiosResponse<T>) => ApiResponse<T>;
-export declare const _executeWithRetry: <T>(endpoint: string, method: HttpMethod, headers: Record<string, string>, body: unknown | undefined, timeout: number, retriesLeft: number) => Promise<ApiResponse<T>>;
+export declare const _processResponse: <T>(response: import("axios").AxiosResponse<T>, metaOpcional?: {
+    requestHeaders?: Record<string, string>;
+    timing?: Record<string, number>;
+    rawBody?: string | Uint8Array;
+}) => ApiResponse<T>;
+export declare const _executeWithRetry: <T>(endpoint: string, method: HttpMethod, headers: Record<string, string>, body: unknown | undefined, timeout: number, retriesLeft: number, metaOpcional?: {
+    requestStart?: number;
+}) => Promise<ApiResponse<T>>;
 export declare const _handleRetry: <T>(error: unknown, retryCallback: () => Promise<ApiResponse<T>>, retriesLeft: number) => Promise<ApiResponse<T>>;
 export declare const _isRetryableError: (error: unknown) => boolean;
 export declare const _waitForRetry: (retriesLeft: number) => Promise<void>;
