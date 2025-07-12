@@ -66,3 +66,10 @@ WEB.md
 # package-lock.json
 # yarn.lock
 # pnpm-lock.yaml
+
+GEMINI.md
+GETTING_STARTED.md
+
+# Ignorar todos los archivos .md excepto README.md
+*.md
+!README.md
