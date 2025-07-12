@@ -590,6 +590,44 @@ interface ApiResponse<T = any> {
 }
 ```
 
+#### Advanced Response Metadata: `fullMeta`
+
+> **New in v2.x**: All HTTP methods now return an optional `fullMeta` property in the response object, providing advanced metadata for debugging, monitoring, and replaying requests.
+
+**What is `fullMeta`?**
+
+The `fullMeta` property contains detailed information about the HTTP transaction, including:
+
+- `requestHeaders`: All headers sent with the request (object)
+- `responseHeaders`: All headers received in the response (object)
+- `timing`: Timing metrics (e.g., `requestStart`, `responseEnd`) for performance analysis
+- `rawBody`: The raw, unparsed response body (string or Buffer)
+- `errorDetails`: Detailed error information (if any), including stack trace and server error body
+
+**Example:**
+
+```typescript
+const response = await http.get('https://jsonplaceholder.typicode.com/posts/1');
+console.log(response.fullMeta);
+/*
+{
+  requestHeaders: { 'Content-Type': 'application/json' },
+  responseHeaders: { 'Content-Type': 'application/json; charset=utf-8', ... },
+  timing: { requestStart: 1680000000000, responseEnd: 1680000000123 },
+  rawBody: '{ "userId": 1, "id": 1, ... }',
+  errorDetails: undefined
+}
+*/
+```
+
+**How to use it:**
+
+- Access `response.fullMeta` after any request (`get`, `post`, `put`, etc.).
+- Use the metadata for debugging, logging, or generating cURL commands.
+- On errors, check `fullMeta.errorDetails` for in-depth diagnostics.
+
+> **Note:** The presence and completeness of some fields may depend on the environment (browser/Node.js) and the HTTP adapter used.
+
 ## Funcionalidades Avanzadas
 
 ### Autenticación
