@@ -1,55 +1,68 @@
-# Dependencias
-/node_modules
-npm-debug.log
-yarn-debug.log
-yarn-error.log
-package-lock.json
-yarn.lock
-.pnpm-lock.yaml
+# =============================
+# Archivos de sistema y temporales
+# =============================
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+*.swp
+*.bak
+*.old
+*.the
 
-# Compilación
+# =============================
+# Dependencias y builds
+# =============================
+/node_modules
 /dist
 /build
 /lib
 *.tsbuildinfo
 
-# Testing
-/coverage
-/.nyc_output
-
-# Logs
+# =============================
+# Logs y reportes
+# =============================
 /logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
 
-# IDEs y editores
+# =============================
+# Configuración local y editores
+# =============================
 .idea/
 .vscode/
 *.sublime-*
-.DS_Store
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
 
-# Temporal
-/temp
-*.tmp
-.cache
+# =============================
+# Cobertura y pruebas
+# =============================
+/coverage
+/.nyc_output
 
-
+# =============================
+# Otros específicos del proyecto
+# =============================
 .cursorignore
-
-./examples
+/temp
+.cache
+/examples
 /dist-min
-/node_modules
 /dist-prod
 /cursorignore
 /cursorrules
-
-documentacion/DOCUMENTACION.md
 data/
+documentacion/
 LIMPIEZA-CODIGO-GUIA.md
-# .eslintrc.json
 funcionalidades.largo.plazo.md
 POST_TEMPLATES.md
+WEB.md
+
+# =============================
+# Archivos de lock alternativos (descomenta si no quieres versionarlos)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
