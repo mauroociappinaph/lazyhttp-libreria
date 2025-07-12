@@ -1,4 +1,4 @@
-import { HttpImplementation, RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, CacheConfig, MetricsConfig, ProxyConfig, HttpMethod, RetryConfig, RetryOptions } from '../types';
+import { HttpImplementation, RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, CacheConfig, MetricsConfig, ProxyConfig, HttpMethod, RetryConfig, RetryOptions, InitConfig } from '../types';
 import { HttpUtils } from '../utils/http-utils';
 
 /**
@@ -27,11 +27,15 @@ export abstract class BaseHttpClient implements HttpImplementation {
     retryableErrors: ['ECONNRESET', 'ETIMEDOUT', 'ECONNREFUSED']
   };
   protected proxyConfig?: ProxyConfig;
-  protected transformRequest: ((data: any) => any)[] = [];
-  protected transformResponse: ((data: any) => any)[] = [];
+  protected transformRequest: ((data: unknown) => unknown)[] = [];
+  protected transformResponse: ((data: unknown) => unknown)[] = [];
+
+  // Propiedades para transformadores activos (solo durante una petición)
+  protected _activeTransformRequest?: ((data: unknown) => unknown)[];
+  protected _activeTransformResponse?: ((data: unknown) => unknown)[];
 
   // Método de inicialización común
-  initialize(config: any): void {
+  initialize(config: Partial<InitConfig>): void {
     if (config.baseUrl) this.baseUrl = config.baseUrl;
     if (config.frontendUrl) this.frontendUrl = config.frontendUrl;
     if (config.timeout !== undefined) this.defaultTimeout = config.timeout;
@@ -58,7 +62,8 @@ export abstract class BaseHttpClient implements HttpImplementation {
   }
 
   // Hook para inicialización específica de la plataforma (opcional)
-  protected onInitialize(_config: any): void {}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected onInitialize(_config: Partial<InitConfig>): void { /* parámetro no usado */ }
 
   // Métodos de utilidad comunes para cliente/servidor
   protected buildRequestUrl(endpoint: string): string {
@@ -75,11 +80,11 @@ export abstract class BaseHttpClient implements HttpImplementation {
     return headers;
   }
 
-  protected parseErrorMessage(error: any): string {
+  protected parseErrorMessage(error: unknown): string {
     return HttpUtils.parseErrorMessage(error);
   }
 
-  protected generateCacheKey(method: string, url: string, data?: any): string {
+  protected generateCacheKey(method: string, url: string, data?: unknown): string {
     return HttpUtils.generateCacheKey(method, url, data);
   }
 
@@ -97,15 +102,15 @@ export abstract class BaseHttpClient implements HttpImplementation {
     return this.request<T>('GET', fullUrl, undefined, options);
   }
 
-  async post<T>(url: string, data?: any, options?: RequestOptions): Promise<ApiResponse<T>> {
+  async post<T>(url: string, data?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
     return this.request<T>('POST', url, data, options);
   }
 
-  async put<T>(url: string, data?: any, options?: RequestOptions): Promise<ApiResponse<T>> {
+  async put<T>(url: string, data?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
     return this.request<T>('PUT', url, data, options);
   }
 
-  async patch<T>(url: string, data?: any, options?: RequestOptions): Promise<ApiResponse<T>> {
+  async patch<T>(url: string, data?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
     return this.request<T>('PATCH', url, data, options);
   }
 
@@ -119,6 +124,7 @@ export abstract class BaseHttpClient implements HttpImplementation {
   }
 
   // Estos métodos pueden tener implementaciones específicas, proporcionamos stubs
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async login(_credentials: UserCredentials): Promise<AuthInfo> {
     throw new Error("login() debe ser implementado por la clase derivada");
   }
@@ -131,7 +137,7 @@ export abstract class BaseHttpClient implements HttpImplementation {
     throw new Error("isAuthenticated() debe ser implementado por la clase derivada");
   }
 
-  getAuthenticatedUser(): any | null {
+  getAuthenticatedUser(): unknown | null {
     throw new Error("getAuthenticatedUser() debe ser implementado por la clase derivada");
   }
 
@@ -144,10 +150,12 @@ export abstract class BaseHttpClient implements HttpImplementation {
     this.cacheConfig = { ...this.cacheConfig, ...config };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   invalidateCache(_pattern: string): void {
     throw new Error("invalidateCache() debe ser implementado por la clase derivada");
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   invalidateCacheByTags(_tags: string[]): void {
     throw new Error("invalidateCacheByTags() debe ser implementado por la clase derivada");
   }
@@ -157,11 +165,12 @@ export abstract class BaseHttpClient implements HttpImplementation {
     this.metricsConfig = { ...this.metricsConfig, ...config };
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   trackActivity(_type: string): void {
     throw new Error("trackActivity() debe ser implementado por la clase derivada");
   }
 
-  getCurrentMetrics(): any {
+  getCurrentMetrics(): unknown {
     throw new Error("getCurrentMetrics() debe ser implementado por la clase derivada");
   }
 
@@ -180,7 +189,7 @@ export abstract class BaseHttpClient implements HttpImplementation {
   }
 
   // Método para determinar si se debe reintentar una petición
-  protected shouldRetry(error: any, retryCount: number, options?: RetryOptions): boolean {
+  protected shouldRetry(error: unknown, retryCount: number, options?: RetryOptions): boolean {
     // Si el retry está desactivado o se alcanzó el número máximo de intentos
     const isEnabled = options?.enabled !== undefined
       ? options.enabled
@@ -195,19 +204,31 @@ export abstract class BaseHttpClient implements HttpImplementation {
     if (retryCount >= maxRetries) return false;
 
     // Comprobar si el código de estado es reintentable
-    if (error.status && this.retryConfig.retryableStatusCodes?.includes(error.status)) {
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'status' in error &&
+      Array.isArray(this.retryConfig.retryableStatusCodes) &&
+      this.retryConfig.retryableStatusCodes.includes((error as { status?: number }).status!)
+    ) {
       return true;
     }
 
     // Comprobar si el tipo de error es reintentable
-    if (error.code && this.retryConfig.retryableErrors?.includes(error.code)) {
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      Array.isArray(this.retryConfig.retryableErrors) &&
+      this.retryConfig.retryableErrors.includes((error as { code?: string }).code!)
+    ) {
       return true;
     }
 
     return false;
   }
 
-  async request<T>(method: HttpMethod, url: string, data?: any, options?: RequestOptions): Promise<ApiResponse<T>> {
+  async request<T>(method: HttpMethod, url: string, data?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
     // Combinar transformadores globales y de la petición
     const transformRequestFns = [
       ...this.transformRequest,
@@ -226,13 +247,13 @@ export abstract class BaseHttpClient implements HttpImplementation {
         : [])
     ];
     // Guardar temporalmente los transformadores para esta petición
-    (this as any)._activeTransformRequest = transformRequestFns;
-    (this as any)._activeTransformResponse = transformResponseFns;
+    this._activeTransformRequest = transformRequestFns;
+    this._activeTransformResponse = transformResponseFns;
     // Llamar al método real (de la subclase)
     const result = await this._requestWithTransforms<T>(method, url, data, options);
     // Limpiar
-    delete (this as any)._activeTransformRequest;
-    delete (this as any)._activeTransformResponse;
+    this._activeTransformRequest = undefined;
+    this._activeTransformResponse = undefined;
     return result;
   }
 
@@ -240,11 +261,15 @@ export abstract class BaseHttpClient implements HttpImplementation {
    * Método interno que las subclases deben usar en vez de request para acceder a los transformadores activos
    */
   protected async _requestWithTransforms<T>(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _method: HttpMethod,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _url: string,
-    _data?: any,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _data?: unknown,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _options?: RequestOptions
   ): Promise<ApiResponse<T>> {
-    throw new Error('Debe ser implementado por la subclase');
+    throw new Error('_requestWithTransforms() debe ser implementado por la clase derivada');
   }
 }

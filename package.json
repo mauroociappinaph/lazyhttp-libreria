@@ -1,6 +1,6 @@
 {
   "name": "httplazy",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "description": "A powerful and easy-to-use HTTP client library with error handling, retries, interceptors, and more | Una librería HTTP fácil de usar con manejo de errores, reintentos, interceptores, y más",
   "main": "dist/index.js",
   "browser": "dist/client/index.js",
@@ -52,7 +52,8 @@
     "npm-size": "echo '\n📦 Información de publicación de httplazy 📦\n' && echo 'Versión: '$(node -e \"console.log(require('./package.json').version)\") && npm pack --json | node -e \"const data = require('fs').readFileSync(0, 'utf-8'); const pkg = JSON.parse(data)[0]; console.log('\\nTamaño del paquete (tarball): ' + (pkg.size / 1024).toFixed(2) + ' KB'); console.log('Tamaño instalado: ' + (pkg.unpackedSize / 1024).toFixed(2) + ' KB')\" && echo '\nEsto es lo que verán los usuarios en npm al descargar la biblioteca\n'",
     "complexity": "echo '\n📊 Complejidad del código\n' && find http -name \"*.ts\" | xargs wc -l | sort -nr | head -10 && echo '\nLos 10 archivos con más líneas de código'",
     "summary": "node scripts/summary.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "lint": "eslint 'http/**/*.{ts,tsx}' 'tests/**/*.{ts,tsx}' --ext .ts,.tsx"
   },
   "lint-staged": {
     "http/**/*.ts": [
@@ -94,10 +95,7 @@
   },
   "homepage": "https://github.com/mauroociappinaph/lazyhttp-libreria/blob/master/README.md",
   "dependencies": {
-    "axios": "^1.x",
-    "express": "^5.1.0",
-    "httplazy": "^1.9.0",
-    "nodemon": "^3.1.10"
+    "axios": "^1.x"
   },
   "optionalDependencies": {
     "https-proxy-agent": "^7.0.6",
@@ -106,12 +104,15 @@
   "devDependencies": {
     "@types/express": "^5.0.1",
     "@types/jest": "^29.5.14",
+    "@typescript-eslint/eslint-plugin": "^8.36.0",
     "eslint": "^8.55.0",
+    "express": "^5.1.0",
     "husky": "^8.0.3",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "lint-staged": "^15.5.2",
     "madge": "^8.0.0",
+    "nodemon": "^3.1.10",
     "prettier": "^3.5.3",
     "terser": "^5.39.0",
     "ts-jest": "^29.3.2",

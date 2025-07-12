@@ -1,6 +1,6 @@
-![Logotipo de HttpLazy](logotipo%20empresarial%20empresa%20de%20envíos%20y%20entregas%20minimalista%20con%20letra%20color%20azul%20rojo%20blanco.png)
+![HttpLazy Logo](documentacion/logotipo%20empresarial%20empresa%20de%20envíos%20y%20entregas%20minimalista%20con%20letra%20color%20azul%20rojo%20blanco.png)
 
-# Documentación de HttpLazy
+# HttpLazy
 
 [![npm version](https://img.shields.io/npm/v/httplazy)](https://www.npmjs.com/package/httplazy)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -9,6 +9,110 @@
 ![Bundle size](https://img.shields.io/bundlephobia/minzip/httplazy)
 [![Open Issues](https://img.shields.io/github/issues/mauroociappina/lazyhttp-libreria)](https://github.com/mauroociappina/lazyhttp-libreria/issues)
 [![Pull Requests](https://img.shields.io/github/issues-pr/mauroociappina/lazyhttp-libreria)](https://github.com/mauroociappina/lazyhttp-libreria/pulls)
+
+---
+
+# 🇬🇧 English
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Installation](#installation)
+- [Client/Server Architecture](#clientserver-architecture)
+  - [Environment-based Imports](#environment-based-imports)
+  - [Feature Comparison](#feature-comparison)
+- [Basic Usage](#basic-usage)
+  - [HTTP Methods](#http-methods)
+  - [Initial Configuration](#initial-configuration)
+- [API Reference](#api-reference)
+  - [Basic Methods](#basic-methods)
+  - [Request Options](#request-options)
+  - [Response](#response)
+- [Advanced Features](#advanced-features)
+  - [Authentication](#authentication)
+  - [Cache](#cache)
+  - [Interceptors](#interceptors)
+  - [Metrics and Activity](#metrics-and-activity)
+  - [Streaming (Server)](#streaming-server)
+  - [Proxies (Server)](#proxies-server)
+- [Error Handling](#error-handling)
+  - [Common Error Types](#common-error-types)
+  - [Network Error Handling](#network-error-handling)
+  - [Custom Errors](#custom-errors)
+- [Using with Next.js](#using-with-nextjs)
+  - [In Client Components](#in-client-components)
+  - [In API Routes](#in-api-routes)
+  - [In Server Actions](#in-server-actions)
+- [Best Practices](#best-practices)
+  - [Code Organization](#code-organization)
+  - [Usage Patterns](#usage-patterns)
+  - [Optimization](#optimization)
+- [Troubleshooting](#troubleshooting)
+  - [CORS Errors](#cors-errors)
+  - [Missing Modules in Next.js](#missing-modules-in-nextjs)
+  - [TypeScript Errors](#typescript-errors)
+- [Architecture Diagrams](#architecture-diagrams)
+- [Contribution Guide](#contribution-guide)
+- [Specific Use Cases](#specific-use-cases)
+- [Comparison with Alternatives](#comparison-with-alternatives)
+- [Migration Guide](#migration-guide)
+- [Performance](#performance)
+- [Code Conventions](#code-conventions)
+- [Security](#security)
+- [Internationalization](#internationalization)
+- [Additional Resources](#additional-resources)
+
+## Overview
+
+**HttpLazy** is a modern and flexible HTTP library designed to simplify HTTP requests in JavaScript/TypeScript applications, both in browser environments and on the server (Node.js). Its modular architecture allows it to be used in any framework, with special support for universal (isomorphic) applications like Next.js, Remix, or similar.
+
+The library offers advanced features while maintaining an intuitive API:
+
+- **Unified interface**: Consistent API for all HTTP operations
+- **Client/server architecture**: Clear separation between browser code and Node.js
+- **Automatic optimization**: Environment detection to use the appropriate implementation
+- **Advanced features**: Error handling, cache, authentication, interceptors, etc.
+
+## Installation
+
+```bash
+# Using npm
+npm install httplazy
+
+# Using yarn
+yarn add httplazy
+
+# Using pnpm
+pnpm add httplazy
+```
+
+## Client/Server Architecture
+
+Version 1.7.0+ of HttpLazy implements a dual architecture that separates browser-compatible code from Node.js-exclusive code:
+
+```
+httplazy/
+├── client/   # Browser-safe code
+├── server/   # Full capabilities code (Node.js)
+└── common/   # Shared code between environments
+```
+
+### Environment-based Imports
+
+```javascript
+// Automatic detection (recommended)
+import { http } from 'httplazy';
+
+// Specifically for browser
+import { http } from 'httplazy/client';
+
+// Specifically for Node.js
+import { http } from 'httplazy/server';
+```
+
+---
+
+# 🇪🇸 Español
 
 ## 🚦 Comparativa Visual
 
@@ -67,7 +171,7 @@ HTTPLazy es una alternativa moderna, minimalista y eficiente para realizar petic
 **HTTPLazy:**
 
 ```typescript
-const { data, error } = await http.getAll("/api/users");
+const { data, error } = await http.getAll('/api/users');
 if (error) showError(error.message);
 ```
 
@@ -75,7 +179,7 @@ if (error) showError(error.message);
 
 ```typescript
 try {
-  const { data } = await axios.get("/api/users");
+  const { data } = await axios.get('/api/users');
 } catch (error) {
   showError(error.response?.data?.message || error.message);
 }
@@ -84,7 +188,7 @@ try {
 **Fetch:**
 
 ```typescript
-const resp = await fetch("/api/users");
+const resp = await fetch('/api/users');
 if (!resp.ok) {
   const error = await resp.json();
   showError(error.message);
@@ -163,25 +267,25 @@ const data = await resp.json();
 ### Autenticación JWT/OAuth2
 
 ```typescript
-import { http } from "httplazy";
-http.configureAuth({ type: "jwt", token: "mi-token" });
-const { data } = await http.getAll("/usuarios");
+import { http } from 'httplazy';
+http.configureAuth({ type: 'jwt', token: 'mi-token' });
+const { data } = await http.getAll('/usuarios');
 ```
 
 ### Subida de Archivos
 
 ```typescript
 const formData = new FormData();
-formData.append("file", archivo);
-const { data, error } = await http.post("/api/upload", formData);
+formData.append('file', archivo);
+const { data, error } = await http.post('/api/upload', formData);
 ```
 
 ### Uso en Next.js API Routes
 
 ```typescript
-import { http } from "httplazy/server";
+import { http } from 'httplazy/server';
 export async function GET(request) {
-  const response = await http.getAll("https://api.com/productos");
+  const response = await http.getAll('https://api.com/productos');
   return Response.json(response.data);
 }
 ```
@@ -189,11 +293,9 @@ export async function GET(request) {
 ### Integración con React Query
 
 ```typescript
-import { useQuery } from "react-query";
-import { http } from "httplazy";
-const { data, error } = useQuery(["usuarios"], () =>
-  http.getAll("/usuarios").then((r) => r.data)
-);
+import { useQuery } from 'react-query';
+import { http } from 'httplazy';
+const { data, error } = useQuery(['usuarios'], () => http.getAll('/usuarios').then(r => r.data));
 ```
 
 ## 🏆 Buenas Prácticas
@@ -291,7 +393,7 @@ httplazy/
 > **Nueva forma recomendada:**
 >
 > ```js
-> import { HttpCore } from "httplazy";
+> import { HttpCore } from 'httplazy';
 > const http = new HttpCore.HttpCore();
 > // Ahora puedes usar http.get, http.post, etc.
 > ```
@@ -319,46 +421,46 @@ httplazy/
 ### Métodos HTTP
 
 ```javascript
-import { http } from "httplazy";
+import { http } from 'httplazy';
 
 // Petición GET
-const { data, error } = await http.getAll("https://api.example.com/users");
+const { data, error } = await http.getAll('https://api.example.com/users');
 if (error) {
-  console.error("Error:", error.message);
+  console.error('Error:', error.message);
 } else {
-  console.log("Usuarios:", data);
+  console.log('Usuarios:', data);
 }
 
 // Petición POST con datos
-const response = await http.post("https://api.example.com/users", {
-  name: "Ana García",
-  email: "ana@example.com",
+const response = await http.post('https://api.example.com/users', {
+  name: 'Ana García',
+  email: 'ana@example.com',
 });
 
 // Petición con parámetros de consulta
-const searchResponse = await http.getAll("https://api.example.com/search", {
+const searchResponse = await http.getAll('https://api.example.com/search', {
   params: {
-    q: "javascript",
+    q: 'javascript',
     page: 1,
     limit: 20,
   },
 });
 
 // Obtener recurso por ID
-const user = await http.getById("https://api.example.com/users", "123");
+const user = await http.getById('https://api.example.com/users', '123');
 
 // Actualizar recurso (PUT)
-await http.put("https://api.example.com/users/123", {
-  name: "Ana López",
+await http.put('https://api.example.com/users/123', {
+  name: 'Ana López',
 });
 
 // Actualización parcial (PATCH)
-await http.patch("https://api.example.com/users/123", {
-  status: "active",
+await http.patch('https://api.example.com/users/123', {
+  status: 'active',
 });
 
 // Eliminar recurso
-await http.del("https://api.example.com/users/123");
+await http.del('https://api.example.com/users/123');
 ```
 
 ---
@@ -378,15 +480,15 @@ interface LoginResponse {
 }
 
 // Uso correcto con tipado genérico
-const { data } = await http.post<LoginResponse>(
-  "https://fakestoreapi.com/auth/login",
-  { username: "user", password: "pass" }
-);
+const { data } = await http.post<LoginResponse>('https://fakestoreapi.com/auth/login', {
+  username: 'user',
+  password: 'pass',
+});
 
 const token = data?.token; // TypeScript reconoce 'token'
 
 // Usar el token en la siguiente petición
-await http.get("https://fakestoreapi.com/products/1", {
+await http.get('https://fakestoreapi.com/products/1', {
   headers: { Authorization: `Bearer ${token}` },
 });
 ```
@@ -395,13 +497,13 @@ await http.get("https://fakestoreapi.com/products/1", {
 
 ```typescript
 http
-  .post<LoginResponse>("https://fakestoreapi.com/auth/login", {
-    username: "user",
-    password: "pass",
+  .post<LoginResponse>('https://fakestoreapi.com/auth/login', {
+    username: 'user',
+    password: 'pass',
   })
   .then(({ data }) => {
     const token = data?.token;
-    return http.get("https://fakestoreapi.com/products/1", {
+    return http.get('https://fakestoreapi.com/products/1', {
       headers: { Authorization: `Bearer ${token}` },
     });
   });
@@ -414,12 +516,12 @@ http
 HttpLazy permite realizar múltiples solicitudes GET en paralelo de forma sencilla usando el método `all`. Este método recibe un array de URLs y devuelve un array con los datos de cada respuesta (omitiendo las que sean null).
 
 ```javascript
-import { http } from "httplazy";
+import { http } from 'httplazy';
 
 const urls = [
-  "https://fakestoreapi.com/products/1",
-  "https://fakestoreapi.com/products/2",
-  "https://fakestoreapi.com/products/3",
+  'https://fakestoreapi.com/products/1',
+  'https://fakestoreapi.com/products/2',
+  'https://fakestoreapi.com/products/3',
 ];
 
 const productos = await http.all(urls);
@@ -434,10 +536,10 @@ console.log(productos); // [producto1, producto2, producto3]
 ```javascript
 // Configuración global
 http.initialize({
-  baseUrl: "https://api.example.com",
+  baseUrl: 'https://api.example.com',
   defaultHeaders: {
-    "Content-Type": "application/json",
-    "Accept-Language": "es",
+    'Content-Type': 'application/json',
+    'Accept-Language': 'es',
   },
   timeout: 10000, // 10 segundos
   retries: 2, // Reintentar peticiones fallidas
@@ -495,29 +597,29 @@ interface ApiResponse<T = any> {
 ```javascript
 // Configuración de autenticación
 http.configureAuth({
-  loginEndpoint: "/auth/login",
-  logoutEndpoint: "/auth/logout",
-  refreshTokenEndpoint: "/auth/refresh",
-  tokenStorage: "localStorage", // 'localStorage', 'sessionStorage', 'cookie', 'memory'
-  tokenKey: "access_token",
-  refreshTokenKey: "refresh_token",
-  userKey: "user_data",
+  loginEndpoint: '/auth/login',
+  logoutEndpoint: '/auth/logout',
+  refreshTokenEndpoint: '/auth/refresh',
+  tokenStorage: 'localStorage', // 'localStorage', 'sessionStorage', 'cookie', 'memory'
+  tokenKey: 'access_token',
+  refreshTokenKey: 'refresh_token',
+  userKey: 'user_data',
   autoRefresh: true,
   redirectOnUnauthorized: true,
-  unauthorizedRedirectUrl: "/login",
+  unauthorizedRedirectUrl: '/login',
 });
 
 // Iniciar sesión
 const { data, error } = await http.login({
-  username: "usuario@ejemplo.com",
-  password: "contraseña",
+  username: 'usuario@ejemplo.com',
+  password: 'contraseña',
 });
 
 // Verificar estado de autenticación
 if (http.isAuthenticated()) {
   // Usuario autenticado
   const user = http.getAuthenticatedUser();
-  console.log("Usuario actual:", user);
+  console.log('Usuario actual:', user);
 
   // Obtener token para operaciones manuales
   const token = http.getAccessToken();
@@ -534,23 +636,23 @@ await http.logout();
 http.configureCaching({
   enabled: true,
   ttl: 300, // Tiempo de vida en segundos
-  storage: "localStorage", // 'memory', 'localStorage', 'sessionStorage'
+  storage: 'localStorage', // 'memory', 'localStorage', 'sessionStorage'
   maxSize: 100, // Máximo número de entradas (solo 'memory')
   invalidateOnMutation: true, // Invalidar en operaciones PUT/POST/DELETE
 });
 
 // Invalidación manual
-http.invalidateCache("/users/*"); // Invalidar usando patrones
-http.invalidateCacheByTags(["users"]); // Invalidar por etiquetas
+http.invalidateCache('/users/*'); // Invalidar usando patrones
+http.invalidateCacheByTags(['users']); // Invalidar por etiquetas
 
 // Usar caché en peticiones específicas
-const { data } = await http.getAll("users", {
+const { data } = await http.getAll('users', {
   cache: true, // Habilitar caché
-  tags: ["users", "list"], // Asignar etiquetas
+  tags: ['users', 'list'], // Asignar etiquetas
 });
 
 // Especificar TTL personalizado
-await http.getAll("users", { cache: 3600 }); // 1 hora
+await http.getAll('users', { cache: 3600 }); // 1 hora
 ```
 
 ### Retry Automático con Backoff Exponencial
@@ -567,12 +669,12 @@ http.initialize({
     initialDelay: 300, // Tiempo inicial entre intentos (ms)
     backoffFactor: 2, // Factor de crecimiento exponencial
     retryableStatusCodes: [408, 429, 500, 502, 503, 504], // Códigos HTTP a reintentar
-    retryableErrors: ["ECONNRESET", "ETIMEDOUT", "ECONNREFUSED"], // Errores de red a reintentar
+    retryableErrors: ['ECONNRESET', 'ETIMEDOUT', 'ECONNREFUSED'], // Errores de red a reintentar
   },
 });
 
 // Usar retry en una petición específica
-const response = await http.getAll("https://api.ejemplo.com/datos", {
+const response = await http.getAll('https://api.ejemplo.com/datos', {
   retryOptions: {
     enabled: true, // Activa retry para esta petición
     maxRetries: 5, // Sobrescribe el número máximo de intentos
@@ -593,24 +695,24 @@ Esta estrategia ayuda a evitar sobrecargas en el servidor y mejora la probabilid
 ### Interceptores
 
 ```typescript
-import { httpInstance } from "httplazy";
+import { httpInstance } from 'httplazy';
 
 // Interceptor de petición
-httpInstance.interceptors.request.use((config) => {
+httpInstance.interceptors.request.use(config => {
   config.headers = config.headers || {};
-  config.headers["X-Custom-Header"] = "MiValorPersonalizado";
-  console.log("Interceptor de petición: config final", config);
+  config.headers['X-Custom-Header'] = 'MiValorPersonalizado';
+  console.log('Interceptor de petición: config final', config);
   return config;
 });
 
 // Interceptor de respuesta
 httpInstance.interceptors.response.use(
-  (response) => {
-    console.log("Interceptor de respuesta: respuesta recibida", response);
+  response => {
+    console.log('Interceptor de respuesta: respuesta recibida', response);
     return response;
   },
-  (error) => {
-    console.error("Interceptor de error:", error);
+  error => {
+    console.error('Interceptor de error:', error);
     return Promise.reject(error);
   }
 );
@@ -625,8 +727,8 @@ Puedes aplicar interceptores globales en HttpLazy de forma sencilla. Un intercep
 #### Ejemplo: interceptor global para toda la app
 
 ```typescript
-import { http } from "httplazy";
-import { LoggingInterceptor } from "./logging.interceptor";
+import { http } from 'httplazy';
+import { LoggingInterceptor } from './logging.interceptor';
 
 // Aplica el interceptor a TODAS las peticiones de la app
 http.useInterceptor(new LoggingInterceptor());
@@ -639,8 +741,8 @@ Todas las peticiones hechas con `http.get`, `http.post`, etc., pasarán por ese 
 Si creas una instancia personalizada de cliente, puedes tener interceptores globales solo para esa instancia:
 
 ```typescript
-import { HttpCore } from "httplazy";
-import { AuthInterceptor } from "./auth.interceptor";
+import { HttpCore } from 'httplazy';
+import { AuthInterceptor } from './auth.interceptor';
 
 const customClient = new HttpCore.HttpCore();
 customClient.useInterceptor(new AuthInterceptor());
@@ -675,13 +777,13 @@ http.configureMetrics({
 });
 
 // Registrar eventos personalizados
-http.trackActivity("page_view");
-http.trackActivity("search", { query: "término" });
+http.trackActivity('page_view');
+http.trackActivity('search', { query: 'término' });
 
 // Obtener métricas actuales
 const metrics = http.getCurrentMetrics();
-console.log("Tiempo promedio de respuesta:", metrics.avgResponseTime);
-console.log("Tasa de errores:", metrics.errorRate);
+console.log('Tiempo promedio de respuesta:', metrics.avgResponseTime);
+console.log('Tasa de errores:', metrics.errorRate);
 ```
 
 ### Logging Personalizado
@@ -705,7 +807,7 @@ logger.info("Mensaje informativo", { userId: 123 });
 **Como interceptor HTTP:**
 
 ```typescript
-import { LoggingInterceptor } from "httplazy/http/logging";
+import { LoggingInterceptor } from 'httplazy/http/logging';
 
 client.useInterceptor(new LoggingInterceptor());
 ```
@@ -720,27 +822,27 @@ client.useInterceptor(new LoggingInterceptor());
 
 ```javascript
 // Importar desde servidor
-import { stream } from "httplazy/server";
+import { stream } from 'httplazy/server';
 
 // Streaming de archivo grande
-const fileStream = await stream("https://example.com/large-file.zip", {
-  onData: (chunk) => {
+const fileStream = await stream('https://example.com/large-file.zip', {
+  onData: chunk => {
     // Procesar cada fragmento
     const percent = (bytesReceived / totalBytes) * 100;
     updateProgressBar(percent);
   },
   onComplete: () => {
-    console.log("Descarga completada");
+    console.log('Descarga completada');
   },
-  onError: (err) => {
-    console.error("Error en streaming:", err);
+  onError: err => {
+    console.error('Error en streaming:', err);
   },
 });
 
 // Streaming básico en cliente
-import { stream } from "httplazy/client";
+import { stream } from 'httplazy/client';
 
-const textStream = await stream("https://api.example.com/events");
+const textStream = await stream('https://api.example.com/events');
 // Procesar stream con las APIs del navegador
 ```
 
@@ -749,7 +851,7 @@ const textStream = await stream("https://api.example.com/events");
 A partir de la versión 2.x, puedes levantar un servidor HTTP funcional en Node.js con una sola línea usando `HttpLazyServer`:
 
 ```typescript
-import { HttpLazyServer } from "httplazy";
+import { HttpLazyServer } from 'httplazy';
 
 const app = new HttpLazyServer();
 app.start();
@@ -759,7 +861,7 @@ app.start();
 - Puedes agregar rutas fácilmente:
 
 ```typescript
-app.get("/ping", (req, res) => res.json({ ok: true }));
+app.get('/ping', (req, res) => res.json({ ok: true }));
 ```
 
 #### Desarrollo con recarga automática
@@ -776,23 +878,23 @@ Esto levantará tu servidor y recargará automáticamente ante cualquier cambio 
 
 ```javascript
 // Importar desde servidor
-import { configureProxy } from "httplazy/server";
+import { configureProxy } from 'httplazy/server';
 
 // Configurar proxy HTTP
 configureProxy({
-  protocol: "http",
-  host: "proxy.company.com",
+  protocol: 'http',
+  host: 'proxy.company.com',
   port: 8080,
   auth: {
-    username: "user",
-    password: "pass",
+    username: 'user',
+    password: 'pass',
   },
 });
 
 // Proxy SOCKS
 configureProxy({
-  protocol: "socks5",
-  host: "127.0.0.1",
+  protocol: 'socks5',
+  host: '127.0.0.1',
   port: 9050,
 });
 ```
@@ -804,11 +906,7 @@ Algunas librerías (como React Query, SWR, middlewares, etc.) esperan que las fu
 ### Helper: lanzar excepción solo si hay error
 
 ```typescript
-export function ensureSuccess<T>(response: {
-  data: T;
-  error?: any;
-  status: number;
-}): T {
+export function ensureSuccess<T>(response: { data: T; error?: any; status: number }): T {
   if (response.error)
     throw Object.assign(new Error(response.error.message), response.error, {
       status: response.status,
@@ -821,14 +919,14 @@ export function ensureSuccess<T>(response: {
 
 ```typescript
 // Uso normal (patrón HttpLazy)
-const resp = await http.getAll("/api/users");
+const resp = await http.getAll('/api/users');
 if (resp.error) {
   // Manejo uniforme
   showError(resp.error.message);
 }
 
 // Uso con librerías que esperan promesas rechazadas
-const data = ensureSuccess(await http.getAll("/api/users"));
+const data = ensureSuccess(await http.getAll('/api/users'));
 // Si hay error, se lanza como excepción y puedes usar try/catch o integrarlo con React Query, etc.
 ```
 
@@ -839,23 +937,23 @@ const data = ensureSuccess(await http.getAll("/api/users"));
 HttpLazy proporciona un manejo de errores consistente y predecible:
 
 ```javascript
-const { data, error, status } = await http.getAll("/api/users");
+const { data, error, status } = await http.getAll('/api/users');
 
 if (error) {
   // Manejar según código HTTP
   if (status === 404) {
-    console.error("Recurso no encontrado");
+    console.error('Recurso no encontrado');
   } else if (status === 401) {
-    console.error("Autenticación requerida");
+    console.error('Autenticación requerida');
   } else if (status >= 500) {
-    console.error("Error del servidor:", error.message);
+    console.error('Error del servidor:', error.message);
   } else {
     console.error(`Error (${status}):`, error.message);
   }
 
   // Detalles adicionales
   if (error.details) {
-    console.error("Detalles:", error.details);
+    console.error('Detalles:', error.details);
   }
 } else {
   // Procesar datos exitosos
@@ -878,7 +976,7 @@ if (error) {
 
 ```javascript
 try {
-  const response = await http.getAll("/api/data");
+  const response = await http.getAll('/api/data');
 
   if (response.error) {
     // Error HTTP con respuesta del servidor
@@ -888,7 +986,7 @@ try {
   }
 } catch (err) {
   // Errores de red, como desconexión o timeout
-  console.error("Error de conexión:", err.message);
+  console.error('Error de conexión:', err.message);
 }
 ```
 
@@ -909,7 +1007,7 @@ import {
   CacheError, // Errores en el sistema de caché
   ValidationError, // Errores de validación de datos
   RateLimitError, // Errores por límite de peticiones excedido
-} from "httplazy/errors";
+} from 'httplazy/errors';
 
 // Verificar tipo de error
 if (error instanceof AuthenticationError) {
@@ -927,21 +1025,21 @@ Además de los códigos HTTP estándar, HttpLazy define códigos internos para s
 
 ```javascript
 // Ejemplo de manejo de códigos personalizados
-const { error } = await http.getAll("/api/users");
+const { error } = await http.getAll('/api/users');
 
 if (error) {
   switch (error.code) {
-    case "AUTH_EXPIRED":
+    case 'AUTH_EXPIRED':
       await http.refreshToken();
       // Reintentar petición
       break;
-    case "CACHE_MISS":
+    case 'CACHE_MISS':
       // Obtener desde origen
       break;
-    case "RATE_LIMITED":
+    case 'RATE_LIMITED':
       // Implementar backoff exponencial
       break;
-    case "VALIDATION_FAILED":
+    case 'VALIDATION_FAILED':
       // Mostrar errores de validación
       showValidationErrors(error.details);
       break;
@@ -969,12 +1067,12 @@ Puedes crear tus propias clases de error personalizadas que se integren con el s
 
 ```javascript
 // Definir un error personalizado para tu dominio
-import { HttpError } from "httplazy/errors";
+import { HttpError } from 'httplazy/errors';
 
 class PaymentDeclinedError extends HttpError {
   constructor(message, details = {}) {
-    super(message, "PAYMENT_DECLINED", 402, details);
-    this.name = "PaymentDeclinedError";
+    super(message, 'PAYMENT_DECLINED', 402, details);
+    this.name = 'PaymentDeclinedError';
 
     // Agregar propiedades específicas
     this.paymentId = details.paymentId;
@@ -989,10 +1087,10 @@ class PaymentDeclinedError extends HttpError {
 }
 
 // Usar con el interceptor de respuesta
-http._setupInterceptors((response) => {
+http._setupInterceptors(response => {
   // Transformar errores estándar en personalizados
-  if (response.status === 402 && response.data?.type === "payment_error") {
-    throw new PaymentDeclinedError("Pago rechazado", {
+  if (response.status === 402 && response.data?.type === 'payment_error') {
+    throw new PaymentDeclinedError('Pago rechazado', {
       paymentId: response.data.paymentId,
       reason: response.data.reason,
       canRetry: response.data.canRetry,
@@ -1000,7 +1098,7 @@ http._setupInterceptors((response) => {
     });
   }
   return response;
-}, "response");
+}, 'response');
 
 // En el código de la aplicación
 try {
@@ -1024,24 +1122,22 @@ Estructura tu código para un manejo de errores consistente y mantenible:
 ```javascript
 // Patrón: Centralizar lógica de manejo de errores
 const errorHandlers = {
-  AUTH_EXPIRED: async (error) => {
+  AUTH_EXPIRED: async error => {
     // Refrescar token automáticamente
     await authService.refreshToken();
     return true; // Indica que se puede reintentar
   },
-  NETWORK_OFFLINE: (error) => {
+  NETWORK_OFFLINE: error => {
     // Activar modo offline
     appStore.setOfflineMode(true);
-    showToast("Trabajando en modo offline");
+    showToast('Trabajando en modo offline');
     return false; // No reintentar automáticamente
   },
-  RATE_LIMITED: (error) => {
+  RATE_LIMITED: error => {
     // Implementar backoff
     const retryAfter = error.details.retryAfter || 5000;
     showToast(`Demasiadas peticiones, reintentando en ${retryAfter / 1000}s`);
-    return new Promise((resolve) =>
-      setTimeout(() => resolve(true), retryAfter)
-    );
+    return new Promise(resolve => setTimeout(() => resolve(true), retryAfter));
   },
   // Otros manejadores...
 };
@@ -1107,9 +1203,9 @@ HttpLazy está optimizado para aplicaciones Next.js, gestionando automáticament
 ### En Componentes Cliente
 
 ```jsx
-"use client";
-import { useState, useEffect } from "react";
-import { http } from "httplazy/client";
+'use client';
+import { useState, useEffect } from 'react';
+import { http } from 'httplazy/client';
 
 export default function UserProfile({ userId }) {
   const [user, setUser] = useState(null);
@@ -1117,7 +1213,7 @@ export default function UserProfile({ userId }) {
 
   useEffect(() => {
     async function loadUser() {
-      const { data, error } = await http.getById("/api/users", userId);
+      const { data, error } = await http.getById('/api/users', userId);
       if (!error) {
         setUser(data);
       }
@@ -1143,17 +1239,14 @@ export default function UserProfile({ userId }) {
 
 ```javascript
 // app/api/products/route.js
-import { http } from "httplazy/server";
+import { http } from 'httplazy/server';
 
 export async function GET(request) {
   // Obtener productos desde un servicio externo
-  const response = await http.getAll("https://external-api.com/products");
+  const response = await http.getAll('https://external-api.com/products');
 
   if (response.error) {
-    return Response.json(
-      { error: response.error.message },
-      { status: response.status }
-    );
+    return Response.json({ error: response.error.message }, { status: response.status });
   }
 
   return Response.json(response.data);
@@ -1164,27 +1257,24 @@ export async function GET(request) {
 
 ```javascript
 // app/actions.js
-"use server";
-import { http } from "httplazy/server";
+'use server';
+import { http } from 'httplazy/server';
 
 export async function processPayment(formData) {
   const paymentData = {
-    amount: formData.get("amount"),
-    cardNumber: formData.get("cardNumber"),
+    amount: formData.get('amount'),
+    cardNumber: formData.get('cardNumber'),
     // otros campos...
   };
 
   // Usar proxy para API de pagos
   configureProxy({
-    protocol: "https",
-    host: "secure-proxy.company.com",
+    protocol: 'https',
+    host: 'secure-proxy.company.com',
     port: 443,
   });
 
-  const response = await http.post(
-    "https://payment-gateway.com/process",
-    paymentData
-  );
+  const response = await http.post('https://payment-gateway.com/process', paymentData);
 
   return response.data;
 }
@@ -1198,23 +1288,23 @@ Crea un servicio centralizado para tus APIs:
 
 ```javascript
 // lib/api.js
-import { http } from "httplazy/client";
+import { http } from 'httplazy/client';
 
 http.initialize({
-  baseUrl: "/api",
+  baseUrl: '/api',
   // otras configuraciones...
 });
 
 export const userService = {
-  getAll: () => http.getAll("/users"),
-  getById: (id) => http.getById("/users", id),
-  create: (data) => http.post("/users", data),
+  getAll: () => http.getAll('/users'),
+  getById: id => http.getById('/users', id),
+  create: data => http.post('/users', data),
   update: (id, data) => http.put(`/users/${id}`, data),
-  delete: (id) => http.del(`/users/${id}`),
+  delete: id => http.del(`/users/${id}`),
 };
 
 export const authService = {
-  login: (credentials) => http.login(credentials),
+  login: credentials => http.login(credentials),
   logout: () => http.logout(),
   getCurrentUser: () => http.getAuthenticatedUser(),
 };
@@ -1233,10 +1323,7 @@ export const authService = {
 2. **Manejo de promesas en paralelo**
 
    ```javascript
-   const [users, products] = await Promise.all([
-     userService.getAll(),
-     productService.getAll(),
-   ]);
+   const [users, products] = await Promise.all([userService.getAll(), productService.getAll()]);
    ```
 
 3. **Patrones de carga con React**
@@ -1265,7 +1352,7 @@ export const authService = {
          }
        } catch (err) {
          if (isMounted) {
-           setError({ message: "Error de conexión" });
+           setError({ message: 'Error de conexión' });
            setData(null);
          }
        } finally {
@@ -1289,10 +1376,10 @@ export const authService = {
 
    ```javascript
    // Datos que cambian poco
-   const config = await http.getAll("/api/config", { cache: 3600 }); // 1h
+   const config = await http.getAll('/api/config', { cache: 3600 }); // 1h
 
    // Datos que cambian con frecuencia
-   const notifications = await http.getAll("/api/notifications", { cache: 60 }); // 1min
+   const notifications = await http.getAll('/api/notifications', { cache: 60 }); // 1min
    ```
 
 2. **Invalidación selectiva**
@@ -1300,7 +1387,7 @@ export const authService = {
    ```javascript
    // Después de actualizar un usuario
    await userService.update(id, userData);
-   http.invalidateCacheByTags(["users"]);
+   http.invalidateCacheByTags(['users']);
    ```
 
 3. **Precarga de datos críticos**
@@ -1308,8 +1395,8 @@ export const authService = {
    // Precargar datos comunes durante la inicialización
    export async function initializeApp() {
      await Promise.all([
-       http.getAll("/api/config", { cache: true }),
-       http.getAll("/api/common-data", { cache: true }),
+       http.getAll('/api/config', { cache: true }),
+       http.getAll('/api/common-data', { cache: true }),
      ]);
    }
    ```
@@ -1326,12 +1413,12 @@ Utiliza endpoints públicos que siempre devuelven un error:
 
 ```js
 // 404 Not Found
-const resp = await http.get("https://httpstat.us/404");
+const resp = await http.get('https://httpstat.us/404');
 console.log(resp.status); // 404
 console.log(resp.error); // Mensaje de error descriptivo
 
 // 500 Internal Server Error
-const resp2 = await http.get("https://httpstat.us/500");
+const resp2 = await http.get('https://httpstat.us/500');
 console.log(resp2.status); // 500
 console.log(resp2.error); // Mensaje de error descriptivo
 ```
@@ -1341,14 +1428,14 @@ console.log(resp2.error); // Mensaje de error descriptivo
 En tus tests unitarios, puedes mockear el método para devolver un error simulado:
 
 ```js
-jest.spyOn(http, "get").mockResolvedValue({
+jest.spyOn(http, 'get').mockResolvedValue({
   data: null,
-  error: "Recurso no encontrado",
+  error: 'Recurso no encontrado',
   status: 404,
 });
-const resp = await http.get("/api/fake");
+const resp = await http.get('/api/fake');
 expect(resp.status).toBe(404);
-expect(resp.error).toBe("Recurso no encontrado");
+expect(resp.error).toBe('Recurso no encontrado');
 ```
 
 #### 3. Usando servidores locales
@@ -1367,7 +1454,7 @@ HttpLazy soporta cancelación de peticiones usando `AbortController` (en browser
 ```js
 const controller = new AbortController();
 
-const promesa = http.get("https://fakestoreapi.com/products", {
+const promesa = http.get('https://fakestoreapi.com/products', {
   signal: controller.signal,
   timeout: 5000,
 });
@@ -1385,8 +1472,8 @@ controller.abort();
 La forma recomendada y tipada de pasar headers y opciones es:
 
 ```js
-http.get("https://fakestoreapi.com/products", {
-  headers: { "X-Request-ID": "12345" },
+http.get('https://fakestoreapi.com/products', {
+  headers: { 'X-Request-ID': '12345' },
   timeout: 5000,
 });
 ```
@@ -1398,8 +1485,8 @@ http.get("https://fakestoreapi.com/products", {
 
 ```js
 // Esto puede no funcionar correctamente:
-http.get("https://fakestoreapi.com/products", {
-  "X-Request-ID": "12345", // ❌ No irá como header
+http.get('https://fakestoreapi.com/products', {
+  'X-Request-ID': '12345', // ❌ No irá como header
   timeout: 5000,
 });
 ```
@@ -1414,11 +1501,11 @@ Si experimentas errores CORS en desarrollo:
 
 ```javascript
 // Configuración para desarrollo local
-if (process.env.NODE_ENV === "development") {
+if (process.env.NODE_ENV === 'development') {
   http.initialize({
     // otras configuraciones...
     defaultHeaders: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
       // Añadir headers CORS si es necesario
     },
   });
@@ -1431,10 +1518,10 @@ Si encuentras errores como "Can't resolve 'net'" en Next.js, asegúrate de impor
 
 ```javascript
 // ❌ Incorrecto
-import { http } from "httplazy";
+import { http } from 'httplazy';
 
 // ✅ Correcto para componentes cliente
-import { http } from "httplazy/client";
+import { http } from 'httplazy/client';
 ```
 
 ### Errores de TypeScript
@@ -1443,11 +1530,11 @@ Si encuentras errores de TypeScript relacionados con los tipos:
 
 ```typescript
 // Importar tipos explícitamente
-import { http } from "httplazy/client";
-import type { ApiResponse, RequestOptions } from "httplazy/client";
+import { http } from 'httplazy/client';
+import type { ApiResponse, RequestOptions } from 'httplazy/client';
 
 async function fetchData(): Promise<ApiResponse<UserType[]>> {
-  return http.getAll<UserType[]>("/api/users");
+  return http.getAll<UserType[]>('/api/users');
 }
 ```
 
@@ -1541,9 +1628,9 @@ Estamos abiertos a contribuciones para mejorar HttpLazy. Puedes contribuir de va
 // Subida básica de archivo
 async function uploadFile(file) {
   const formData = new FormData();
-  formData.append("file", file);
+  formData.append('file', file);
 
-  const { data, error } = await http.post("/api/upload", formData, {
+  const { data, error } = await http.post('/api/upload', formData, {
     headers: {
       // No establecer Content-Type, se establece automáticamente con boundary
     },
@@ -1562,10 +1649,10 @@ async function uploadMultipleFiles(files) {
   });
 
   // Botón para cancelar en la UI
-  cancelButton.addEventListener("click", () => controller.abort());
+  cancelButton.addEventListener('click', () => controller.abort());
 
   try {
-    const { data } = await http.post("/api/upload-multiple", formData, {
+    const { data } = await http.post('/api/upload-multiple', formData, {
       signal: controller.signal,
       timeout: 120000, // 2 minutos
       retries: 1, // Un reintento en caso de fallo
@@ -1573,7 +1660,7 @@ async function uploadMultipleFiles(files) {
 
     return { success: true, data };
   } catch (error) {
-    if (error.name === "AbortError") {
+    if (error.name === 'AbortError') {
       return { success: false, aborted: true };
     }
     return { success: false, error };
@@ -1587,15 +1674,15 @@ Puedes pasar un array de paths, streams, File o Blob para subir varios archivos 
 
 ```js
 // Node.js
-await http.upload("https://fakestoreapi.com/upload", {
-  archivos: ["./a.txt", "./b.txt"], // varios archivos en un solo campo
-  descripcion: "Subida múltiple",
+await http.upload('https://fakestoreapi.com/upload', {
+  archivos: ['./a.txt', './b.txt'], // varios archivos en un solo campo
+  descripcion: 'Subida múltiple',
 });
 
 // Browser
-await http.upload("https://fakestoreapi.com/upload", {
+await http.upload('https://fakestoreapi.com/upload', {
   archivos: [file1, file2], // File o Blob
-  descripcion: "Subida múltiple",
+  descripcion: 'Subida múltiple',
 });
 ```
 
@@ -1634,18 +1721,18 @@ Si algún archivo excede el límite, la respuesta tendrá un error claro.
 
 ```js
 const resp = await http.upload(
-  "https://api.com/upload",
+  'https://api.com/upload',
   {
-    archivo: "./grande.txt",
+    archivo: './grande.txt',
   },
   { maxFileSize: 1024 * 1024 }
 );
 
 if (resp.error) {
-  console.error("Error al subir archivo:", resp.error);
+  console.error('Error al subir archivo:', resp.error);
   // Ejemplo: "Archivo './grande.txt' excede el tamaño máximo permitido (1048576 bytes)"
 } else {
-  console.log("Subida exitosa:", resp.data);
+  console.log('Subida exitosa:', resp.data);
 }
 ```
 
@@ -1660,13 +1747,13 @@ El método `upload` realiza validaciones automáticas en Node.js:
 #### Ejemplo: manejo de error por archivo inexistente
 
 ```js
-const resp = await http.upload("https://fakestoreapi.com/upload", {
-  archivo: "./noexiste.txt",
-  descripcion: "Intento fallido",
+const resp = await http.upload('https://fakestoreapi.com/upload', {
+  archivo: './noexiste.txt',
+  descripcion: 'Intento fallido',
 });
 
 if (resp.error) {
-  console.error("Error al subir archivo:", resp.error);
+  console.error('Error al subir archivo:', resp.error);
   // "El archivo './noexiste.txt' no existe o no es un archivo válido (campo 'archivo')"
 }
 ```
@@ -1675,9 +1762,9 @@ if (resp.error) {
 
 ```js
 const resp = await http.upload(
-  "https://fakestoreapi.com/upload",
+  'https://fakestoreapi.com/upload',
   {
-    archivo: "./grande.txt",
+    archivo: './grande.txt',
   },
   { maxFileSize: 1024 * 1024 }
 ); // 1MB
@@ -1692,9 +1779,9 @@ Puedes desactivar la validación de existencia/tamaño de archivos usando la opc
 
 ```js
 const resp = await http.upload(
-  "https://fakestoreapi.com/upload",
+  'https://fakestoreapi.com/upload',
   {
-    archivo: "./noexiste.txt",
+    archivo: './noexiste.txt',
   },
   { validateFiles: false }
 );
@@ -1748,31 +1835,31 @@ A partir de la versión 2.x, puedes crear tantas instancias de cliente HTTP como
 ### Ejemplo en TypeScript
 
 ```typescript
-import { HttpCore } from "httplazy";
+import { HttpCore } from 'httplazy';
 
 // Opciones para el primer cliente
 const clientA = new HttpCore.HttpCore({
-  baseUrl: "https://api.empresaA.com",
+  baseUrl: 'https://api.empresaA.com',
   defaultHeaders: {
-    Authorization: "Bearer tokenA",
-    "X-App": "A",
+    Authorization: 'Bearer tokenA',
+    'X-App': 'A',
   },
   timeout: 8000,
 });
 
 // Opciones para el segundo cliente
 const clientB = new HttpCore.HttpCore({
-  baseUrl: "https://api.empresaB.com",
+  baseUrl: 'https://api.empresaB.com',
   defaultHeaders: {
-    Authorization: "Bearer tokenB",
-    "X-App": "B",
+    Authorization: 'Bearer tokenB',
+    'X-App': 'B',
   },
   timeout: 5000,
 });
 
 // Cada cliente es totalmente independiente
-const { data: dataA } = await clientA.getAll("/usuarios");
-const { data: dataB } = await clientB.getAll("/clientes");
+const { data: dataA } = await clientA.getAll('/usuarios');
+const { data: dataB } = await clientB.getAll('/clientes');
 
 // Puedes agregar interceptores o configuración específica a cada uno
 clientA.useInterceptor(new MiInterceptorPersonalizado());
@@ -1791,7 +1878,7 @@ Si tu proyecto consume muchas APIs o necesitas crear clientes con configuracione
 
 ```typescript
 // lib/httpClientFactory.ts
-import { HttpCore } from "httplazy";
+import { HttpCore } from 'httplazy';
 
 interface ClientConfig {
   baseUrl: string;
@@ -1806,9 +1893,7 @@ export class HttpClientFactory {
     if (!this.instances[key]) {
       this.instances[key] = new HttpCore.HttpCore({
         baseUrl: config.baseUrl,
-        defaultHeaders: config.token
-          ? { Authorization: `Bearer ${config.token}` }
-          : {},
+        defaultHeaders: config.token ? { Authorization: `Bearer ${config.token}` } : {},
         timeout: config.timeout || 5000,
       });
     }
@@ -1820,23 +1905,23 @@ export class HttpClientFactory {
 **Uso:**
 
 ```typescript
-import { HttpClientFactory } from "./lib/httpClientFactory";
+import { HttpClientFactory } from './lib/httpClientFactory';
 
-const apiA = HttpClientFactory.getClient("apiA", {
-  baseUrl: "https://api.empresaA.com",
-  token: "tokenA",
+const apiA = HttpClientFactory.getClient('apiA', {
+  baseUrl: 'https://api.empresaA.com',
+  token: 'tokenA',
   timeout: 8000,
 });
 
-const apiB = HttpClientFactory.getClient("apiB", {
-  baseUrl: "https://api.empresaB.com",
-  token: "tokenB",
+const apiB = HttpClientFactory.getClient('apiB', {
+  baseUrl: 'https://api.empresaB.com',
+  token: 'tokenB',
   timeout: 5000,
 });
 
 // Peticiones independientes
-const { data: usersA } = await apiA.getAll("/usuarios");
-const { data: usersB } = await apiB.getAll("/clientes");
+const { data: usersA } = await apiA.getAll('/usuarios');
+const { data: usersB } = await apiB.getAll('/clientes');
 ```
 
 - La factoría asegura que cada cliente se crea una sola vez por clave.
@@ -1849,28 +1934,28 @@ const { data: usersB } = await apiB.getAll("/clientes");
 Supón que tienes un microservicio de usuarios y otro de productos, cada uno con autenticación y configuración distinta:
 
 ```typescript
-import { HttpCore } from "httplazy";
+import { HttpCore } from 'httplazy';
 
 // Cliente para microservicio de usuarios
 const userClient = new HttpCore.HttpCore({
-  baseUrl: "https://api.usuarios.com",
-  defaultHeaders: { Authorization: "Bearer userToken" },
+  baseUrl: 'https://api.usuarios.com',
+  defaultHeaders: { Authorization: 'Bearer userToken' },
 });
 
 // Cliente para microservicio de productos
 const productClient = new HttpCore.HttpCore({
-  baseUrl: "https://api.productos.com",
-  defaultHeaders: { Authorization: "Bearer productToken" },
+  baseUrl: 'https://api.productos.com',
+  defaultHeaders: { Authorization: 'Bearer productToken' },
 });
 
 // Obtener datos de ambos servicios en paralelo
 const [users, products] = await Promise.all([
-  userClient.getAll("/users"),
-  productClient.getAll("/products"),
+  userClient.getAll('/users'),
+  productClient.getAll('/products'),
 ]);
 
-console.log("Usuarios:", users.data);
-console.log("Productos:", products.data);
+console.log('Usuarios:', users.data);
+console.log('Productos:', products.data);
 ```
 
 Esto te permite desacoplar la lógica de cada dominio, mantener la seguridad y la configuración separada, y escalar tu aplicación de forma limpia y mantenible.
@@ -1880,15 +1965,15 @@ Esto te permite desacoplar la lógica de cada dominio, mantener la seguridad y l
 Si necesitas manejar la redirección al login de forma personalizada cuando el servidor responde con un 401 (no autorizado), puedes agregar un interceptor de error así:
 
 ```typescript
-import { http } from "httplazy";
+import { http } from 'httplazy';
 
 // Interceptor de error para manejar 401 y redirigir al login
 dhttp.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  response => response,
+  error => {
     if (error?.status === 401) {
       // Redirige al login (puedes usar window.location o tu router)
-      window.location.href = "/login";
+      window.location.href = '/login';
       // Opcional: limpiar tokens, cerrar sesión, etc.
     }
     return Promise.reject(error);
@@ -1921,7 +2006,7 @@ dhttp.interceptors.response.use(
 ### Ejemplo: Crear un Servidor SOA
 
 ```typescript
-import { createSoaServer } from "httplazy/server";
+import { createSoaServer } from 'httplazy/server';
 
 const mathService = {
   async sum(a: number, b: number) {
@@ -1940,25 +2025,25 @@ const server = createSoaServer({
 });
 
 await server.start();
-console.log("SOA server running on port 4000");
+console.log('SOA server running on port 4000');
 ```
 
 ### Ejemplo: Consumir servicios SOA desde un cliente
 
 ```typescript
-import { createSoaClient } from "httplazy/client";
+import { createSoaClient } from 'httplazy/client';
 
 const client = createSoaClient({
-  serviceUrl: "http://localhost:4000/services",
+  serviceUrl: 'http://localhost:4000/services',
 });
 
-const result = await client.callService("math", "sum", [2, 3]);
+const result = await client.callService('math', 'sum', [2, 3]);
 console.log(result); // 5
 
 // Llamada batch
 const results = await client.callBatch([
-  { serviceName: "math", method: "sum", params: [1, 2] },
-  { serviceName: "math", method: "multiply", params: [3, 4] },
+  { serviceName: 'math', method: 'sum', params: [1, 2] },
+  { serviceName: 'math', method: 'multiply', params: [3, 4] },
 ]);
 console.log(results); // [3, 12]
 ```
@@ -1987,7 +2072,7 @@ console.log(results); // [3, 12]
 A partir de la versión 2.x, puedes levantar un servidor HTTP funcional en Node.js con una sola línea usando `HttpLazyServer`:
 
 ```typescript
-import { HttpLazyServer } from "httplazy";
+import { HttpLazyServer } from 'httplazy';
 
 const app = new HttpLazyServer();
 app.start();
@@ -1997,7 +2082,7 @@ app.start();
 - Puedes agregar rutas fácilmente:
 
 ```typescript
-app.get("/ping", (req, res) => res.json({ ok: true }));
+app.get('/ping', (req, res) => res.json({ ok: true }));
 ```
 
 #### Desarrollo con recarga automática

@@ -87,6 +87,11 @@ export interface ApiResponse<T> {
   status: number;
 
   /**
+   * Código de error (si lo hay)
+   */
+  code?: string;
+
+  /**
    * Metadatos adicionales de la respuesta
    */
   meta?: Record<string, any>;
