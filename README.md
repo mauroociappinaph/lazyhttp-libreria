@@ -203,64 +203,7 @@ const data = await resp.json();
 
 ---
 
-## Tabla de Contenidos
 
-- [Descripción General](#descripción-general)
-- [Instalación](#instalación)
-- [Arquitectura Cliente/Servidor](#arquitectura-clienteservidor)
-  - [Importación según entorno](#importación-según-entorno)
-  - [Comparativa de funcionalidades](#comparativa-de-funcionalidades)
-- [Uso Básico](#uso-básico)
-  - [Métodos HTTP](#métodos-http)
-  - [Configuración Inicial](#configuración-inicial)
-- [API de Referencia](#api-de-referencia)
-  - [Métodos Básicos](#métodos-básicos)
-  - [Opciones de Petición](#opciones-de-petición)
-  - [Respuesta](#respuesta)
-- [Funcionalidades Avanzadas](#funcionalidades-avanzadas)
-  - [Autenticación](#autenticación)
-  - [Caché](#caché)
-  - [Interceptores](#interceptores)
-  - [Métricas y Actividad](#métricas-y-actividad)
-    - [Logging Personalizado](#logging-personalizado)
-  - [Streaming (Servidor)](#streaming-servidor)
-  - [Servidor HTTP Minimalista (Node.js)](#servidor-http-minimalista-nodejs)
-  - [Proxies (Servidor)](#proxies-servidor)
-  - [Retry Automático con Backoff Exponencial](#retry-automático-con-backoff-exponencial)
-- [Manejo de Errores](#manejo-de-errores)
-  - [Tipos de Errores Comunes](#tipos-de-errores-comunes)
-  - [Manejo de Errores de Red](#manejo-de-errores-de-red)
-  - [Errores Personalizados](#errores-personalizados)
-- [Uso con Next.js](#uso-con-nextjs)
-  - [En Componentes Cliente](#en-componentes-cliente)
-  - [En API Routes](#en-api-routes)
-  - [En Server Actions](#en-server-actions)
-- [Buenas Prácticas](#buenas-prácticas)
-  - [Organización del Código](#organización-del-código)
-  - [Patrones de Uso](#patrones-de-uso)
-  - [Optimización](#optimización)
-  - [Tests](#tests)
-- [Solución de Problemas](#solución-de-problemas)
-  - [Errores CORS](#errores-cors)
-  - [Errores de Módulos Faltantes en Next.js](#errores-de-módulos-faltantes-en-nextjs)
-  - [Errores de TypeScript](#errores-de-typescript)
-- [Diagramas de Arquitectura](#diagramas-de-arquitectura)
-- [Guía de Contribución](#guía-de-contribución)
-- [Casos de Uso Específicos](#casos-de-uso-específicos)
-- [Comparativa con Alternativas](#comparativa-con-alternativas)
-- [Guía de Migración](#guía-de-migración)
-- [Rendimiento](#rendimiento)
-- [Convenciones de Código](#convenciones-de-código)
-- [Seguridad](#seguridad)
-- [Internacionalización](#internacionalización)
-- [Recursos Adicionales](#recursos-adicionales)
-- [Subida de archivos optimizada (upload)](#subida-de-archivos-optimizada-upload)
-- [Compatibilidad con librerías que esperan promesas rechazadas](#compatibilidad-con-librerías-que-esperan-promesas-rechazadas)
-- [Clientes HTTP múltiples](#clientes-http-múltiples)
-
----
-
-## 🍳 Recetas y Ejemplos de Uso Real
 
 ### Autenticación JWT/OAuth2
 
@@ -347,74 +290,11 @@ No es 100% compatible. HTTPLazy usa Axios internamente, no la API fetch nativa. 
 
 ---
 
-## Descripción General
 
-**HttpLazy** es una biblioteca HTTP moderna y flexible diseñada para simplificar las peticiones HTTP en aplicaciones JavaScript/TypeScript, tanto en entornos de navegador como de servidor (Node.js). Su arquitectura modular permite utilizarla en cualquier framework, con un soporte especial para aplicaciones universales (isomórficas) como Next.js, Remix o similares.
 
-La biblioteca ofrece funcionalidades avanzadas mientras mantiene una API intuitiva:
 
-- **Interfaz unificada**: API consistente para todas las operaciones HTTP
-- **Arquitectura cliente/servidor**: Separación clara entre código de navegador y Node.js
-- **Optimización automática**: Detección de entorno para usar la implementación adecuada
-- **Funcionalidades avanzadas**: Manejo de errores, caché, autenticación, interceptores, etc.
 
-## Instalación
 
-```bash
-# Usando npm
-npm install httplazy
-
-# Usando yarn
-yarn add httplazy
-
-# Usando pnpm
-pnpm add httplazy
-```
-
-## Arquitectura Cliente/Servidor
-
-La versión 1.7.0+ de HttpLazy implementa una arquitectura dual que separa el código compatible con navegadores del código exclusivo de Node.js:
-
-```
-httplazy/
-├── client/   # Código seguro para navegadores
-├── server/   # Código con capacidades completas (Node.js)
-└── common/   # Código compartido entre ambos entornos
-```
-
-### Importación según entorno
-
-> ⚠️ **Importante:**
->
-> A partir de la versión 2.x, la forma recomendada de usar HttpLazy es **instanciando manualmente el cliente**. La importación directa de `http` está deprecada y puede no estar disponible en futuras versiones.
->
-> **Nueva forma recomendada:**
->
-> ```js
-> import { HttpCore } from 'httplazy';
-> const http = new HttpCore.HttpCore();
-> // Ahora puedes usar http.get, http.post, etc.
-> ```
->
-> Esto permite crear múltiples clientes con configuraciones independientes y mejora la escalabilidad y testabilidad del código.
->
-> Si encuentras ejemplos con `import { http } from 'httplazy'`, actualízalos siguiendo este patrón.
-
-### Comparativa de funcionalidades
-
-| Característica     | Cliente (Browser) | Servidor (Node.js) |
-| ------------------ | ----------------- | ------------------ |
-| HTTP básico        | ✅                | ✅                 |
-| Autenticación      | ✅                | ✅                 |
-| Interceptores      | ✅                | ✅                 |
-| Caché básico       | ✅                | ✅                 |
-| Manejo de errores  | ✅                | ✅                 |
-| Proxies HTTP/SOCKS | ❌                | ✅                 |
-| Streaming avanzado | ❌                | ✅                 |
-| Soporte SOA        | ❌                | ✅                 |
-| Métricas avanzadas | ✅ (limitado)     | ✅ (completo)      |
-
-## Uso Básico
 
 ### Métodos HTTP
 
