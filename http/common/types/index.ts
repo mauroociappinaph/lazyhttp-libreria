@@ -5,11 +5,11 @@
 import type { RequestOptions } from '../../types/http.types';
 
 // Tipos básicos de HTTP
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   data: T;
   status: number;
   headers: Record<string, string>;
-  config?: any;
+  config?: unknown;
   error?: string;
 }
 
@@ -33,11 +33,11 @@ export interface AuthConfig {
 export interface UserCredentials {
   username: string;
   password: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface AuthInfo {
-  user: any;
+  user: unknown;
   token: string;
   refreshToken?: string;
   expiresAt?: number;
@@ -56,9 +56,9 @@ export interface ProxyConfig {
 
 // Configuración de streaming
 export interface StreamConfig {
-  onData?: (chunk: any) => void;
+  onData?: (chunk: unknown) => void;
   onComplete?: () => void;
-  onError?: (error: any) => void;
+  onError?: (error: unknown) => void;
   responseType?: 'json' | 'text' | 'blob' | 'arraybuffer';
 }
 
@@ -97,33 +97,51 @@ export interface MetricsConfig {
   sampleRate?: number;
 }
 
+/**
+ * Configuración de inicialización para clientes HTTP
+ */
+export interface InitConfig {
+  baseUrl?: string;
+  frontendUrl?: string;
+  timeout?: number;
+  retries?: number;
+  headers?: Record<string, string>;
+  auth?: Partial<AuthConfig>;
+  cache?: Partial<CacheConfig>;
+  metrics?: Partial<MetricsConfig>;
+  retry?: Partial<RetryConfig>;
+  proxy?: ProxyConfig;
+  transformRequest?: ((data: unknown) => unknown) | Array<(data: unknown) => unknown>;
+  transformResponse?: ((data: unknown) => unknown) | Array<(data: unknown) => unknown>;
+}
+
 // Interfaz principal HTTP
 export interface HttpImplementation {
-  request<T = any>(method: HttpMethod, url: string, data?: any, options?: RequestOptions): Promise<ApiResponse<T>>;
-  get<T = any>(url: string, options?: RequestOptions): Promise<ApiResponse<T>>;
-  getAll<T = any>(url: string, options?: RequestOptions): Promise<ApiResponse<T[]>>;
-  getById<T = any>(url: string, id: string | number, options?: RequestOptions): Promise<ApiResponse<T>>;
-  post<T = any>(url: string, data?: any, options?: RequestOptions): Promise<ApiResponse<T>>;
-  put<T = any>(url: string, data?: any, options?: RequestOptions): Promise<ApiResponse<T>>;
-  patch<T = any>(url: string, data?: any, options?: RequestOptions): Promise<ApiResponse<T>>;
-  delete<T = any>(url: string, options?: RequestOptions): Promise<ApiResponse<T>>;
+  request<T = unknown>(method: HttpMethod, url: string, data?: unknown, options?: RequestOptions): Promise<ApiResponse<T>>;
+  get<T = unknown>(url: string, options?: RequestOptions): Promise<ApiResponse<T>>;
+  getAll<T = unknown>(url: string, options?: RequestOptions): Promise<ApiResponse<T[]>>;
+  getById<T = unknown>(url: string, id: string | number, options?: RequestOptions): Promise<ApiResponse<T>>;
+  post<T = unknown>(url: string, data?: unknown, options?: RequestOptions): Promise<ApiResponse<T>>;
+  put<T = unknown>(url: string, data?: unknown, options?: RequestOptions): Promise<ApiResponse<T>>;
+  patch<T = unknown>(url: string, data?: unknown, options?: RequestOptions): Promise<ApiResponse<T>>;
+  delete<T = unknown>(url: string, options?: RequestOptions): Promise<ApiResponse<T>>;
 
   // Autenticación
   configureAuth(config: Partial<AuthConfig>): void;
   login(credentials: UserCredentials): Promise<AuthInfo>;
   logout(): Promise<void>;
   isAuthenticated(): boolean;
-  getAuthenticatedUser(): any | null;
+  getAuthenticatedUser(): unknown | null;
   getAccessToken(): string | null;
 
   // Configuración
-  initialize(config: any): void;
+  initialize(config: Partial<InitConfig>): void;
   configureCaching(config: Partial<CacheConfig>): void;
   invalidateCache(pattern: string): void;
   invalidateCacheByTags(tags: string[]): void;
   configureMetrics(config: Partial<MetricsConfig>): void;
   trackActivity(type: string): void;
-  getCurrentMetrics(): any;
+  getCurrentMetrics(): unknown;
 }
 
 export type { RequestOptions } from '../../types/http.types';
