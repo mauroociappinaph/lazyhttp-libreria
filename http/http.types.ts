@@ -319,7 +319,14 @@ export interface ErrorResponse {
  * @internal Procesa respuestas HTTP
  */
 export interface HttpResponseProcessor {
-  processResponse<T>(response: AxiosResponse<T>): ApiResponse<T>;
+  processResponse<T>(
+    response: import('axios').AxiosResponse<T>,
+    metaOpcional?: {
+      requestHeaders?: Record<string, string>;
+      timing?: Record<string, number>;
+      rawBody?: string | Uint8Array;
+    }
+  ): ApiResponse<T>;
 }
 
 /**
@@ -345,7 +352,10 @@ export interface HttpRetryHandler {
     headers: Record<string, string>,
     body: unknown | undefined,
     timeout: number,
-    retriesLeft: number
+    retriesLeft: number,
+    metaOpcional?: {
+      requestStart?: number;
+    }
   ): Promise<ApiResponse<T>>;
 
   handleRetry<T>(

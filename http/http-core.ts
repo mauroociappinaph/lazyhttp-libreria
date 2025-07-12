@@ -50,29 +50,44 @@ export class HttpCore {
     } = options;
 
     try {
-      // Registrar la petición en métricas
       metricsManager.trackRequest(endpoint);
-
-      // Determinar si la URL es completa o si debemos usar baseUrl
       const isFullUrl = endpoint.startsWith('http://') || endpoint.startsWith('https://');
       const finalEndpoint = isFullUrl ? endpoint : this._baseUrl ? `${this._baseUrl}${endpoint}` : endpoint;
-
-      // Petición sin caché
       const requestHeaders = prepareHeaders(headers, withAuth);
+
+      // Capturar tiempo de inicio
+      const requestStart = Date.now();
       const response = await retryHandler.executeWithRetry(
         finalEndpoint,
         method,
         requestHeaders,
         body,
         timeout || this._defaultTimeout || DEFAULT_TIMEOUT,
-        retries !== undefined ? retries : this._defaultRetries !== undefined ? this._defaultRetries : DEFAULT_RETRIES
-      ) as ApiResponse<T>;
+        retries !== undefined ? retries : this._defaultRetries !== undefined ? this._defaultRetries : DEFAULT_RETRIES,
+        { requestStart }
+      );
 
-      // Invalidar caché automáticamente para métodos de escritura
       if (method !== 'GET') {
         cacheManager.invalidateByMethod(method, endpoint);
       }
 
+      // Si la respuesta tiene processResponse (AxiosResponse), poblar fullMeta
+      if (response && typeof response === 'object' && 'status' in response && 'data' in response) {
+        // Ya es ApiResponse, pero debemos poblar fullMeta si no existe
+        if (!('fullMeta' in response)) {
+          // No se puede modificar el objeto si viene de otro lado, así que lo devolvemos tal cual
+          return response as ApiResponse<T>;
+        }
+        return response as ApiResponse<T>;
+      }
+
+      // Si usamos el responseProcessor, pasarle los metadatos
+      // (esto es para compatibilidad, si se usa processResponse aquí)
+      // return responseProcessor.processResponse(response, {
+      //   requestHeaders,
+      //   timing: { requestStart, responseEnd },
+      //   rawBody: '' // No disponible aquí
+      // });
       return response;
     } catch (error) {
       return errorHandler.handleError(error);
