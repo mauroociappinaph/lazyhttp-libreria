@@ -1,0 +1,55 @@
+# Dependencias
+/node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+.pnpm-lock.yaml
+
+# Compilación
+/dist
+/build
+/lib
+*.tsbuildinfo
+
+# Testing
+/coverage
+/.nyc_output
+
+# Logs
+/logs
+*.log
+
+# IDEs y editores
+.idea/
+.vscode/
+*.sublime-*
+.DS_Store
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Temporal
+/temp
+*.tmp
+.cache
+
+
+.cursorignore
+
+./examples
+/dist-min
+/node_modules
+/dist-prod
+/cursorignore
+/cursorrules
+
+documentacion/DOCUMENTACION.md
+data/
+LIMPIEZA-CODIGO-GUIA.md
+# .eslintrc.json
+funcionalidades.largo.plazo.md
+POST_TEMPLATES.md

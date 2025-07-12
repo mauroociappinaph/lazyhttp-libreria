@@ -52,7 +52,8 @@
     "npm-size": "echo '\n📦 Información de publicación de httplazy 📦\n' && echo 'Versión: '$(node -e \"console.log(require('./package.json').version)\") && npm pack --json | node -e \"const data = require('fs').readFileSync(0, 'utf-8'); const pkg = JSON.parse(data)[0]; console.log('\\nTamaño del paquete (tarball): ' + (pkg.size / 1024).toFixed(2) + ' KB'); console.log('Tamaño instalado: ' + (pkg.unpackedSize / 1024).toFixed(2) + ' KB')\" && echo '\nEsto es lo que verán los usuarios en npm al descargar la biblioteca\n'",
     "complexity": "echo '\n📊 Complejidad del código\n' && find http -name \"*.ts\" | xargs wc -l | sort -nr | head -10 && echo '\nLos 10 archivos con más líneas de código'",
     "summary": "node scripts/summary.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "lint": "eslint 'http/**/*.{ts,tsx}' 'tests/**/*.{ts,tsx}' --ext .ts,.tsx"
   },
   "lint-staged": {
     "http/**/*.ts": [
