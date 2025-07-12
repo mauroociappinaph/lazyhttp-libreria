@@ -131,36 +131,7 @@ import { http } from 'httplazy/server';
 
 > 🟦 = Best option for modern and universal projects
 
-## ¿Por qué elegir HTTPLazy frente a Axios o Fetch?
 
-HTTPLazy es una alternativa moderna, minimalista y eficiente para realizar peticiones HTTP en JavaScript/TypeScript, diseñada para superar las limitaciones y el exceso de configuración de otras librerías populares. Aquí te mostramos por qué destaca:
-
-### 🚀 Rendimiento y Ligereza
-
-- **Tamaño reducido:** HTTPLazy pesa ~12KB min+gzip, siendo más ligera que Axios (~14KB) y sin dependencias pesadas.
-- **Optimización automática:** Elige internamente la mejor implementación según el entorno (fetch en navegador, http/https en Node.js), sin que tengas que preocuparte por nada.
-- **Tree-shaking real:** Solo se importa lo que usas, ideal para bundles modernos.
-
-### 🧩 Sintaxis Intuitiva y Sin Boilerplate
-
-- **API simple y coherente:** Olvídate de configurar instancias o escribir repetidamente try/catch. Todas las respuestas siguen el patrón `{ data, error, status }`.
-- **Menos código repetido:** Métodos como `getAll`, `getById`, `post`, `put`, `patch`, `del` y helpers para concurrencia (`all`) y tipado seguro.
-- **Tipado TypeScript completo:** Aprovecha autocompletado y validación de tipos en todas las operaciones.
-
-### ✨ Funcionalidades Únicas e Integradas
-
-- **Cancelación nativa:** Soporte para `AbortController` en todos los entornos.
-- **Retries automáticos:** Reintentos con backoff exponencial configurables por petición o globalmente.
-- **Caché inteligente:** Integración de caché en memoria, localStorage o sessionStorage, con TTL y etiquetas para invalidación.
-- **Interceptores composables:** Añade lógica antes/después de cada petición (autenticación, logging, métricas, etc.) de forma sencilla.
-- **Manejo de errores avanzado:** Clases de error especializadas y helpers para integración con React Query, SWR, etc.
-- **Múltiples clientes:** Crea tantas instancias de cliente como necesites, cada una con su propia configuración y middlewares.
-
-### 🌐 Compatibilidad Universal
-
-- **Funciona en Node.js y navegadores:** Arquitectura dual, sin hacks ni polyfills.
-- **Soporte para frameworks modernos:** Optimizada para Next.js, Remix, y aplicaciones isomórficas.
-- **Streaming, proxies y más:** Funcionalidades avanzadas disponibles en Node.js sin sacrificar compatibilidad en el navegador.
 
 ---
 
