@@ -1,5 +1,5 @@
 import { RequestOptions, ApiResponse } from './http.types';
-import { retryHandler, errorHandler, prepareHeaders } from './http-helpers';
+import { retryHandler, errorHandler, prepareHeaders, responseProcessor } from './http-helpers';
 import { cacheManager } from './http-cache';
 import { executeWithCacheStrategy } from './http-cache-strategies';
 import { metricsManager } from './metrics/http-metrics-index';
@@ -71,24 +71,35 @@ export class HttpCore {
         cacheManager.invalidateByMethod(method, endpoint);
       }
 
-      // Si la respuesta tiene processResponse (AxiosResponse), poblar fullMeta
-      if (response && typeof response === 'object' && 'status' in response && 'data' in response) {
-        // Ya es ApiResponse, pero debemos poblar fullMeta si no existe
-        if (!('fullMeta' in response)) {
-          // No se puede modificar el objeto si viene de otro lado, así que lo devolvemos tal cual
-          return response as ApiResponse<T>;
-        }
+      // Si la respuesta ya tiene fullMeta, devolverla tal cual
+      if (response && typeof response === 'object' && 'fullMeta' in response) {
         return response as ApiResponse<T>;
       }
 
-      // Si usamos el responseProcessor, pasarle los metadatos
-      // (esto es para compatibilidad, si se usa processResponse aquí)
-      // return responseProcessor.processResponse(response, {
-      //   requestHeaders,
-      //   timing: { requestStart, responseEnd },
-      //   rawBody: '' // No disponible aquí
-      // });
-      return response;
+      // Si la respuesta es un objeto tipo AxiosResponse (tiene config y headers), procesarla para poblar fullMeta
+      if (response && typeof response === 'object' && 'config' in response && 'headers' in response) {
+        return responseProcessor.processResponse(response as any, {
+          requestHeaders,
+          timing: { requestStart, responseEnd: Date.now() },
+          rawBody: typeof response.data === 'string' ? response.data : ''
+        }) as ApiResponse<T>;
+      }
+
+      // Si la respuesta es un ApiResponse plano, agregar fullMeta manualmente
+      if (response && typeof response === 'object' && 'status' in response && 'data' in response) {
+        return {
+          ...response,
+          fullMeta: {
+            requestHeaders,
+            responseHeaders: {},
+            timing: { requestStart, responseEnd: Date.now() },
+            rawBody: typeof response.data === 'string' ? response.data : '',
+            errorDetails: undefined
+          }
+        } as ApiResponse<T>;
+      }
+
+      return response as ApiResponse<T>;
     } catch (error) {
       return errorHandler.handleError(error);
     }
