@@ -696,7 +696,7 @@ console.log('Error rate:', metrics.errorRate);
 HttpLazy includes a modular and extensible logging system to record information from each HTTP request and response.
 
 ```typescript
-import { Logger, ConsoleLoggerAdapter } from "httplazy/http/logging";
+import { Logger, ConsoleLoggerAdapter } from "httplazy";
 
 // Basic configuration
 // sends logs to console
@@ -712,7 +712,7 @@ logger.info("Informative message", { userId: 123 });
 **As an HTTP interceptor:**
 
 ```typescript
-import { LoggingInterceptor } from 'httplazy/http/logging';
+import { LoggingInterceptor } from 'httplazy';
 
 client.useInterceptor(new LoggingInterceptor());
 ```

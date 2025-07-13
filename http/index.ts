@@ -22,6 +22,11 @@ import * as HttpConfig from './http-config';
 // Exportar módulos con namespace para evitar colisiones
 export { HttpCore, HttpAuth, HttpCache, HttpInterceptors, HttpStreaming, HttpErrors, HttpCookies, HttpConfig };
 
+// Exportar módulos de logging
+export { Logger } from './logging/logger';
+export { ConsoleLoggerAdapter } from './logging/adapters/console.adapter';
+export { LoggingInterceptor } from './logging/interceptors/logging.interceptor';
+
 // Exportar utilidades específicas de helpers
 export {
   logger,
