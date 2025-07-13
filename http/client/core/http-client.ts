@@ -46,6 +46,7 @@ function createResourceAccessor<
 ): {
   (...args: P): R;
   [resource: string]: (...args: P) => R;
+  [key: symbol]: (...args: P) => R;
 } {
   const accessor = function (...args: P): R {
     return method.apply(instance, args);
@@ -67,7 +68,11 @@ function createResourceAccessor<
   };
 
   // Crear un proxy para manejar el acceso por corchetes
-  return new Proxy(accessor, handler) as F & { [resource: string]: F } & { [key: symbol]: F };
+  return new Proxy(accessor, handler) as {
+    (...args: P): R;
+    [resource: string]: (...args: P) => R;
+    [key: symbol]: (...args: P) => R;
+  };
 }
 
 /**
@@ -75,17 +80,16 @@ function createResourceAccessor<
  * Por defecto convierte a minúsculas y plural (users)
  * Si viene de un símbolo, mantiene el formato original (User → users)
  */
-function formatResource(resource: string): string {
-  // Si viene de un símbolo en PascalCase (User), convertir a API format (users)
-  if (/^[A-Z][a-zA-Z0-9]*$/.test(resource)) {
-    // Convertir de PascalCase a lowercase y pluralizar si no está en plural
-    const resourceLower = resource.charAt(0).toLowerCase() + resource.slice(1);
-    return resourceLower.endsWith('s') ? resourceLower : `${resourceLower}s`;
-  }
-
-  // Si ya viene como string con formato, devolverlo tal cual
-  return resource;
-}
+// function formatResource(resource: string): string {
+//   // Si viene de un símbolo en PascalCase (User), convertir a API format (users)
+//   if (/^[A-Z][a-zA-Z0-9]*$/.test(resource)) {
+//     // Convertir de PascalCase a lowercase y pluralizar si no está en plural
+//     const resourceLower = resource.charAt(0).toLowerCase() + resource.slice(1);
+//     return resourceLower.endsWith('s') ? resourceLower : `${resourceLower}s`;
+//   }
+//   // Si ya viene como string con formato, devolverlo tal cual
+//   return resource;
+// }
 
 /**
  * Implementación principal del cliente HTTP
