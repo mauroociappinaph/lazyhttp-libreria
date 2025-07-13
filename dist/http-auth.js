@@ -80,7 +80,10 @@ async function login(credentials) {
             throw new Error('Login failed');
         }
         const data = await response.json();
-        storeToken(data.token, data.refreshToken);
+        storeToken(exports.currentAuthConfig.tokenKey, data.token);
+        if (exports.currentAuthConfig.refreshTokenKey) {
+            storeToken(exports.currentAuthConfig.refreshTokenKey, data.refreshToken);
+        }
         if (exports.currentAuthConfig.onLogin) {
             exports.currentAuthConfig.onLogin(data);
         }
