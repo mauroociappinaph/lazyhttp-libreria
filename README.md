@@ -5,7 +5,7 @@
 [![npm version](https://img.shields.io/npm/v/httplazy)](https://www.npmjs.com/package/httplazy)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-4.5+-blue)](https://www.typescriptlang.org/)
-![Coverage](https://img.shields.io/badge/coverage-41.1%25-orange)
+![Coverage](https://img.shields.io/badge/coverage-41.33%25-orange)
 ![Bundle size](https://img.shields.io/bundlephobia/minzip/httplazy)
 [![Open Issues](https://img.shields.io/github/issues/mauroociappina/lazyhttp-libreria)](https://github.com/mauroociappina/lazyhttp-libreria/issues)
 [![Pull Requests](https://img.shields.io/github/issues-pr/mauroociappina/lazyhttp-libreria)](https://github.com/mauroociappina/lazyhttp-libreria/pulls)
@@ -429,6 +429,26 @@ interface ApiResponse<T = any> {
   };
   config?: any; // Configuration used in the request
 }
+```
+
+### Utility Functions
+
+#### `formatResource(resourceName: string): string`
+
+This utility function standardizes resource names for RESTful routes. It converts PascalCase names (e.g., "User", "ProductCategory") to lowercase and pluralizes them (e.g., "users", "productcategories"). Names already in lowercase and/or plural form are returned as is.
+
+**Example Usage:**
+
+```typescript
+import { formatResource } from 'httplazy'; // Assuming it's re-exported from the main package
+
+console.log(formatResource('User')); // Output: "users"
+console.log(formatResource('Product')); // Output: "products"
+console.log(formatResource('users')); // Output: "users"
+console.log(formatResource('Category')); // Output: "categories"
+console.log(formatResource('categories')); // Output: "categories"
+console.log(formatResource('OrderItem')); // Output: "orderitems"
+console.log(formatResource('bus')); // Output: "buses"
 ```
 
 #### Advanced Response Metadata: `fullMeta`
