@@ -14,13 +14,16 @@ export const retryHandler: HttpRetryHandler = {
     headers: Record<string, string>,
     body: unknown | undefined,
     timeout: number,
-    retriesLeft: number
+    retriesLeft: number,
+    metaOpcional?: {
+      requestStart?: number;
+    }
   ): Promise<ApiResponse<T>> {
     try {
-      // Crear la señal de cancelación
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
 
+      const responseStart = Date.now();
       const response = await axios.request<T>({
         url: endpoint,
         method,
@@ -28,23 +31,25 @@ export const retryHandler: HttpRetryHandler = {
         data: body,
         signal: controller.signal
       });
-
-      // Limpiar el timeout si la petición fue exitosa
+      const responseEnd = Date.now();
       clearTimeout(timeoutId);
 
-      // Procesar la respuesta
-      return responseProcessor.processResponse<T>(response);
+      return responseProcessor.processResponse<T>(response, {
+        requestHeaders: headers,
+        timing: {
+          requestStart: metaOpcional?.requestStart || responseStart,
+          responseEnd
+        },
+        rawBody: typeof response.data === 'string' ? response.data : ''
+      });
     } catch (error) {
-      // Determinar si debemos reintentar o no
       if (retriesLeft > 0 && this.isRetryableError(error)) {
         return this.handleRetry<T>(
           error,
-          () => this.executeWithRetry<T>(endpoint, method, headers, body, timeout, retriesLeft - 1),
+          () => this.executeWithRetry<T>(endpoint, method, headers, body, timeout, retriesLeft - 1, metaOpcional),
           retriesLeft
         );
       }
-
-      // Si no hay más reintentos o no es un error recuperable, propagar el error
       throw error;
     }
   },

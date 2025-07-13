@@ -36,3 +36,5 @@ export {
   normalizePath,
   joinPaths
 } from './helpers';
+
+export * from './utils';

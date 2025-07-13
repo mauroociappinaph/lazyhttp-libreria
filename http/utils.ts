@@ -7,6 +7,9 @@
  * @param visited Un Set para evitar ciclos infinitos en estructuras con referencias circulares (uso interno).
  * @returns El primer valor que satisface el predicado, o `undefined` si no se encuentra.
  */
+export { ensureSuccess } from "./utils/ensure-success";
+export { generateCurl } from "./utils/generate-curl";
+
 export function deepFindLazy<T = any>(
   data: unknown,
   predicate: (value: unknown) => boolean,

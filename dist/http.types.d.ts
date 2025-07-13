@@ -24,6 +24,16 @@ export interface ApiResponse<T> {
         solution: string;
         example?: string;
     };
+    fullMeta?: {
+        requestHeaders: Record<string, string>;
+        responseHeaders: Record<string, string>;
+        timing: {
+            requestStart: number;
+            responseEnd: number;
+        };
+        rawBody: string | Buffer;
+        errorDetails?: any;
+    };
 }
 export interface HttpClient {
     request<T>(endpoint: string, options?: RequestOptions): Promise<ApiResponse<T>>;
@@ -71,13 +81,19 @@ export interface ErrorResponse {
     code?: string;
 }
 export interface HttpResponseProcessor {
-    processResponse<T>(response: AxiosResponse<T>): ApiResponse<T>;
+    processResponse<T>(response: import('axios').AxiosResponse<T>, metaOpcional?: {
+        requestHeaders?: Record<string, string>;
+        timing?: Record<string, number>;
+        rawBody?: string | Uint8Array;
+    }): ApiResponse<T>;
 }
 export interface HttpRequestExecutor {
     executeRequest<T>(endpoint: string, method: HttpMethod, headers: Record<string, string>, body: unknown | undefined, signal: AbortSignal): Promise<AxiosResponse<T>>;
 }
 export interface HttpRetryHandler {
-    executeWithRetry<T>(endpoint: string, method: HttpMethod, headers: Record<string, string>, body: unknown | undefined, timeout: number, retriesLeft: number): Promise<ApiResponse<T>>;
+    executeWithRetry<T>(endpoint: string, method: HttpMethod, headers: Record<string, string>, body: unknown | undefined, timeout: number, retriesLeft: number, metaOpcional?: {
+        requestStart?: number;
+    }): Promise<ApiResponse<T>>;
     handleRetry<T>(error: unknown, retryCallback: () => Promise<ApiResponse<T>>, retriesLeft: number): Promise<ApiResponse<T>>;
     isRetryableError(error: unknown): boolean;
     waitForRetry(retriesLeft: number): Promise<void>;

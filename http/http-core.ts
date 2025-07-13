@@ -1,5 +1,5 @@
 import { RequestOptions, ApiResponse } from './http.types';
-import { retryHandler, errorHandler, prepareHeaders } from './http-helpers';
+import { retryHandler, errorHandler, prepareHeaders, responseProcessor } from './http-helpers';
 import { cacheManager } from './http-cache';
 import { executeWithCacheStrategy } from './http-cache-strategies';
 import { metricsManager } from './metrics/http-metrics-index';
@@ -50,30 +50,56 @@ export class HttpCore {
     } = options;
 
     try {
-      // Registrar la petición en métricas
       metricsManager.trackRequest(endpoint);
-
-      // Determinar si la URL es completa o si debemos usar baseUrl
       const isFullUrl = endpoint.startsWith('http://') || endpoint.startsWith('https://');
       const finalEndpoint = isFullUrl ? endpoint : this._baseUrl ? `${this._baseUrl}${endpoint}` : endpoint;
-
-      // Petición sin caché
       const requestHeaders = prepareHeaders(headers, withAuth);
+
+      // Capturar tiempo de inicio
+      const requestStart = Date.now();
       const response = await retryHandler.executeWithRetry(
         finalEndpoint,
         method,
         requestHeaders,
         body,
         timeout || this._defaultTimeout || DEFAULT_TIMEOUT,
-        retries !== undefined ? retries : this._defaultRetries !== undefined ? this._defaultRetries : DEFAULT_RETRIES
-      ) as ApiResponse<T>;
+        retries !== undefined ? retries : this._defaultRetries !== undefined ? this._defaultRetries : DEFAULT_RETRIES,
+        { requestStart }
+      );
 
-      // Invalidar caché automáticamente para métodos de escritura
       if (method !== 'GET') {
         cacheManager.invalidateByMethod(method, endpoint);
       }
 
-      return response;
+      // Si la respuesta ya tiene fullMeta, devolverla tal cual
+      if (response && typeof response === 'object' && 'fullMeta' in response) {
+        return response as ApiResponse<T>;
+      }
+
+      // Si la respuesta es un objeto tipo AxiosResponse (tiene config y headers), procesarla para poblar fullMeta
+      if (response && typeof response === 'object' && 'config' in response && 'headers' in response) {
+        return responseProcessor.processResponse(response as any, {
+          requestHeaders,
+          timing: { requestStart, responseEnd: Date.now() },
+          rawBody: typeof response.data === 'string' ? response.data : ''
+        }) as ApiResponse<T>;
+      }
+
+      // Si la respuesta es un ApiResponse plano, agregar fullMeta manualmente
+      if (response && typeof response === 'object' && 'status' in response && 'data' in response) {
+        return {
+          ...response,
+          fullMeta: {
+            requestHeaders,
+            responseHeaders: {},
+            timing: { requestStart, responseEnd: Date.now() },
+            rawBody: typeof response.data === 'string' ? response.data : '',
+            errorDetails: undefined
+          }
+        } as ApiResponse<T>;
+      }
+
+      return response as ApiResponse<T>;
     } catch (error) {
       return errorHandler.handleError(error);
     }
