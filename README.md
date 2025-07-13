@@ -131,8 +131,6 @@ import { http } from 'httplazy/server';
 
 > 🟦 = Best option for modern and universal projects
 
-
-
 ---
 
 ### Ejemplo comparativo
@@ -173,8 +171,6 @@ const data = await resp.json();
 - Es la opción perfecta para proyectos que requieren rendimiento, claridad y facilidad de mantenimiento, tanto en frontend como en backend.
 
 ---
-
-
 
 ### Autenticación JWT/OAuth2
 
@@ -260,12 +256,6 @@ No es 100% compatible. HTTPLazy usa Axios internamente, no la API fetch nativa. 
 - **Benchmarks públicos:** Actualmente no hay benchmarks publicados en la documentación.
 
 ---
-
-
-
-
-
-
 
 ### Métodos HTTP
 
@@ -1987,3 +1977,29 @@ npm run dev
 ```
 
 Esto levantará tu servidor y recargará automáticamente ante cualquier cambio en tu archivo de entrada (`index.js` o `index.ts`).
+
+### Generating cURL Commands (generateCurl Utility)
+
+You can easily generate a ready-to-use cURL command for any HTTP request using the `generateCurl` utility. This is especially useful for debugging, sharing, or reproducing requests outside your app.
+
+**How to use:**
+
+```typescript
+import { generateCurl } from 'httplazy';
+
+const curlCommand = generateCurl({
+  method: 'post',
+  url: 'https://api.example.com/data',
+  headers: { 'Content-Type': 'application/json', Authorization: 'Bearer token' },
+  body: { foo: 'bar' },
+});
+
+console.log(curlCommand);
+// Output:
+// curl -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer token' --data '{"foo":"bar"}' 'https://api.example.com/data'
+```
+
+- You can also pass request metadata (e.g., from `fullMeta.requestHeaders`) as a second argument.
+- The generated command includes method, URL, headers, and body (JSON or string).
+
+> **Tip:** Use this utility to quickly debug or share requests with your backend team, or to reproduce issues in Postman or terminal.
