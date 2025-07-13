@@ -7,11 +7,7 @@
  * @returns Los datos de la respuesta si no hay error
  * @throws Error enriquecido con información de error y status si existe error
  */
-export function ensureSuccess<T>(response: {
-  data: T;
-  error?: { message: string; code?: string; details?: any };
-  status: number;
-}): T {
+export function ensureSuccess<T>(response: { data: T; error?: any; status: number }): T {
   if (response.error)
     throw Object.assign(new Error(response.error.message), response.error, {
       status: response.status,

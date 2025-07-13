@@ -28,6 +28,7 @@
     "lazyhttp": "bin/lazyhttp.js"
   },
   "scripts": {
+    "lint": "eslint . --ext .ts,.tsx",
     "build": "tsc",
     "build:prod": "tsc && node scripts/optimize.js",
     "build:minify": "tsc && terser dist/**/*.js -o dist-min/**/*.js --compress --mangle",

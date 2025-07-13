@@ -94,7 +94,10 @@ export async function login(credentials: { username: string; password: string })
     }
 
     const data = await response.json();
-    storeToken(data.token, data.refreshToken);
+    storeToken(currentAuthConfig.tokenKey, data.token);
+    if (currentAuthConfig.refreshTokenKey) {
+      storeToken(currentAuthConfig.refreshTokenKey, data.refreshToken);
+    }
 
     if (currentAuthConfig.onLogin) {
       currentAuthConfig.onLogin(data);

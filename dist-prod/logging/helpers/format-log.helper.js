@@ -1,0 +1,1 @@
+"use strict";function formatLogEntry(t){const{timestamp:e,level:o,message:r,context:n}=t;let s=`[${new Date(e).toISOString()}] [${o.toUpperCase()}] ${r}`;return n&&(s+=` | Context: ${JSON.stringify(n)}`),s}Object.defineProperty(exports,"__esModule",{value:!0}),exports.formatLogEntry=formatLogEntry;

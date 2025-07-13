@@ -65,10 +65,26 @@ function createResourceAccessor<
       return Reflect.apply(method, instance, args);
     }
   };
-  return new Proxy(accessor, handler) as {
-    (...args: P): R;
-    [resource: string]: (...args: P) => R;
-  };
+
+  // Crear un proxy para manejar el acceso por corchetes
+  return new Proxy(accessor, handler) as F & { [resource: string]: F } & { [key: symbol]: F };
+}
+
+/**
+ * Formatea el nombre del recurso según la convención deseada
+ * Por defecto convierte a minúsculas y plural (users)
+ * Si viene de un símbolo, mantiene el formato original (User → users)
+ */
+function formatResource(resource: string): string {
+  // Si viene de un símbolo en PascalCase (User), convertir a API format (users)
+  if (/^[A-Z][a-zA-Z0-9]*$/.test(resource)) {
+    // Convertir de PascalCase a lowercase y pluralizar si no está en plural
+    const resourceLower = resource.charAt(0).toLowerCase() + resource.slice(1);
+    return resourceLower.endsWith('s') ? resourceLower : `${resourceLower}s`;
+  }
+
+  // Si ya viene como string con formato, devolverlo tal cual
+  return resource;
 }
 
 /**
@@ -180,38 +196,72 @@ export class HttpClient implements HttpImplementation, HttpOperations {
     this.propertyManager.streamConfig = config;
   }
 
+  /**
+   * Garantiza que la respuesta siempre tenga el campo fullMeta
+   */
+  private ensureFullMeta<T>(response: ApiResponse<T>, context: { endpoint: string, method: string, options?: any }) : ApiResponse<T> {
+    if (response && typeof response === 'object' && 'fullMeta' in response && response.fullMeta) {
+      return response;
+    }
+    // Si no existe, agregar un fullMeta mínimo
+    let errorDetails: any = undefined;
+    if (response && typeof response.error === 'object' && response.error !== null && 'details' in response.error) {
+      errorDetails = (response.error as any).details;
+    }
+    return {
+      ...response,
+      fullMeta: {
+        requestHeaders: context.options?.headers || ({} as Record<string, string>),
+        responseHeaders: (response && typeof response === 'object' && 'headers' in response && response.headers)
+          ? (response.headers as Record<string, string>)
+          : ({} as Record<string, string>),
+        timing: { requestStart: Date.now(), responseEnd: Date.now() },
+        rawBody: typeof response.data === 'string' ? response.data : '',
+        errorDetails
+      }
+    };
+  }
+
   // Métodos HTTP (implementa HttpOperations)
   async request<T>(endpoint: string, options: RequestOptions = {}): Promise<ApiResponse<T>> {
-    return this.core.request<T>(endpoint, options);
+    const resp = await this.core.request<T>(endpoint, options);
+    return this.ensureFullMeta(resp, { endpoint, method: options.method || 'GET', options });
   }
 
   // Métodos base para los resource accessors
-  async getMethod(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<unknown>> {
-    return this.core.get(endpoint, options);
+  async getMethod<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
+    const resp = await this.core.get<T>(endpoint, options);
+    return this.ensureFullMeta(resp, { endpoint, method: 'GET', options });
   }
 
-  async getAllMethod(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<unknown>> {
-    return this.core.getAll(endpoint, options);
+  async getAllMethod<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
+    const resp = await this.core.getAll<T>(endpoint, options);
+    return this.ensureFullMeta(resp, { endpoint, method: 'GET', options });
   }
 
-  async getByIdMethod(endpoint: string, id: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<unknown>> {
-    return this.core.getById(endpoint, id, options);
+  async getByIdMethod<T>(endpoint: string, id: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
+    const resp = await this.core.getById<T>(endpoint, id, options);
+    return this.ensureFullMeta(resp, { endpoint, method: 'GET', options });
   }
 
-  async postMethod(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<unknown>> {
-    return this.core.post(endpoint, body, options);
+  async postMethod<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
+    const resp = await this.core.post<T>(endpoint, body, options);
+    return this.ensureFullMeta(resp, { endpoint, method: 'POST', options });
   }
 
-  async putMethod(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<unknown>> {
-    return this.core.put(endpoint, body, options);
+  async putMethod<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
+    const resp = await this.core.put<T>(endpoint, body, options);
+    return this.ensureFullMeta(resp, { endpoint, method: 'PUT', options });
   }
 
-  async patchMethod(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<unknown>> {
-    return this.core.patch(endpoint, body, options);
+  async patchMethod<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
+    const resp = await this.core.patch<T>(endpoint, body, options);
+    return this.ensureFullMeta(resp, { endpoint, method: 'PATCH', options });
   }
 
-  async deleteMethod(endpoint: string, options?: Omit<RequestOptions, 'method'>): Promise<ApiResponse<unknown>> {
-    return this.core.delete(endpoint, options);
+  async deleteMethod<T>(endpoint: string, options?: Omit<RequestOptions, 'method'>): Promise<ApiResponse<T>> {
+    const resp = await this.core.delete<T>(endpoint, options);
+    return this.ensureFullMeta(resp, { endpoint, method: 'DELETE', options });
   }
 
   async streamMethod(endpoint: string, options: Omit<RequestOptions, 'method' | 'body'> = {}): Promise<ReadableStream<unknown>> {
