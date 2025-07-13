@@ -1,0 +1,75 @@
+# =============================
+# Archivos de sistema y temporales
+# =============================
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+*.swp
+*.bak
+*.old
+*.the
+
+# =============================
+# Dependencias y builds
+# =============================
+/node_modules
+/dist
+/build
+/lib
+*.tsbuildinfo
+
+# =============================
+# Logs y reportes
+# =============================
+/logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# =============================
+# Configuración local y editores
+# =============================
+.idea/
+.vscode/
+*.sublime-*
+.env
+.env.*
+
+# =============================
+# Cobertura y pruebas
+# =============================
+/coverage
+/.nyc_output
+
+# =============================
+# Otros específicos del proyecto
+# =============================
+.cursorignore
+/temp
+.cache
+/examples
+/dist-min
+/dist-prod
+/cursorignore
+/cursorrules
+data/
+documentacion/
+LIMPIEZA-CODIGO-GUIA.md
+funcionalidades.largo.plazo.md
+POST_TEMPLATES.md
+WEB.md
+
+# =============================
+# Archivos de lock alternativos (descomenta si no quieres versionarlos)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+GEMINI.md
+GETTING_STARTED.md
+
+# Ignorar todos los archivos .md excepto README.md
+*.md
+!README.md

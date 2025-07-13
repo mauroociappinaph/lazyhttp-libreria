@@ -1,5 +1,5 @@
 import { BaseHttpClient } from '../../common/core/base-http-client';
-import { HttpMethod, ApiResponse, RequestOptions, AuthInfo, UserCredentials } from '../../common/types';
+import { HttpMethod, ApiResponse, RequestOptions, AuthInfo, UserCredentials, InitConfig } from '../../common/types';
 import { HttpUtils } from '../../common/utils/http-utils';
 import axios, { isAxiosError } from 'axios';
 import { AuthManager } from '../managers/auth.manager';
@@ -13,7 +13,7 @@ export class BrowserHttpClient extends BaseHttpClient {
   private authManager: AuthManager;
   private cacheManager: CacheManager;
 
-  constructor(config: any) {
+  constructor(config: Partial<InitConfig>) {
     super();
     this.initialize(config);
     this.authManager = new AuthManager(this.authConfig, this);
@@ -23,7 +23,7 @@ export class BrowserHttpClient extends BaseHttpClient {
   /**
    * Implementación específica de request para navegador usando axios
    */
-  protected async _requestWithTransforms<T>(method: HttpMethod, url: string, data?: any, options?: RequestOptions): Promise<ApiResponse<T>> {
+  protected async _requestWithTransforms<T>(method: HttpMethod, url: string, data?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
     const fullUrl = this.buildRequestUrl(url);
     const headers = this.prepareHeaders(
       options?.headers || {},
@@ -35,16 +35,16 @@ export class BrowserHttpClient extends BaseHttpClient {
 
     // Aplicar transformRequest
     let requestData = data;
-    let transformRequestFns = [];
-    if (options && (options as any).transformRequest) {
-      const tr = (options as any).transformRequest;
+    let transformRequestFns: ((data: unknown) => unknown)[] = [];
+    if (options && options.transformRequest) {
+      const tr = options.transformRequest;
       if (typeof tr === 'function') {
         transformRequestFns = [tr];
       } else if (Array.isArray(tr)) {
         transformRequestFns = tr;
       }
-    } else if ((this as any)._activeTransformRequest && (this as any)._activeTransformRequest.length > 0) {
-      transformRequestFns = (this as any)._activeTransformRequest;
+    } else if (this._activeTransformRequest && this._activeTransformRequest.length > 0) {
+      transformRequestFns = this._activeTransformRequest;
     }
     if (transformRequestFns.length > 0) {
       for (const fn of transformRequestFns) {
@@ -62,17 +62,17 @@ export class BrowserHttpClient extends BaseHttpClient {
       });
 
       // Aplicar transformResponse
-      let responseData = response.data;
-      let transformResponseFns = [];
-      if (options && (options as any).transformResponse) {
-        const tr = (options as any).transformResponse;
+      let responseData: unknown = response.data;
+      let transformResponseFns: ((data: unknown) => unknown)[] = [];
+      if (options && options.transformResponse) {
+        const tr = options.transformResponse;
         if (typeof tr === 'function') {
           transformResponseFns = [tr];
         } else if (Array.isArray(tr)) {
           transformResponseFns = tr;
         }
-      } else if ((this as any)._activeTransformResponse && (this as any)._activeTransformResponse.length > 0) {
-        transformResponseFns = (this as any)._activeTransformResponse;
+      } else if (this._activeTransformResponse && this._activeTransformResponse.length > 0) {
+        transformResponseFns = this._activeTransformResponse;
       }
       if (transformResponseFns.length > 0) {
         for (const fn of transformResponseFns) {
@@ -81,12 +81,12 @@ export class BrowserHttpClient extends BaseHttpClient {
       }
 
       return {
-        data: responseData,
+        data: responseData as T,
         status: response.status,
         headers: response.headers as Record<string, string>,
         config: response.config,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       if (isAxiosError(error)) {
         return {
           data: null as unknown as T,
@@ -133,7 +133,7 @@ export class BrowserHttpClient extends BaseHttpClient {
   /**
    * Obtiene el usuario autenticado
    */
-  getAuthenticatedUser(): any | null {
+  getAuthenticatedUser(): unknown | null {
     return this.authManager.getAuthenticatedUser();
   }
 
@@ -190,7 +190,7 @@ export class BrowserHttpClient extends BaseHttpClient {
   /**
    * Obtiene las métricas actuales
    */
-  getCurrentMetrics(): any {
+  getCurrentMetrics(): { requests: number; errors: number; cacheHits: number; cacheMisses: number } {
     try {
       const metricsKey = 'http_metrics';
       const metricsData = localStorage.getItem(metricsKey);
