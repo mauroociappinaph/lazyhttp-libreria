@@ -171,7 +171,7 @@ export function createSoaServer(config: SoaServerConfig): SoaServer {
 
   // Referencia al servidor (se creará cuando se llame a start())
   let server: any = null;
-  let registeredServices = { ...services };
+  const registeredServices = { ...services };
   let isRunning = false;
 
   return {

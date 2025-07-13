@@ -87,7 +87,7 @@ function createResourceAccessor<F extends (...args: any[]) => any>(
 
   // Crear un proxy para manejar el acceso por corchetes
   return new Proxy(accessor, handler) as F & { [resource: string]: F } & { [key: symbol]: F };
-};
+}
 
 /**
  * Formatea el nombre del recurso según la convención deseada
