@@ -14,7 +14,7 @@ describe('Retry System Integration', () => {
     simulateErrors: number = 0
   ): { callCount: number; success: boolean } {
     // Resultado del test
-    let result = {
+    const result = {
       callCount: 0,
       success: false
     };
