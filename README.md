@@ -5,7 +5,7 @@
 [![npm version](https://img.shields.io/npm/v/httplazy)](https://www.npmjs.com/package/httplazy)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-4.5+-blue)](https://www.typescriptlang.org/)
-![Coverage](https://img.shields.io/badge/coverage-41%25-yellow)
+![Coverage](https://img.shields.io/badge/coverage-47%25-yellow)
 ![Bundle size](https://img.shields.io/bundlephobia/minzip/httplazy)
 [![Open Issues](https://img.shields.io/github/issues/mauroociappina/lazyhttp-libreria)](https://github.com/mauroociappina/lazyhttp-libreria/issues)
 [![Pull Requests](https://img.shields.io/github/issues-pr/mauroociappina/lazyhttp-libreria)](https://github.com/mauroociappina/lazyhttp-libreria/pulls)
