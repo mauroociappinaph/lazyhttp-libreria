@@ -13,7 +13,7 @@ class TestHttpClient extends BaseHttpClient {
     return this.calculateRetryDelay(retryCount, options);
   }
 
-  public testShouldRetry(error: any, retryCount: number, options?: RetryOptions): boolean {
+  public testShouldRetry(error: unknown, retryCount: number, options?: RetryOptions): boolean {
     return this.shouldRetry(error, retryCount, options);
   }
 }
