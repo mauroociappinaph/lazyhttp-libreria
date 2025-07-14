@@ -5,7 +5,7 @@
 [![npm version](https://img.shields.io/npm/v/httplazy)](https://www.npmjs.com/package/httplazy)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-4.5+-blue)](https://www.typescriptlang.org/)
-![Coverage](https://img.shields.io/badge/coverage-41.33%25-orange)
+![Coverage](https://img.shields.io/badge/coverage-41%25-yellow)
 ![Bundle size](https://img.shields.io/bundlephobia/minzip/httplazy)
 [![Open Issues](https://img.shields.io/github/issues/mauroociappina/lazyhttp-libreria)](https://github.com/mauroociappina/lazyhttp-libreria/issues)
 [![Pull Requests](https://img.shields.io/github/issues-pr/mauroociappina/lazyhttp-libreria)](https://github.com/mauroociappina/lazyhttp-libreria/pulls)
@@ -116,7 +116,7 @@ import { http } from 'httplazy/server';
 
 | Feature                | ![HTTPLazy](https://img.shields.io/badge/-HTTPLazy-blue) | ![Axios](https://img.shields.io/badge/-Axios-green) | ![Fetch API](https://img.shields.io/badge/-Fetch%20API-yellow) |
 | ---------------------- | :------------------------------------------------------: | :-------------------------------------------------: | :------------------------------------------------------------: |
-| **Size (min+gzip)**    |                         🟦 ~12KB                         |                      🟩 ~14KB                       |                           🟨 Native                            |
+| **Size (min+gzip)**    |                         🟦 ~136KB                         |                      🟩 ~14KB                       |                           🟨 Native                            |
 | **Universal support**  |                     ✅ Client/Server                     |                         ✅                          |                        ⚠️ Limited Node                         |
 | **TypeScript**         |                         ✅ Full                          |                       ✅ Full                       |                           ⚠️ Limited                           |
 | **Interceptors**       |                            ✅                            |                         ✅                          |                               ❌                               |
@@ -391,15 +391,15 @@ http.initialize({
 
 ### Basic Methods
 
-| Method                                       | Description                                     | Parameters                                                                                                                                     |
-| -------------------------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `http.request(method, url, data?, options?)` | Generic method for any type of request          | `method`: Request type (GET, POST, etc.)<br>`url`: Endpoint URL<br>`data`: Data to send (optional)<br>`options`: Additional options           |
-| `http.getAll(url, options?)`                 | GET request optimized for listings              | `url`: Endpoint URL<br>`options`: Additional options                                                                                           |
-| `http.getById(url, id, options?)`            | GET request for a specific resource             | `url`: Base URL<br>`id`: Resource identifier<br>`options`: Additional options                                                                  |
-| `http.post(url, data?, options?)`            | POST request                                    | `url`: Endpoint URL<br>`data`: Data to send<br>`options`: Additional options                                                                   |
-| `http.put(url, data?, options?)`             | PUT request                                     | `url`: Endpoint URL<br>`data`: Complete data to send<br>`options`: Additional options                                                          |
-| `http.patch(url, data?, options?)`           | PATCH request                                   | `url`: Endpoint URL<br>`data`: Partial data to send<br>`options`: Additional options                                                          |
-| `http.del(url, options?)`                    | DELETE request                                  | `url`: Endpoint URL<br>`options`: Additional options                                                                                           |
+| Method                                       | Description                            | Parameters                                                                                                                          |
+| -------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `http.request(method, url, data?, options?)` | Generic method for any type of request | `method`: Request type (GET, POST, etc.)<br>`url`: Endpoint URL<br>`data`: Data to send (optional)<br>`options`: Additional options |
+| `http.getAll(url, options?)`                 | GET request optimized for listings     | `url`: Endpoint URL<br>`options`: Additional options                                                                                |
+| `http.getById(url, id, options?)`            | GET request for a specific resource    | `url`: Base URL<br>`id`: Resource identifier<br>`options`: Additional options                                                       |
+| `http.post(url, data?, options?)`            | POST request                           | `url`: Endpoint URL<br>`data`: Data to send<br>`options`: Additional options                                                        |
+| `http.put(url, data?, options?)`             | PUT request                            | `url`: Endpoint URL<br>`data`: Complete data to send<br>`options`: Additional options                                               |
+| `http.patch(url, data?, options?)`           | PATCH request                          | `url`: Endpoint URL<br>`data`: Partial data to send<br>`options`: Additional options                                                |
+| `http.del(url, options?)`                    | DELETE request                         | `url`: Endpoint URL<br>`options`: Additional options                                                                                |
 
 ### Request Options
 
@@ -696,23 +696,23 @@ console.log('Error rate:', metrics.errorRate);
 HttpLazy includes a modular and extensible logging system to record information from each HTTP request and response.
 
 ```typescript
-import { Logger, ConsoleLoggerAdapter } from "httplazy/http/logging";
+import { Logger, ConsoleLoggerAdapter } from 'httplazy';
 
 // Basic configuration
 // sends logs to console
 const logger = Logger.getInstance();
 logger.configure({
-  level: "debug",
+  level: 'debug',
   adapters: [new ConsoleLoggerAdapter()],
 });
 
-logger.info("Informative message", { userId: 123 });
+logger.info('Informative message', { userId: 123 });
 ```
 
 **As an HTTP interceptor:**
 
 ```typescript
-import { LoggingInterceptor } from 'httplazy/http/logging';
+import { LoggingInterceptor } from 'httplazy';
 
 client.useInterceptor(new LoggingInterceptor());
 ```
@@ -867,15 +867,15 @@ if (error) {
 
 ### Common Error Types
 
-| Code | Type                 | Common Causes                              |
-| ------ | -------------------- | ------------------------------------------ |
-| 400    | Bad Request          | Incorrect data, failed validation          |
-| 401    | Unauthorized         | Invalid or expired token                   |
-| 403    | Forbidden            | Insufficient permissions                   |
-| 404    | Not Found            | Non-existent resource                      |
-| 422    | Unprocessable Entity | Valid but logically incorrect data         |
-| 429    | Too Many Requests    | Rate limit exceeded                        |
-| 500    | Server Error         | Internal server error                      |
+| Code | Type                 | Common Causes                      |
+| ---- | -------------------- | ---------------------------------- |
+| 400  | Bad Request          | Incorrect data, failed validation  |
+| 401  | Unauthorized         | Invalid or expired token           |
+| 403  | Forbidden            | Insufficient permissions           |
+| 404  | Not Found            | Non-existent resource              |
+| 422  | Unprocessable Entity | Valid but logically incorrect data |
+| 429  | Too Many Requests    | Rate limit exceeded                |
+| 500  | Server Error         | Internal server error              |
 
 ### Network Error Handling
 
@@ -955,16 +955,16 @@ if (error) {
 }
 ```
 
-| Error Code          | Description                                   | Recommended Action                     |
-| ------------------- | --------------------------------------------- | -------------------------------------- |
-| `AUTH_EXPIRED`      | Authentication token expired                  | Refresh token and retry                |
-| `AUTH_INVALID`      | Invalid token or incorrect credentials        | Redirect to login                      |
-| `CACHE_MISS`        | Not found in cache                            | Get from origin                        |
-| `RATE_LIMITED`      | Rate limit exceeded                           | Implement exponential backoff          |
-| `NETWORK_OFFLINE`   | No Internet connection                        | Show offline mode                      |
-| `TIMEOUT_EXCEEDED`  | Timeout exceeded                              | Retry or increase timeout              |
-| `VALIDATION_FAILED` | Sent data does not meet validation            | Show specific errors to the user       |
-| `RESOURCE_CONFLICT` | Conflict when modifying resource (concurrency) | Reload and show differences            |
+| Error Code          | Description                                    | Recommended Action               |
+| ------------------- | ---------------------------------------------- | -------------------------------- |
+| `AUTH_EXPIRED`      | Authentication token expired                   | Refresh token and retry          |
+| `AUTH_INVALID`      | Invalid token or incorrect credentials         | Redirect to login                |
+| `CACHE_MISS`        | Not found in cache                             | Get from origin                  |
+| `RATE_LIMITED`      | Rate limit exceeded                            | Implement exponential backoff    |
+| `NETWORK_OFFLINE`   | No Internet connection                         | Show offline mode                |
+| `TIMEOUT_EXCEEDED`  | Timeout exceeded                               | Retry or increase timeout        |
+| `VALIDATION_FAILED` | Sent data does not meet validation             | Show specific errors to the user |
+| `RESOURCE_CONFLICT` | Conflict when modifying resource (concurrency) | Reload and show differences      |
 
 #### How to extend errors
 
@@ -1700,35 +1700,35 @@ const resp = await http.upload(
 
 ## Comparison with Alternatives
 
-| Feature                    | HttpLazy              | Axios                | Fetch API                    |
-| -------------------------- | --------------------- | -------------------- | ---------------------------- |
-| **Size (approx)**          | ~12KB min+gzip        | ~14KB min+gzip       | Native                       |
-| **Universal support**      | ✅ (Client/Server) | ✅                   | ✅ (Limited in Node)        |
-| **TypeScript**             | ✅ Full               | ✅ Full              | Limited                      |
-| **Interceptors**           | ✅                    | ✅                   | ❌ (Requires implementation) |
-| **Integrated cache**       | ✅                    | ❌                   | ❌                           |
-| **Cancellation**           | ✅                    | ✅                   | ✅                           |
-| **Authentication**         | ✅ Integrated         | ❌ (Manual)          | ❌ (Manual)                  |
-| **Streaming**              | ✅                    | ✅ (Basic)           | ✅                           |
-| **Proxy**                  | ✅ (Server)           | ✅                   | ❌                           |
-| **Automatic retries**      | ✅ (Exponential)      | ❌ (Requires config) | ❌                           |
-| **Integrated metrics**     | ✅                    | ❌                   | ❌                           |
+| Feature                | HttpLazy           | Axios                | Fetch API                    |
+| ---------------------- | ------------------ | -------------------- | ---------------------------- |
+| **Size (approx)**      | ~12KB min+gzip     | ~14KB min+gzip       | Native                       |
+| **Universal support**  | ✅ (Client/Server) | ✅                   | ✅ (Limited in Node)         |
+| **TypeScript**         | ✅ Full            | ✅ Full              | Limited                      |
+| **Interceptors**       | ✅                 | ✅                   | ❌ (Requires implementation) |
+| **Integrated cache**   | ✅                 | ❌                   | ❌                           |
+| **Cancellation**       | ✅                 | ✅                   | ✅                           |
+| **Authentication**     | ✅ Integrated      | ❌ (Manual)          | ❌ (Manual)                  |
+| **Streaming**          | ✅                 | ✅ (Basic)           | ✅                           |
+| **Proxy**              | ✅ (Server)        | ✅                   | ❌                           |
+| **Automatic retries**  | ✅ (Exponential)   | ❌ (Requires config) | ❌                           |
+| **Integrated metrics** | ✅                 | ❌                   | ❌                           |
 
 ### Remaining Technical Differences from Axios
 
 HTTPLazy covers most of Axios's modern and ergonomic features, but there are some minor technical differences:
 
-| Feature                                 | HTTPLazy  | Axios          |
-| --------------------------------------- | --------- | -------------- |
-| Automatic transformers (request/response) | ✅        | ✅             |
-| File upload/download progress           | Partial* | ✅             |
-| Request cancellation (`AbortController`) | ✅        | ✅             |
-| Custom CancelToken (legacy)             | ❌        | ✅ (deprecated) |
-| Low-level customizable HTTP adapter     | ❌        | ✅             |
-| Support for legacy browsers (IE11+)     | ❌        | ✅             |
-| Advanced query params serialization     | Basic     | Advanced       |
+| Feature                                   | HTTPLazy  | Axios           |
+| ----------------------------------------- | --------- | --------------- |
+| Automatic transformers (request/response) | ✅        | ✅              |
+| File upload/download progress             | Partial\* | ✅              |
+| Request cancellation (`AbortController`)  | ✅        | ✅              |
+| Custom CancelToken (legacy)               | ❌        | ✅ (deprecated) |
+| Low-level customizable HTTP adapter       | ❌        | ✅              |
+| Support for legacy browsers (IE11+)       | ❌        | ✅              |
+| Advanced query params serialization       | Basic     | Advanced        |
 
-> *HTTPLazy allows uploading files and canceling requests, but progress tracking may require additional manual integration.
+> \*HTTPLazy allows uploading files and canceling requests, but progress tracking may require additional manual integration.
 
 **Why choose HTTPLazy anyway?**
 HTTPLazy is optimized for modern projects, prioritizing ergonomics, performance, typing, and universal compatibility (Node.js + browser). If your project does not depend on legacy browsers or very advanced HTTP adapter customizations, HTTPLazy is a lighter, clearer, and easier-to-maintain option.

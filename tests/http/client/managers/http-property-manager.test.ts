@@ -1,5 +1,6 @@
 import { HttpPropertyManager } from '../../../../http/client/managers/http-property-manager';
 import { httpConfiguration } from '../../../../http/http-configuration';
+import { HttpCore } from '../../../../http/http-core';
 
 // Mock de las dependencias
 jest.mock('../../../../http/http-configuration', () => ({
@@ -16,7 +17,7 @@ jest.mock('../../../../http/http-configuration', () => ({
 
 describe('HttpPropertyManager', () => {
   let propertyManager: HttpPropertyManager;
-  let mockCore: any;
+  let mockCore: Partial<HttpCore>;
 
   beforeEach(() => {
     // Crear mock del HttpCore
@@ -28,7 +29,7 @@ describe('HttpPropertyManager', () => {
     };
 
     // Crear instancia con el mock
-    propertyManager = new HttpPropertyManager(mockCore);
+    propertyManager = new HttpPropertyManager(mockCore as HttpCore);
 
     // Limpiar estado entre tests
     jest.clearAllMocks();

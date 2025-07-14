@@ -199,7 +199,7 @@ export class HttpCore {
   ): Promise<ApiResponse<T>> {
     // Node.js
     if (typeof window === 'undefined') {
-      const { buildNodeFormData } = await import('./common/utils/http-upload.utils');
+      const { buildNodeFormData } = await import('./server/utils/http-upload.utils');
       const { validateFiles, maxFileSize, ...restOptions } = options || {};
       let form, headers;
       try {

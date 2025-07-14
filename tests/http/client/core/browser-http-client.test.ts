@@ -1,5 +1,5 @@
 import { BrowserHttpClient } from '../../../../http/client/core/browser-http-client';
-import axios, { AxiosError, InternalAxiosRequestConfig, isAxiosError } from 'axios';
+import axios, { AxiosError, InternalAxiosRequestConfig, isAxiosError, AxiosRequestHeaders } from 'axios';
 
 // Mock solo del método request de axios
 jest.spyOn(axios, 'request');
@@ -64,7 +64,7 @@ describe('BrowserHttpClient', () => {
     const axiosError = new AxiosError(
       'Connection reset',
       'ECONNRESET',
-      { headers: {} } as InternalAxiosRequestConfig<any>,
+      { headers: {} } as InternalAxiosRequestConfig<unknown>,
       {},
       undefined
     );
@@ -88,13 +88,13 @@ describe('BrowserHttpClient', () => {
     const axiosError = new AxiosError(
       errorMessage,
       undefined,
-      { headers: {} } as InternalAxiosRequestConfig<any>,
+      { headers: {} } as InternalAxiosRequestConfig<unknown>,
       {},
       {
         status: 500,
         data: { message: errorMessage },
         headers: {},
-        config: { headers: {} as any }, // fix: headers tipado
+        config: { headers: {} as AxiosRequestHeaders }, // fix: headers tipado
         statusText: '', // fix: requerido por AxiosResponse
       }
     );

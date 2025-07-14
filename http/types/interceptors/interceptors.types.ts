@@ -24,7 +24,7 @@ export interface InterceptorContext {
   /**
    * Cuerpo de la petición
    */
-  data?: any;
+  data?: unknown;
 
   /**
    * Timestamp de inicio de la petición
@@ -34,7 +34,7 @@ export interface InterceptorContext {
   /**
    * Metadatos adicionales
    */
-  meta?: Record<string, any>;
+  meta?: Record<string, unknown>;
 }
 
 /**
@@ -69,7 +69,7 @@ export interface ResponseInterceptor {
    * @param context Contexto de la petición original
    * @returns Respuesta modificada o promesa de la misma
    */
-  intercept(response: any, context: InterceptorContext): any | Promise<any>;
+  intercept(response: unknown, context: InterceptorContext): unknown | Promise<unknown>;
 
   /**
    * Orden de ejecución (menor número = mayor prioridad)
@@ -92,7 +92,7 @@ export interface ErrorInterceptor {
    * @param context Contexto de la petición original
    * @returns Error modificado, respuesta o promesa
    */
-  intercept(error: any, context: InterceptorContext): any | Promise<any>;
+  intercept(error: unknown, context: InterceptorContext): unknown | Promise<unknown>;
 
   /**
    * Orden de ejecución (menor número = mayor prioridad)
@@ -118,6 +118,6 @@ export interface InterceptorOptions {
    * Funciones a ejecutar para cada tipo de interceptor
    */
   onRequest?: (context: InterceptorContext) => InterceptorContext | Promise<InterceptorContext>;
-  onResponse?: (response: any, context: InterceptorContext) => any | Promise<any>;
-  onError?: (error: any, context: InterceptorContext) => any | Promise<any>;
+  onResponse?: (response: unknown, context: InterceptorContext) => unknown | Promise<unknown>;
+  onError?: (error: unknown, context: InterceptorContext) => unknown | Promise<unknown>;
 }

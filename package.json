@@ -1,6 +1,6 @@
 {
   "name": "httplazy",
-  "version": "2.3.2",
+  "version": "2.5.0",
   "description": "A powerful and easy-to-use HTTP client library with error handling, retries, interceptors, and more | Una librería HTTP fácil de usar con manejo de errores, reintentos, interceptores, y más",
   "main": "dist/index.js",
   "browser": "dist/client/index.js",
@@ -29,9 +29,9 @@
   },
   "scripts": {
     "lint": "eslint 'http/**/*.{ts,tsx}' 'tests/**/*.{ts,tsx}' --ext .ts,.tsx",
-    "build": "tsc",
-    "build:prod": "tsc && node scripts/optimize.js",
-    "build:minify": "tsc && terser dist/**/*.js -o dist-min/**/*.js --compress --mangle",
+    "build": "tsc --emitDeclarationOnly",
+    "build:prod": "node scripts/build-esbuild.js",
+
     "prepublishOnly": "npm run build",
     "example": "node examples/simple-example.js",
     "example:advanced": "node examples/advanced-example.js",
@@ -48,7 +48,7 @@
     "count-lines": "find http -name \"*.ts\" | xargs wc -l | sort -nr",
     "measure-build-time": "node -e \"const start = Date.now(); require('child_process').execSync('npm run build', {stdio: 'inherit'}); console.log('\\n⏱️ Tiempo de compilación:', ((Date.now() - start) / 1000).toFixed(2), 'segundos');\"",
     "verify:full": "echo '🔍 Iniciando verificación completa...' && npm run verify && npm run analyze-deps && npm run check-security && npm run count-lines && npm run measure-build-time && npm run size && npm run npm-size && npm run complexity && node scripts/summary.js && echo '\n✅ Todas las verificaciones completadas con éxito'",
-    "clean": "rm -rf dist dist-min",
+    "clean": "rm -rf dist-prod",
     "size": "du -sh http/ dist/ && npm pack && du -sh *.tgz",
     "npm-size": "echo '\n📦 Información de publicación de httplazy 📦\n' && echo 'Versión: '$(node -e \"console.log(require('./package.json').version)\") && npm pack --json | node -e \"const data = require('fs').readFileSync(0, 'utf-8'); const pkg = JSON.parse(data)[0]; console.log('\\nTamaño del paquete (tarball): ' + (pkg.size / 1024).toFixed(2) + ' KB'); console.log('Tamaño instalado: ' + (pkg.unpackedSize / 1024).toFixed(2) + ' KB')\" && echo '\nEsto es lo que verán los usuarios en npm al descargar la biblioteca\n'",
     "complexity": "echo '\n📊 Complejidad del código\n' && find http -name \"*.ts\" | xargs wc -l | sort -nr | head -10 && echo '\nLos 10 archivos con más líneas de código'",
@@ -106,6 +106,7 @@
     "@types/jest": "^29.5.14",
     "@types/pluralize": "^0.0.33",
     "@typescript-eslint/eslint-plugin": "^8.36.0",
+    "esbuild": "^0.25.6",
     "eslint": "^8.55.0",
     "express": "^5.1.0",
     "husky": "^8.0.3",

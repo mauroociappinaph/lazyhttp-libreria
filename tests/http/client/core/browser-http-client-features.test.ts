@@ -43,6 +43,7 @@ const localStorageMock = (function() {
 
 // Simular window global para entorno Node
 if (typeof global.window === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   global.window = {} as any;
 }
 

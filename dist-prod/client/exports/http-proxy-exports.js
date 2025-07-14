@@ -1,1 +1,0 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0}),exports.configureProxy=void 0;const http_exports_1=require("./http-exports");exports.configureProxy=http_exports_1.http.configureProxy.bind(http_exports_1.http);

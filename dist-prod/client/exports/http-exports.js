@@ -1,1 +1,0 @@
-"use strict";Object.defineProperty(exports,"__esModule",{value:!0}),exports.http=void 0;const http_client_1=require("../core/http-client");exports.http=new http_client_1.HttpClient;

@@ -10,10 +10,6 @@ Thumbs.db
 *.old
 *.the
 
-# =============================
-# Dependencias y builds
-# =============================
-/node_modules
 /dist
 /build
 /lib

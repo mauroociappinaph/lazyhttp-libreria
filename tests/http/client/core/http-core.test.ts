@@ -58,14 +58,14 @@ describe('HttpCore.upload', () => {
     // Mock de post para capturar argumentos
     const postMock = jest.spyOn(http, 'post').mockResolvedValue({ data: { ok: true }, error: null, status: 200 });
     // Mock dinámico de buildNodeFormData
-    jest.mock('../../../../http/common/utils/http-upload.utils', () => ({
-      buildNodeFormData: (fields: any) => ({
+    jest.mock('../../../../http/server/utils/http-upload.utils', () => ({
+      buildNodeFormData: (fields: Record<string, unknown>) => ({
         form: { _isFormData: true, fields },
         headers: { 'content-type': 'multipart/form-data; boundary=abc123' }
       })
     }));
     // Forzamos entorno Node
-    (global as any).window = undefined;
+    (global as Record<string, unknown>).window = undefined;
     const fields = { archivo: './ejemplo.txt', descripcion: 'Test' };
     const resp = await http.upload('https://api.com/upload', fields, { headers: { 'x-custom': '1' } });
     expect(postMock).toHaveBeenCalledWith(
@@ -78,7 +78,7 @@ describe('HttpCore.upload', () => {
 
   it('debe construir FormData nativo en browser', async () => {
     // Simula entorno browser
-    (global as any).window = {};
+    (global as Record<string, unknown>).window = {};
     const postMock = jest.spyOn(http, 'post').mockResolvedValue({ data: { ok: true }, error: null, status: 200 });
     const fields = { archivo: 'file', descripcion: 'Test' };
     const resp = await http.upload('https://api.com/upload', fields);
@@ -100,13 +100,13 @@ describe('HttpCore.upload (múltiples archivos)', () => {
 
   it('debe agregar múltiples archivos en un solo campo (Node.js)', async () => {
     const postMock = jest.spyOn(http, 'post').mockResolvedValue({ data: { ok: true }, error: null, status: 200 });
-    jest.mock('../../../../http/common/utils/http-upload.utils', () => ({
-      buildNodeFormData: (fields: any) => ({
+    jest.mock('../../../../http/server/utils/http-upload.utils', () => ({
+      buildNodeFormData: (fields: Record<string, unknown>) => ({
         form: { _isFormData: true, fields },
         headers: { 'content-type': 'multipart/form-data; boundary=abc123' }
       })
     }));
-    (global as any).window = undefined;
+    (global as Record<string, unknown>).window = undefined;
     const fields = { archivos: ['./a.txt', './b.txt'], descripcion: 'multi' };
     await http.upload('https://api.com/upload', fields);
     expect(postMock).toHaveBeenCalledWith(
@@ -117,7 +117,7 @@ describe('HttpCore.upload (múltiples archivos)', () => {
   });
 
   it('debe agregar múltiples archivos en un solo campo (browser)', async () => {
-    (global as any).window = {};
+    (global as Record<string, unknown>).window = {};
     const postMock = jest.spyOn(http, 'post').mockResolvedValue({ data: { ok: true }, error: null, status: 200 });
     const file1 = { name: 'a.txt' };
     const file2 = { name: 'b.txt' };
@@ -147,10 +147,10 @@ describe('HttpCore.upload (validación de archivos)', () => {
 
   it('debe devolver error si el archivo simple no existe (Node.js)', async () => {
     jest.resetModules();
-    jest.doMock('../../../../http/common/utils/http-upload.utils', () => ({
+    jest.doMock('../../../../http/server/utils/http-upload.utils', () => ({
       buildNodeFormData: () => { throw new Error("El archivo './noexiste.txt' no existe o no es un archivo válido (campo 'archivo')"); }
     }));
-    (global as any).window = undefined;
+    (global as Record<string, unknown>).window = undefined;
     const resp = await http.upload('https://api.com/upload', { archivo: './noexiste.txt' });
     expect(resp.error).toMatch(/no existe o no es un archivo válido/);
     expect(postMock).not.toHaveBeenCalled();
@@ -158,10 +158,10 @@ describe('HttpCore.upload (validación de archivos)', () => {
 
   it('debe devolver error si algún archivo en array no existe (Node.js)', async () => {
     jest.resetModules();
-    jest.doMock('../../../../http/common/utils/http-upload.utils', () => ({
+    jest.doMock('../../../../http/server/utils/http-upload.utils', () => ({
       buildNodeFormData: () => { throw new Error("El archivo './falso.txt' no existe o no es un archivo válido (campo 'archivos')"); }
     }));
-    (global as any).window = undefined;
+    (global as Record<string, unknown>).window = undefined;
     const resp = await http.upload('https://api.com/upload', { archivos: ['./a.txt', './falso.txt'] });
     expect(resp.error).toMatch(/no existe o no es un archivo válido/);
     expect(postMock).not.toHaveBeenCalled();
@@ -183,10 +183,10 @@ describe('HttpCore.upload (validación de tamaño y validateFiles)', () => {
 
   it('debe devolver error si el archivo excede el tamaño máximo (Node.js)', async () => {
     jest.resetModules();
-    jest.doMock('../../../../http/common/utils/http-upload.utils', () => ({
+    jest.doMock('../../../../http/server/utils/http-upload.utils', () => ({
       buildNodeFormData: () => { throw new Error("Archivo './grande.txt' excede el tamaño máximo permitido (1048576 bytes)"); }
     }));
-    (global as any).window = undefined;
+    (global as Record<string, unknown>).window = undefined;
     const resp = await http.upload('https://api.com/upload', { archivo: './grande.txt' }, { maxFileSize: 1048576 });
     expect(resp.error).toMatch(/excede el tamaño máximo permitido/);
     expect(postMock).not.toHaveBeenCalled();
@@ -194,10 +194,10 @@ describe('HttpCore.upload (validación de tamaño y validateFiles)', () => {
 
   it('no debe devolver error si validateFiles es false aunque el archivo no exista (Node.js)', async () => {
     jest.resetModules();
-    jest.doMock('../../../../http/common/utils/http-upload.utils', () => ({
+    jest.doMock('../../../../http/server/utils/http-upload.utils', () => ({
       buildNodeFormData: () => ({ form: { _isFormData: true }, headers: {} })
     }));
-    (global as any).window = undefined;
+    (global as Record<string, unknown>).window = undefined;
     // Mock explícito de post para evitar error de Axios
     postMock.mockResolvedValue({ data: { ok: true }, error: null, status: 200 });
     const resp = await http.upload('https://api.com/upload', { archivo: './noexiste.txt' }, { validateFiles: false });
