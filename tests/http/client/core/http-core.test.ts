@@ -58,7 +58,7 @@ describe('HttpCore.upload', () => {
     // Mock de post para capturar argumentos
     const postMock = jest.spyOn(http, 'post').mockResolvedValue({ data: { ok: true }, error: null, status: 200 });
     // Mock dinámico de buildNodeFormData
-    jest.mock('../../../../http/common/utils/http-upload.utils', () => ({
+    jest.mock('../../../../http/server/utils/http-upload.utils', () => ({
       buildNodeFormData: (fields: any) => ({
         form: { _isFormData: true, fields },
         headers: { 'content-type': 'multipart/form-data; boundary=abc123' }
@@ -100,7 +100,7 @@ describe('HttpCore.upload (múltiples archivos)', () => {
 
   it('debe agregar múltiples archivos en un solo campo (Node.js)', async () => {
     const postMock = jest.spyOn(http, 'post').mockResolvedValue({ data: { ok: true }, error: null, status: 200 });
-    jest.mock('../../../../http/common/utils/http-upload.utils', () => ({
+    jest.mock('../../../../http/server/utils/http-upload.utils', () => ({
       buildNodeFormData: (fields: any) => ({
         form: { _isFormData: true, fields },
         headers: { 'content-type': 'multipart/form-data; boundary=abc123' }
@@ -147,7 +147,7 @@ describe('HttpCore.upload (validación de archivos)', () => {
 
   it('debe devolver error si el archivo simple no existe (Node.js)', async () => {
     jest.resetModules();
-    jest.doMock('../../../../http/common/utils/http-upload.utils', () => ({
+    jest.doMock('../../../../http/server/utils/http-upload.utils', () => ({
       buildNodeFormData: () => { throw new Error("El archivo './noexiste.txt' no existe o no es un archivo válido (campo 'archivo')"); }
     }));
     (global as any).window = undefined;
@@ -158,7 +158,7 @@ describe('HttpCore.upload (validación de archivos)', () => {
 
   it('debe devolver error si algún archivo en array no existe (Node.js)', async () => {
     jest.resetModules();
-    jest.doMock('../../../../http/common/utils/http-upload.utils', () => ({
+    jest.doMock('../../../../http/server/utils/http-upload.utils', () => ({
       buildNodeFormData: () => { throw new Error("El archivo './falso.txt' no existe o no es un archivo válido (campo 'archivos')"); }
     }));
     (global as any).window = undefined;
@@ -183,7 +183,7 @@ describe('HttpCore.upload (validación de tamaño y validateFiles)', () => {
 
   it('debe devolver error si el archivo excede el tamaño máximo (Node.js)', async () => {
     jest.resetModules();
-    jest.doMock('../../../../http/common/utils/http-upload.utils', () => ({
+    jest.doMock('../../../../http/server/utils/http-upload.utils', () => ({
       buildNodeFormData: () => { throw new Error("Archivo './grande.txt' excede el tamaño máximo permitido (1048576 bytes)"); }
     }));
     (global as any).window = undefined;
@@ -194,7 +194,7 @@ describe('HttpCore.upload (validación de tamaño y validateFiles)', () => {
 
   it('no debe devolver error si validateFiles es false aunque el archivo no exista (Node.js)', async () => {
     jest.resetModules();
-    jest.doMock('../../../../http/common/utils/http-upload.utils', () => ({
+    jest.doMock('../../../../http/server/utils/http-upload.utils', () => ({
       buildNodeFormData: () => ({ form: { _isFormData: true }, headers: {} })
     }));
     (global as any).window = undefined;
