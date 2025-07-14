@@ -57,8 +57,8 @@ describe('http-auth', () => {
     storeToken('token', 'abc');
     const onLogout = jest.fn();
     httpAuth.configureAuth({ baseURL: '', logoutEndpoint: '/logout', onLogout });
-    (httpAuth as any).getToken = getToken;
-    (httpAuth as any).removeToken = removeToken;
+    (httpAuth as Record<string, unknown>).getToken = getToken;
+    (httpAuth as Record<string, unknown>).removeToken = removeToken;
     mockFetch.mockResolvedValueOnce({});
     await httpAuth.logout();
     expect(getToken('token')).toBeNull();
@@ -67,26 +67,26 @@ describe('http-auth', () => {
 
   it('isAuthenticated: true si hay token', () => {
     storeToken('token', 'abc');
-    (httpAuth as any).getToken = getToken;
+    (httpAuth as Record<string, unknown>).getToken = getToken;
     httpAuth.configureAuth({ tokenKey: 'token' });
     expect(httpAuth.isAuthenticated()).toBe(true);
   });
 
   it('isAuthenticated: false si no hay token', () => {
-    (httpAuth as any).getToken = getToken;
+    (httpAuth as Record<string, unknown>).getToken = getToken;
     httpAuth.configureAuth({ tokenKey: 'token' });
     expect(httpAuth.isAuthenticated()).toBe(false);
   });
 
   it('getAccessToken: retorna el token si autenticado', () => {
     storeToken('token', 'abc');
-    (httpAuth as any).getToken = getToken;
+    (httpAuth as Record<string, unknown>).getToken = getToken;
     httpAuth.configureAuth({ tokenKey: 'token' });
     expect(httpAuth.getAccessToken()).toBe('abc');
   });
 
   it('getAccessToken: retorna null si no autenticado', () => {
-    (httpAuth as any).getToken = getToken;
+    (httpAuth as Record<string, unknown>).getToken = getToken;
     httpAuth.configureAuth({ tokenKey: 'token' });
     expect(httpAuth.getAccessToken()).toBeNull();
   });
@@ -95,7 +95,7 @@ describe('http-auth', () => {
     storeToken('token', 'abc');
     storeToken('refresh', 'def');
     httpAuth.configureAuth({ tokenKey: 'token', refreshTokenKey: 'refresh' });
-    (httpAuth as any).removeToken = removeToken;
+    (httpAuth as Record<string, unknown>).removeToken = removeToken;
     await httpAuth.handleRefreshTokenFailure();
     expect(getToken('token')).toBeNull();
     expect(getToken('refresh')).toBeNull();
