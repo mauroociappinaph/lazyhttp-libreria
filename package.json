@@ -1,6 +1,6 @@
 {
   "name": "httplazy",
-  "version": "2.5.0",
+  "version": "2.5.1",
   "description": "A powerful and easy-to-use HTTP client library with error handling, retries, interceptors, and more | Una librería HTTP fácil de usar con manejo de errores, reintentos, interceptores, y más",
   "main": "dist/index.js",
   "browser": "dist/client/index.js",
@@ -31,7 +31,6 @@
     "lint": "eslint 'http/**/*.{ts,tsx}' 'tests/**/*.{ts,tsx}' --ext .ts,.tsx",
     "build": "tsc --emitDeclarationOnly",
     "build:prod": "node scripts/build-esbuild.js",
-
     "prepublishOnly": "npm run build",
     "example": "node examples/simple-example.js",
     "example:advanced": "node examples/advanced-example.js",

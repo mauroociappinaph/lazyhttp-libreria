@@ -99,6 +99,16 @@ export async function login(credentials: { username: string; password: string })
       storeToken(currentAuthConfig.refreshTokenKey, data.refreshToken);
     }
 
+    // Validar token recibido
+    const tokenData = decodeToken(data.token);
+    if (!tokenData || isTokenExpired(data.token)) {
+      removeToken(currentAuthConfig.tokenKey);
+      if (currentAuthConfig.refreshTokenKey) {
+        removeToken(currentAuthConfig.refreshTokenKey);
+      }
+      throw new Error('Token inválido o expirado');
+    }
+
     if (currentAuthConfig.onLogin) {
       currentAuthConfig.onLogin(data);
     }
@@ -279,8 +289,11 @@ export function decodeToken(token: string): any {
 
     // Decodificar la parte del payload (segunda parte)
     const payload = parts[1];
-    const decoded = JSON.parse(atob(payload));
-
+    const decodedStr = atob(payload);
+    const decoded = JSON.parse(decodedStr);
+    if (typeof decoded !== 'object' || decoded === null) {
+      return null;
+    }
     return decoded;
   } catch (error) {
     console.warn('Error al decodificar token', error);

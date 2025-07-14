@@ -330,3 +330,5 @@ export const metricsManager = {
   trackActivity: MetricsController.trackActivity,
   getCurrentMetrics: MetricsController.getCurrentMetrics
 };
+
+export { NotificationService };
