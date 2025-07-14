@@ -116,7 +116,7 @@ import { http } from 'httplazy/server';
 
 | Feature                | ![HTTPLazy](https://img.shields.io/badge/-HTTPLazy-blue) | ![Axios](https://img.shields.io/badge/-Axios-green) | ![Fetch API](https://img.shields.io/badge/-Fetch%20API-yellow) |
 | ---------------------- | :------------------------------------------------------: | :-------------------------------------------------: | :------------------------------------------------------------: |
-| **Size (min+gzip)**    |                         🟦 ~136KB                         |                      🟩 ~14KB                       |                           🟨 Native                            |
+| **Size (min+gzip)**    |                        🟦 ~136KB                         |                      🟩 ~14KB                       |                           🟨 Native                            |
 | **Universal support**  |                     ✅ Client/Server                     |                         ✅                          |                        ⚠️ Limited Node                         |
 | **TypeScript**         |                         ✅ Full                          |                       ✅ Full                       |                           ⚠️ Limited                           |
 | **Interceptors**       |                            ✅                            |                         ✅                          |                               ❌                               |
@@ -2020,3 +2020,21 @@ console.log(curlCommand);
 // Output:
 // curl -X POST -H 'Content-Type: application/json' -H 'Authorization: Bearer token' --data '{"foo":"bar"}' 'https://api.example.com/data'
 ```
+
+---
+
+## 📦 Changelog / Historial de Cambios
+
+### v2.5.1 (2024-06-XX)
+
+**English:**
+
+- Added `transformRequest` and `transformResponse` properties to the `RequestOptions` interface for full compatibility with advanced request/response transformations (Axios-style).
+- Fixed type errors in tests and client code related to missing properties in `RequestOptions`.
+- All tests pass successfully. Published to NPM as `httplazy@2.5.1`.
+
+**Español:**
+
+- Se agregaron las propiedades `transformRequest` y `transformResponse` a la interfaz `RequestOptions` para compatibilidad total con transformaciones avanzadas de petición/respuesta (estilo Axios).
+- Se corrigieron errores de tipado en los tests y en el cliente relacionados con la ausencia de estas propiedades en `RequestOptions`.
+- Todos los tests pasan correctamente. Publicado en NPM como `httplazy@2.5.1`.
