@@ -2,7 +2,7 @@
  * Tipos comunes para cliente y servidor
  */
 
-import type { RequestOptions } from '../../types/http.types';
+import type { RequestOptions } from '../../http.types';
 
 // Tipos básicos de HTTP
 export interface ApiResponse<T = unknown> {
@@ -144,4 +144,4 @@ export interface HttpImplementation {
   getCurrentMetrics(): unknown;
 }
 
-export type { RequestOptions } from '../../types/http.types';
+export type { RequestOptions } from '../../http.types';
