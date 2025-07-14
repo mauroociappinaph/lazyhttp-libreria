@@ -65,6 +65,16 @@ export interface RequestOptions {
    * Configuración de streaming para esta petición
    */
   stream?: StreamConfig;
+
+  /**
+   * Función o lista de funciones para transformar la petición antes de enviarla
+   */
+  transformRequest?: ((data: unknown, headers?: Record<string, string>) => unknown) | Array<(data: unknown, headers?: Record<string, string>) => unknown>;
+
+  /**
+   * Función o lista de funciones para transformar la respuesta antes de resolverla
+   */
+  transformResponse?: ((data: unknown) => unknown) | Array<(data: unknown) => unknown>;
 }
 
 /**
@@ -94,7 +104,7 @@ export interface ApiResponse<T> {
   /**
    * Metadatos adicionales de la respuesta
    */
-  meta?: Record<string, any>;
+  meta?: Record<string, unknown>;
 
   /**
    * Detalles adicionales del error (si lo hay)
@@ -447,7 +457,7 @@ export interface AuthConfig {
 export interface UserCredentials {
   username: string;
   password: string;
-  [key: string]: any; // Campos adicionales
+  [key: string]: unknown; // Campos adicionales
 }
 
 /**
