@@ -1,9 +1,0 @@
-export declare const request: <T>(endpoint: string, options?: import("../../http.types").RequestOptions) => Promise<import("../../http.types").ApiResponse<T>>;
-export declare const get: <T>(endpoint: string, options?: Omit<import("../../http.types").RequestOptions, "method" | "body">) => Promise<import("../../http.types").ApiResponse<T>>;
-export declare const getAll: <T>(endpoint: string, options?: Omit<import("../../http.types").RequestOptions, "method" | "body">) => Promise<import("../../http.types").ApiResponse<T>>;
-export declare const getById: <T>(endpoint: string, id: string, options?: Omit<import("../../http.types").RequestOptions, "method" | "body">) => Promise<import("../../http.types").ApiResponse<T>>;
-export declare const post: <T>(endpoint: string, body?: unknown, options?: Omit<import("../../http.types").RequestOptions, "method" | "body">) => Promise<import("../../http.types").ApiResponse<T>>;
-export declare const put: <T>(endpoint: string, body?: unknown, options?: Omit<import("../../http.types").RequestOptions, "method" | "body">) => Promise<import("../../http.types").ApiResponse<T>>;
-export declare const patch: <T>(endpoint: string, body?: unknown, options?: Omit<import("../../http.types").RequestOptions, "method" | "body">) => Promise<import("../../http.types").ApiResponse<T>>;
-export declare const del: <T>(endpoint: string, options?: Omit<import("../../http.types").RequestOptions, "method">) => Promise<import("../../http.types").ApiResponse<T>>;
-export declare const stream: <T>(endpoint: string, options?: Omit<import("../../http.types").RequestOptions, "method" | "body">) => Promise<ReadableStream<T>>;
