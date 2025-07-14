@@ -11,13 +11,15 @@ export interface RequestOptions {
     cache?: CacheOptions;
     proxy?: ProxyConfig;
     stream?: StreamConfig;
+    transformRequest?: ((data: unknown, headers?: Record<string, string>) => unknown) | Array<(data: unknown, headers?: Record<string, string>) => unknown>;
+    transformResponse?: ((data: unknown) => unknown) | Array<(data: unknown) => unknown>;
 }
 export interface ApiResponse<T> {
     data: T | null;
     error: string | null;
     status: number;
     code?: string;
-    meta?: Record<string, any>;
+    meta?: Record<string, unknown>;
     details?: {
         description: string;
         cause: string;
@@ -140,7 +142,7 @@ export interface AuthConfig {
 export interface UserCredentials {
     username: string;
     password: string;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 export interface AuthInfo {
     accessToken: string;
