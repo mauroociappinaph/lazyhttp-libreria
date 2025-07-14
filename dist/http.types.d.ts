@@ -137,7 +137,7 @@ export interface AuthConfig {
     cookieOptions?: CookieOptions;
     onLogin?: (response: AuthResponse) => void;
     onLogout?: () => void;
-    onError?: (error: any) => void;
+    onError?: (error: unknown) => void;
 }
 export interface UserCredentials {
     username: string;
