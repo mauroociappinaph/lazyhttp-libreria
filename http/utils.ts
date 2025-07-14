@@ -11,7 +11,7 @@ export { ensureSuccess } from "./utils/ensure-success";
 export { generateCurl } from "./utils/generate-curl";
 export * from "./common/utils";
 
-export function deepFindLazy<T = any>(
+export function deepFindLazy<T = unknown>(
   data: unknown,
   predicate: (value: unknown) => boolean,
   visited = new Set<unknown>()
