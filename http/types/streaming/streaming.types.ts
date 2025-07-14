@@ -21,7 +21,7 @@ export interface StreamConfig {
   /**
    * Callback para procesar cada chunk de datos
    */
-  onChunk?: (chunk: any) => void;
+  onChunk?: (chunk: unknown) => void;
 
   /**
    * Callback para cuando el streaming ha terminado
@@ -75,7 +75,7 @@ export interface StreamOptions {
   /**
    * Procesador de chunks
    */
-  chunkProcessor?: (chunk: any) => any;
+  chunkProcessor?: (chunk: unknown) => unknown;
 }
 
 /**
