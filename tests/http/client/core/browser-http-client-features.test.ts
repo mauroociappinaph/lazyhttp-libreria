@@ -1,6 +1,6 @@
 import { BrowserHttpClient } from '../../../../http/client/core/browser-http-client';
 import axios from 'axios';
-import { RequestOptions } from '../../../../http/types/http.types';
+import { RequestOptions } from '../../../../http/http.types';
 
 
 
