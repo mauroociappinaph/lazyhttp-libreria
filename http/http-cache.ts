@@ -18,7 +18,7 @@ const cacheState = {
     storage: 'memory' as CacheStorageType,
     maxSize: 100
   },
-  cache: new Map<string, CacheEntry<any>>()
+  cache: new Map<string, CacheEntry<unknown>>()
 };
 
 /**
@@ -92,7 +92,7 @@ export function get<T>(key: string): ApiResponse<T> | undefined {
   entry.lastAccessed = Date.now();
   cacheState.cache.set(key, entry);
 
-  return entry.value;
+  return entry.value as ApiResponse<T>;
 }
 
 /**

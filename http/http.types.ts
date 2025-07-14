@@ -448,7 +448,10 @@ export interface AuthConfig {
   cookieOptions?: CookieOptions;
   onLogin?: (response: AuthResponse) => void;
   onLogout?: () => void;
-  onError?: (error: any) => void;
+  /**
+   * Callback executed when an error occurs during authentication
+   */
+  onError?: (error: unknown) => void;
 }
 
 /**

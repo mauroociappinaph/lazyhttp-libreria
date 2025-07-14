@@ -33,10 +33,18 @@ const removeToken = (key: string) => { delete tokenStore[key]; };
 
 afterEach(() => { Object.keys(tokenStore).forEach(removeToken); jest.clearAllMocks(); });
 
+// Helper para crear un JWT mock válido (sin firma real)
+function createMockJwt(payloadObj: object) {
+  const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+  const payload = btoa(JSON.stringify(payloadObj));
+  return `${header}.${payload}.firma`;
+}
+
 describe('http-auth', () => {
   it('login: almacena token y llama onLogin', async () => {
-    const token = 'abc';
-    const refreshToken = 'def';
+    // Usar JWT válido no expirado
+    const token = createMockJwt({ exp: Math.floor(Date.now() / 1000) + 3600 });
+    const refreshToken = createMockJwt({ exp: Math.floor(Date.now() / 1000) + 7200 });
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ token, refreshToken }) });
     const onLogin = jest.fn();
     httpAuth.configureAuth({ baseURL: '', loginEndpoint: '/login', onLogin, tokenKey: 'token' });
@@ -99,5 +107,92 @@ describe('http-auth', () => {
     await httpAuth.handleRefreshTokenFailure();
     expect(getToken('token')).toBeNull();
     expect(getToken('refresh')).toBeNull();
+  });
+});
+
+describe('Casos edge y flujos alternativos', () => {
+  it('login: maneja usuario inexistente (404)', async () => {
+    mockFetch.mockResolvedValueOnce({ ok: false, status: 404, json: async () => ({ message: 'User not found' }) });
+    const onError = jest.fn();
+    httpAuth.configureAuth({ baseURL: '', loginEndpoint: '/login', onError });
+    await expect(httpAuth.login({ username: 'noexiste', password: 'p' })).rejects.toThrow('Login failed');
+    expect(onError).toHaveBeenCalled();
+  });
+
+  it('login: token inválido no autentica', async () => {
+    // Token con formato JWT pero payload corrupto (no base64)
+    const token = 'header.payload_invalido.firma';
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ token }) });
+    httpAuth.configureAuth({ baseURL: '', loginEndpoint: '/login', tokenKey: 'token' });
+    await expect(httpAuth.login({ username: 'u', password: 'p' })).rejects.toThrow('Token inválido o expirado');
+  });
+
+  it('login: token expirado no autentica', async () => {
+    // Token JWT con exp pasado
+    const expiredToken = createMockJwt({ exp: Math.floor(Date.now() / 1000) - 60 });
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ token: expiredToken }) });
+    httpAuth.configureAuth({ baseURL: '', loginEndpoint: '/login', tokenKey: 'token' });
+    await expect(httpAuth.login({ username: 'u', password: 'p' })).rejects.toThrow('Token inválido o expirado');
+  });
+
+  it('refreshToken: éxito actualiza tokens', async () => {
+    // Configurar estado y configuración usando helpers públicos
+    httpAuth.configureAuth({ refreshEndpoint: '/refresh', tokenKey: 'token', refreshTokenKey: 'refresh' });
+    // Setear refreshToken en el estado
+    httpAuth.authState.refreshToken = 'refresh';
+    httpAuth.authState.isAuthenticated = true;
+    jest.spyOn(httpAuth, 'storeToken').mockImplementation(() => {});
+    jest.spyOn(httpAuth, 'getToken').mockImplementation(() => 'refresh');
+    jest.spyOn(httpAuth, 'removeToken').mockImplementation(() => {});
+    jest.spyOn(httpAuth, 'decodeToken').mockImplementation(() => ({ exp: Math.floor(Date.now() / 1000) + 3600 }));
+    require('axios').post.mockResolvedValueOnce({ data: { access_token: 'nuevo_token', refresh_token: 'nuevo_refresh', expires_in: 3600 } });
+    const token = await httpAuth.refreshToken();
+    expect(token).toBe('nuevo_token');
+  });
+
+  it('refreshToken: error lanza excepción y llama onError', async () => {
+    httpAuth.configureAuth({ refreshEndpoint: '/refresh', tokenKey: 'token', refreshTokenKey: 'refresh', onError: jest.fn() });
+    httpAuth.authState.refreshToken = 'refresh';
+    httpAuth.authState.isAuthenticated = true;
+    require('axios').post.mockRejectedValueOnce(new Error('Refresh error'));
+    await expect(httpAuth.refreshToken()).rejects.toThrow('Refresh error');
+    expect(httpAuth.currentAuthConfig.onError).toHaveBeenCalled();
+  });
+
+  it('logout: sin login previo no lanza error y limpia tokens', async () => {
+    httpAuth.configureAuth({ logoutEndpoint: '/logout', tokenKey: 'token', onLogout: jest.fn() });
+    jest.spyOn(httpAuth, 'getToken').mockImplementation(() => null);
+    jest.spyOn(httpAuth, 'removeToken').mockImplementation(() => {});
+    await httpAuth.logout();
+    expect(httpAuth.currentAuthConfig.onLogout).toHaveBeenCalled();
+  });
+
+  it('refreshToken: sin refreshToken lanza error', async () => {
+    httpAuth.configureAuth({ refreshEndpoint: '/refresh', tokenKey: 'token', refreshTokenKey: 'refresh' });
+    httpAuth.authState.refreshToken = undefined;
+    httpAuth.authState.isAuthenticated = true;
+    await expect(httpAuth.refreshToken()).rejects.toThrow('No hay configuración para refrescar token');
+  });
+
+  it('getAuthenticatedUser: sin autenticación retorna null', async () => {
+    httpAuth.authState.accessToken = '';
+    httpAuth.authState.isAuthenticated = false;
+    expect(await httpAuth.getAuthenticatedUser()).toBeNull();
+  });
+
+  it('decodeToken: token corrupto retorna null', () => {
+    jest.resetModules();
+    const freshHttpAuth = require('../../http/http-auth');
+    // Token con payload no base64 (caracteres inválidos)
+    expect(freshHttpAuth.decodeToken('header.@@@@@@.firma')).toBeNull();
+  });
+
+  it('isTokenExpired: token sin exp retorna false', () => {
+    const tokenSinExp = [
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
+      btoa(JSON.stringify({})),
+      'firma'
+    ].join('.');
+    expect(httpAuth.isTokenExpired(tokenSinExp)).toBe(false);
   });
 });

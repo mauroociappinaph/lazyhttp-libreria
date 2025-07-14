@@ -5,7 +5,7 @@
 [![npm version](https://img.shields.io/npm/v/httplazy)](https://www.npmjs.com/package/httplazy)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-4.5+-blue)](https://www.typescriptlang.org/)
-![Coverage](https://img.shields.io/badge/coverage-41%25-yellow)
+![Coverage](https://img.shields.io/badge/coverage-54%25-yellow)
 ![Bundle size](https://img.shields.io/bundlephobia/minzip/httplazy)
 [![Open Issues](https://img.shields.io/github/issues/mauroociappina/lazyhttp-libreria)](https://github.com/mauroociappina/lazyhttp-libreria/issues)
 [![Pull Requests](https://img.shields.io/github/issues-pr/mauroociappina/lazyhttp-libreria)](https://github.com/mauroociappina/lazyhttp-libreria/pulls)
@@ -2023,18 +2023,27 @@ console.log(curlCommand);
 
 ---
 
-## 📦 Changelog / Historial de Cambios
+## Test Coverage (Jest)
 
-### v2.5.1 (2024-06-XX)
+**Latest run:**
 
-**English:**
+- Statements: 54.47%
+- Branches: 36.27%
+- Functions: 44.63%
+- Lines: 54.74%
 
-- Added `transformRequest` and `transformResponse` properties to the `RequestOptions` interface for full compatibility with advanced request/response transformations (Axios-style).
-- Fixed type errors in tests and client code related to missing properties in `RequestOptions`.
-- All tests pass successfully. Published to NPM as `httplazy@2.5.1`.
+**Main authentication file (`http/http-auth.ts`):**
 
-**Español:**
+- Statements: 79.43%
+- Branches: 59.09%
+- Functions: 100%
+- Lines: 79.43%
 
-- Se agregaron las propiedades `transformRequest` y `transformResponse` a la interfaz `RequestOptions` para compatibilidad total con transformaciones avanzadas de petición/respuesta (estilo Axios).
-- Se corrigieron errores de tipado en los tests y en el cliente relacionados con la ausencia de estas propiedades en `RequestOptions`.
-- Todos los tests pasan correctamente. Publicado en NPM como `httplazy@2.5.1`.
+**Metrics module (`http/metrics/http-metrics-index.ts`):**
+
+- Statements: 78.12%
+- Branches: 56.06%
+- Functions: 82.05%
+- Lines: 78.74%
+
+> To improve quality, it is recommended to increase coverage in managers and helpers.
