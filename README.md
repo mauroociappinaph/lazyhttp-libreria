@@ -5,7 +5,7 @@
 [![npm version](https://img.shields.io/npm/v/httplazy)](https://www.npmjs.com/package/httplazy)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-4.5+-blue)](https://www.typescriptlang.org/)
-![Coverage](https://img.shields.io/badge/coverage-49%25-yellow)
+![Coverage](https://img.shields.io/badge/coverage-54%25-yellow)
 ![Bundle size](https://img.shields.io/bundlephobia/minzip/httplazy)
 [![Open Issues](https://img.shields.io/github/issues/mauroociappina/lazyhttp-libreria)](https://github.com/mauroociappina/lazyhttp-libreria/issues)
 [![Pull Requests](https://img.shields.io/github/issues-pr/mauroociappina/lazyhttp-libreria)](https://github.com/mauroociappina/lazyhttp-libreria/pulls)
@@ -2023,20 +2023,27 @@ console.log(curlCommand);
 
 ---
 
-## Cobertura de Tests (Jest)
+## Test Coverage (Jest)
 
-**Última ejecución:**
+**Latest run:**
 
-- Statements: 49.05%
-- Branches: 33.27%
-- Functions: 36.52%
-- Lines: 49.24%
+- Statements: 54.47%
+- Branches: 36.27%
+- Functions: 44.63%
+- Lines: 54.74%
 
-**Archivo principal de autenticación (`http/http-auth.ts`):**
+**Main authentication file (`http/http-auth.ts`):**
 
 - Statements: 79.43%
 - Branches: 59.09%
 - Functions: 100%
 - Lines: 79.43%
 
-> Para mejorar la calidad, se recomienda aumentar la cobertura en managers y helpers.
+**Metrics module (`http/metrics/http-metrics-index.ts`):**
+
+- Statements: 78.12%
+- Branches: 56.06%
+- Functions: 82.05%
+- Lines: 78.74%
+
+> To improve quality, it is recommended to increase coverage in managers and helpers.
