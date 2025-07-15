@@ -7,6 +7,7 @@ const suggestionService = new SuggestionService();
 export class HttpError extends Error {
   suggestion?: string;
   details?: ErrorDetails;
+  error_type: string;
 
   static ERROR_MESSAGES: Record<string, string> = {
     TIMEOUT: 'La solicitud ha excedido el tiempo de espera',
@@ -16,6 +17,11 @@ export class HttpError extends Error {
     SESSION_EXPIRED: 'La sesión ha expirado',
     AXIOS_ERROR: 'Error de conexión con AxiosError',
   };
+
+  constructor(message?: string) {
+    super(message);
+    this.error_type = this.name;
+  }
 
   // Método para obtener sugerencia avanzada
   static async getSmartSuggestion(error: HttpError, request?: Request): Promise<string> {
@@ -37,6 +43,7 @@ export class HttpTimeoutError extends HttpError {
   constructor(message = HttpError.ERROR_MESSAGES.TIMEOUT) {
     super(message);
     this.name = 'HttpTimeoutError';
+    this.error_type = this.name;
     this.suggestion = 'Verifica tu conexión a internet y vuelve a intentarlo';
     this.details = {
       description: 'La solicitud ha excedido el tiempo de espera configurado',
@@ -61,6 +68,7 @@ export class HttpNetworkError extends HttpError {
   constructor(message = HttpError.ERROR_MESSAGES.NETWORK) {
     super(message);
     this.name = 'HttpNetworkError';
+    this.error_type = this.name;
     this.suggestion = 'Verifica tu conexión a internet y vuelve a intentarlo';
     this.details = {
       description: 'No se pudo establecer conexión con el servidor',
@@ -86,6 +94,7 @@ export class HttpAxiosError extends HttpError {
   constructor(message = HttpError.ERROR_MESSAGES.AXIOS_ERROR) {
     super(message);
     this.name = 'HttpAxiosError';
+    this.error_type = this.name;
     this.suggestion = 'Verifica tu conexión a internet y vuelve a intentarlo';
     this.details = {
       description: 'Error en la petición HTTP realizada con Axios',
@@ -109,6 +118,7 @@ export class HttpUnknownError extends HttpError {
   constructor(message = HttpError.ERROR_MESSAGES.UNKNOWN) {
     super(message);
     this.name = 'HttpUnknownError';
+    this.error_type = this.name;
     this.suggestion = 'Verifica tu conexión a internet y vuelve a intentarlo';
     this.details = {
       description: 'Error desconocido durante la petición HTTP',
@@ -133,6 +143,7 @@ export class HttpAbortedError extends HttpError {
   constructor(message = HttpError.ERROR_MESSAGES.ABORTED) {
     super(message);
     this.name = 'HttpAbortedError';
+    this.error_type = this.name;
     this.suggestion = 'Verifica tu conexión a internet y vuelve a intentarlo';
     this.details = {
       description: 'La petición fue cancelada antes de completarse',
@@ -162,6 +173,7 @@ export class HttpAuthError extends HttpError {
   constructor(message = HttpError.ERROR_MESSAGES.SESSION_EXPIRED) {
     super(message);
     this.name = 'HttpAuthError';
+    this.error_type = this.name;
     this.suggestion = 'Verifica tu conexión a internet y vuelve a intentarlo';
     this.details = {
       description: 'Error de autenticación o sesión expirada',
