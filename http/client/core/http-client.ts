@@ -93,7 +93,9 @@ export class HttpClient implements IHttpClient, HttpOperations {
   public _decodeToken(): unknown { return null; /* Future implementation */ }
 
   // Config methods
-  public async initialize(): Promise<void> { /* Future implementation */ }
+  public async initialize(config?: any): Promise<void> {
+    await this.configManager.initialize(config);
+  }
   public configureCaching(): void { /* Future implementation */ }
   public invalidateCache(pattern: string): void { this.configManager.invalidateCache(pattern); }
   public invalidateCacheByTags(tags: string[]): void { this.configManager.invalidateCacheByTags(tags); }
