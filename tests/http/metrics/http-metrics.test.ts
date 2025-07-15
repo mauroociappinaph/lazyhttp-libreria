@@ -4,6 +4,7 @@ describe('Metrics Manager', () => {
   let fetchSpy: jest.SpyInstance;
 
   beforeEach(() => {
+    jest.useFakeTimers(); // Habilitar temporizadores falsos para todos los tests
     // Mockear fetch para evitar llamadas de red reales
     fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue({
       ok: true,
@@ -20,7 +21,6 @@ describe('Metrics Manager', () => {
     fetchSpy.mockRestore();
     metricsManager.stopTracking();
     metricsManager.configure({ enabled: false });
-    jest.runOnlyPendingTimers(); // Ejecutar cualquier temporizador pendiente
     jest.useRealTimers(); // Restaurar temporizadores reales
   });
 
@@ -62,8 +62,6 @@ describe('Metrics Manager', () => {
   });
 
   test('debería enviar métricas automáticamente en el intervalo configurado', async () => {
-    jest.useFakeTimers();
-
     // Arrange
     metricsManager.configure({
       enabled: true,
@@ -92,8 +90,6 @@ describe('Metrics Manager', () => {
 
     // Assert - Debería haber enviado métricas dos veces
     expect(fetchSpy).toHaveBeenCalledTimes(2);
-
-    jest.useRealTimers();
   });
 
   test('debería manejar errores al enviar métricas', async () => {
