@@ -121,10 +121,13 @@ export class HttpStreamingManager {
       proxyUrl.password = auth.password;
     }
 
-    const proxyString = proxyUrl.toString();
+    let proxyString = proxyUrl.toString();
 
-    // Para SOCKS, usamos la URL directamente
+    // Para SOCKS, aseguramos que la URL termine en '/'
     if (protocol === 'socks') {
+      if (!proxyString.endsWith('/')) {
+        proxyString += '/';
+      }
       return new SocksProxyAgent(proxyString);
     }
 
