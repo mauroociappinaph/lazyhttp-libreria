@@ -2,9 +2,9 @@ import { HttpCore } from '../../http-core';
 import { RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, HttpClient as IHttpClient } from '../../types/core.types';
 import { ProxyConfig } from '../../types/proxy.types';
 import { StreamConfig } from '../../types/stream.types';
-import { login as loginHelper, logout as logoutHelper } from '../../http-auth';
+
 import { interceptorsManager } from '../../interceptors/http-interceptors-manager';
-import { metricsManager } from '../../metrics/http-metrics-index';
+
 import { httpLogger } from '../../http-logger';
 import { HttpPropertyManager } from '../managers/http-property-manager';
 import { HttpAuthManager } from '../managers/http-auth-manager';
@@ -79,17 +79,8 @@ export class HttpClient implements IHttpClient, HttpOperations {
 
   // Auth methods
   public configureAuth(config: AuthConfig): void { this.authManager.configureAuth(config); }
-  public async login(credentials: UserCredentials): Promise<AuthInfo> {
-    const response = await loginHelper(credentials);
-    const authInfo: AuthInfo = { accessToken: response.access_token, isAuthenticated: true, refreshToken: response.refresh_token };
-    if (authInfo.isAuthenticated) metricsManager.startTracking();
-    return authInfo;
-  }
-  public async logout(): Promise<void> {
-    const metrics = await metricsManager.stopTracking();
-    if (metrics) console.log(`[HTTP] Session ended - Active time: ${Math.round(metrics.activeTime / 1000)}s, Requests: ${metrics.requestCount}`);
-    return logoutHelper();
-  }
+  public async login(credentials: UserCredentials): Promise<AuthInfo> { return this.authManager.login(credentials); }
+  public async logout(): Promise<void> { return this.authManager.logout(); }
   public isAuthenticated(): boolean { return this.authManager.isAuthenticated(); }
   public async getAuthenticatedUser(): Promise<unknown | null> { return this.authManager.getAuthenticatedUser(); }
   public getAccessToken(): string | null { return this.authManager.getAccessToken(); }
