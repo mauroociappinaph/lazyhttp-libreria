@@ -52,9 +52,6 @@ export interface ApiResponse<T> {
 }
 
 /**
- * Cliente HTTP - Interfaz pública
- */
-/**
  * Procesador de respuestas HTTP
  */
 export interface HttpResponseProcessor {
@@ -127,7 +124,7 @@ export interface HttpClient {
   put<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
   patch<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
   delete<T>(endpoint: string, options?: Omit<RequestOptions, 'method'>): Promise<ApiResponse<T>>;
-  initialize(config?: { suggestionService?: { enabled: boolean, url: string }, cache?: import('./cache.types').CacheConfig }): Promise<void>;
+  initialize(config?: Partial<InitConfig>): Promise<void>;
   configureAuth(config: AuthConfig): void;
   login(credentials: UserCredentials): Promise<AuthInfo>;
   logout(): Promise<void>;
@@ -160,9 +157,20 @@ export interface RetryOptions {
 
 /**
  * Configuración de inicialización para clientes HTTP
+ * - baseUrl: URL base para las peticiones (oficial)
+ * - baseURL: alias aceptado para compatibilidad (se normaliza internamente)
+ * - timeout: tiempo de espera por defecto
+ * - headers: cabeceras por defecto
  */
 export interface InitConfig {
+  /**
+   * URL base para las peticiones HTTP (usar preferentemente baseUrl)
+   */
   baseUrl?: string;
+  /**
+   * Alias de baseUrl para compatibilidad (se normaliza internamente)
+   */
+  baseURL?: string;
   frontendUrl?: string;
   timeout?: number;
   retries?: number;
