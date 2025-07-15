@@ -46,9 +46,9 @@ export interface ApiResponse<T> {
     responseHeaders: Record<string, string>;
     timing?: { requestStart: number; responseEnd: number };
     rawBody?: string | Buffer;
-    errorDetails?: any;
+    errorDetails?: unknown;
   };
-  config?: any;
+  config?: unknown;
 }
 
 /**
@@ -56,7 +56,7 @@ export interface ApiResponse<T> {
  */
 export interface HttpResponseProcessor {
   processResponse<T>(
-    response: any, // Usar 'any' para AxiosResponse para evitar dependencia circular
+    response: unknown, // Usar 'unknown' para AxiosResponse para evitar dependencia circular
     metaOpcional?: {
       requestHeaders?: Record<string, string>;
       timing?: Record<string, number>;
