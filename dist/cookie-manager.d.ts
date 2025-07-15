@@ -1,4 +1,4 @@
-import { CookieOptions } from './http.types';
+import { CookieOptions } from './types/auth.types';
 export declare class CookieManager {
     static set(name: string, value: string, options?: CookieOptions): void;
     static get(name: string): string | null;
