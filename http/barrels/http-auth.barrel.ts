@@ -30,4 +30,4 @@ export {
   AuthConfig,
   UserCredentials,
   AuthInfo
-} from '../http.types';
+} from '../types/auth.types';

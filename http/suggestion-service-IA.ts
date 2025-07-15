@@ -1,4 +1,4 @@
-import { ErrorInfo } from './http.types';
+import { ErrorInfo } from './types/error.types';
 
 
 export class SuggestionService {

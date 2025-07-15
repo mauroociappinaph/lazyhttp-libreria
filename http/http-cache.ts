@@ -1,13 +1,5 @@
-import {
-  ApiResponse,
-  CacheConfig,
-  CacheEntry,
-  CacheOptions,
-  CacheStrategy,
-  HttpMethod,
-  RequestOptions,
-  CacheStorageType
-} from './http.types';
+import { CacheConfig, CacheOptions, CacheEntry, CacheStrategy, CacheStorageType } from './types/cache.types';
+import { RequestOptions, ApiResponse, HttpMethod } from './types/core.types';
 
 // Estado interno del caché
 const cacheState = {
@@ -73,10 +65,39 @@ export function generateCacheKey(endpoint: string, options?: RequestOptions): st
 }
 
 /**
+ * Obtiene la instancia de almacenamiento según la configuración
+ */
+function _getStorage(): Map<string, CacheEntry<unknown>> | Storage {
+  if (cacheState.config.storage === 'localStorage') {
+    return localStorage;
+  } else if (cacheState.config.storage === 'sessionStorage') {
+    return sessionStorage;
+  } else {
+    return cacheState.cache;
+  }
+}
+
+/**
  * Obtiene una entrada de la caché
  */
 export function get<T>(key: string): ApiResponse<T> | undefined {
-  const entry = cacheState.cache.get(key);
+  const storage = _getStorage();
+  let entry: CacheEntry<T> | undefined;
+
+  if (storage instanceof Map) {
+    entry = storage.get(key) as CacheEntry<T>;
+  } else {
+    const stored = storage.getItem(key);
+    if (stored) {
+      try {
+        entry = JSON.parse(stored);
+      } catch (e) {
+        console.error("Error parsing cache entry from storage", e);
+        storage.removeItem(key);
+        return undefined;
+      }
+    }
+  }
 
   if (!entry) {
     return undefined;
@@ -88,9 +109,11 @@ export function get<T>(key: string): ApiResponse<T> | undefined {
     return undefined;
   }
 
-  // Actualizar timestamp de último acceso
-  entry.lastAccessed = Date.now();
-  cacheState.cache.set(key, entry);
+  // Actualizar timestamp de último acceso (solo para Map, para Storage se actualiza al setear)
+  if (storage instanceof Map) {
+    entry.lastAccessed = Date.now();
+    storage.set(key, entry);
+  }
 
   return entry.value as ApiResponse<T>;
 }
@@ -103,8 +126,10 @@ export function set<T>(key: string, value: ApiResponse<T>, options?: CacheOption
     return;
   }
 
+  const storage = _getStorage();
+
   // Si se alcanza el tamaño máximo, eliminar las entradas más antiguas
-  if (cacheState.cache.size >= cacheState.config.maxSize!) {
+  if (storage instanceof Map && storage.size >= cacheState.config.maxSize!) {
     evictOldEntries();
   }
 
@@ -115,37 +140,75 @@ export function set<T>(key: string, value: ApiResponse<T>, options?: CacheOption
     value,
     expiresAt: Date.now() + ttl,
     createdAt: Date.now(),
-    lastAccessed: Date.now(),
+    lastAccessed: Date.now(), // Se actualiza al setear
     tags
   };
 
-  cacheState.cache.set(key, entry);
+  if (storage instanceof Map) {
+    storage.set(key, entry);
+  } else {
+    try {
+      storage.setItem(key, JSON.stringify(entry));
+    } catch (e) {
+      console.error("Error saving cache entry to storage", e);
+    }
+  }
 }
 
 /**
  * Elimina una entrada de la caché
  */
 export function remove(key: string): void {
-  cacheState.cache.delete(key);
+  const storage = _getStorage();
+  if (storage instanceof Map) {
+    storage.delete(key);
+  } else {
+    storage.removeItem(key);
+  }
 }
 
 /**
  * Limpia toda la caché
  */
 export function clear(): void {
-  cacheState.cache.clear();
+  const storage = _getStorage();
+  if (storage instanceof Map) {
+    storage.clear();
+  } else {
+    // Para localStorage/sessionStorage, solo eliminar las claves de caché
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < storage.length; i++) {
+      const key = storage.key(i);
+      if (key && key.startsWith('http_cache_')) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => storage.removeItem(key));
+  }
 }
 
 /**
  * Invalida entradas de caché que coincidan con un patrón
  */
 export function invalidate(pattern: string): void {
+  const storage = _getStorage();
   const regex = new RegExp(pattern.replace(/\*/g, '.*'));
 
-  for (const key of cacheState.cache.keys()) {
-    if (regex.test(key)) {
-      remove(key);
+  if (storage instanceof Map) {
+    for (const key of storage.keys()) {
+      if (regex.test(key)) {
+        remove(key);
+      }
     }
+  } else {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < storage.length; i++) {
+      const key = storage.key(i);
+      if (key && regex.test(key)) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => storage.removeItem(key));
   }
 }
 
@@ -153,10 +216,36 @@ export function invalidate(pattern: string): void {
  * Invalida entradas de caché con ciertos tags
  */
 export function invalidateByTags(tags: string[]): void {
-  for (const [key, entry] of cacheState.cache.entries()) {
-    if (entry.tags && entry.tags.some(tag => tags.includes(tag))) {
-      remove(key);
+  if (!tags.length) return;
+
+  const storage = _getStorage();
+
+  if (storage instanceof Map) {
+    for (const [key, entry] of storage.entries()) {
+      if (entry.tags && entry.tags.some(tag => tags.includes(tag))) {
+        remove(key);
+      }
     }
+  } else {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < storage.length; i++) {
+      const key = storage.key(i);
+      if (key && key.startsWith('http_cache_')) { // Solo procesar claves de caché
+        try {
+          const stored = storage.getItem(key);
+          if (stored) {
+            const entry: CacheEntry<unknown> = JSON.parse(stored);
+            if (entry.tags && entry.tags.some(tag => tags.includes(tag))) {
+              keysToRemove.push(key);
+            }
+          }
+        } catch (e) {
+          console.error("Error parsing stored cache entry for tag invalidation", e);
+          keysToRemove.push(key); // Eliminar entradas corruptas
+        }
+      }
+    }
+    keysToRemove.forEach(key => storage.removeItem(key));
   }
 }
 

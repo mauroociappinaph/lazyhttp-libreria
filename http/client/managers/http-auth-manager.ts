@@ -1,8 +1,4 @@
-import {
-  AuthConfig,
-  UserCredentials,
-  AuthInfo
-} from '../../http.types';
+import { AuthConfig, UserCredentials, AuthInfo } from '../../types/core.types';
 
 import {
   configureAuth as configureAuthHelper,

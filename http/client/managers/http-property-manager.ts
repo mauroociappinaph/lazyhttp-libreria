@@ -1,5 +1,6 @@
 import { HttpCore } from '../../http-core';
-import { ProxyConfig, StreamConfig } from '../../http.types';
+import { ProxyConfig } from '../../types/proxy.types';
+import { StreamConfig } from '../../types/stream.types';
 import { httpConfiguration } from '../../http-configuration';
 
 /**

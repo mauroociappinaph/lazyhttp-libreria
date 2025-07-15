@@ -1,9 +1,7 @@
-import {
-  CacheConfig,
-  MetricsConfig,
-  ProxyConfig,
-  StreamConfig
-} from '../../http.types';
+import { CacheConfig } from '../../types/cache.types';
+import { MetricsConfig } from '../../types/metrics.types';
+import { ProxyConfig } from '../../types/proxy.types';
+import { StreamConfig } from '../../types/stream.types';
 import { httpConfiguration } from '../../http-configuration';
 import { HttpPropertyManager } from './http-property-manager';
 

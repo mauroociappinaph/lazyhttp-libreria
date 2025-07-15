@@ -120,19 +120,23 @@ describe('Casos edge y flujos alternativos', () => {
   });
 
   it('login: token inválido no autentica', async () => {
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
     // Token con formato JWT pero payload corrupto (no base64)
     const token = 'header.payload_invalido.firma';
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ token }) });
     httpAuth.configureAuth({ baseURL: '', loginEndpoint: '/login', tokenKey: 'token' });
     await expect(httpAuth.login({ username: 'u', password: 'p' })).rejects.toThrow('Token inválido o expirado');
+    consoleWarnSpy.mockRestore();
   });
 
   it('login: token expirado no autentica', async () => {
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
     // Token JWT con exp pasado
     const expiredToken = createMockJwt({ exp: Math.floor(Date.now() / 1000) - 60 });
     mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ token: expiredToken }) });
     httpAuth.configureAuth({ baseURL: '', loginEndpoint: '/login', tokenKey: 'token' });
     await expect(httpAuth.login({ username: 'u', password: 'p' })).rejects.toThrow('Token inválido o expirado');
+    consoleWarnSpy.mockRestore();
   });
 
   it('refreshToken: éxito actualiza tokens', async () => {
@@ -181,10 +185,12 @@ describe('Casos edge y flujos alternativos', () => {
   });
 
   it('decodeToken: token corrupto retorna null', () => {
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
     jest.resetModules();
     const freshHttpAuth = require('../../http/http-auth');
     // Token con payload no base64 (caracteres inválidos)
     expect(freshHttpAuth.decodeToken('header.@@@@@@.firma')).toBeNull();
+    consoleWarnSpy.mockRestore();
   });
 
   it('isTokenExpired: token sin exp retorna false', () => {

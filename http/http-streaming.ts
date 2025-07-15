@@ -1,7 +1,9 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { SocksProxyAgent } from 'socks-proxy-agent';
-import { ProxyConfig, RequestOptions, StreamConfig } from './http.types';
+import { ProxyConfig } from './types/proxy.types';
+import { RequestOptions } from './types/core.types';
+import { StreamConfig } from './types/stream.types';
 import { prepareHeaders } from './http-helpers';
 
 /**

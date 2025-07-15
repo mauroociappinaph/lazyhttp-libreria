@@ -1,4 +1,4 @@
-import { AuthConfig, AuthInfo, AuthResponse, CookieOptions } from './http.types';
+import { AuthConfig, AuthInfo, AuthResponse, CookieOptions } from './types/auth.types';
 import { API_URL } from './http-config';
 import axios from 'axios';
 import { CookieManager } from './cookie-manager';

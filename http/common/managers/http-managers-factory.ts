@@ -16,7 +16,7 @@ export class HttpManagersFactory {
     // Implementación básica común
     return {
       enabled: config.enabled,
-      ttl: config.ttl || 300000,
+      ttl: config.defaultTTL || 300000,
       maxSize: config.maxSize || 100,
       storage: config.storage || 'memory',
 

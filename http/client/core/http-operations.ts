@@ -1,4 +1,4 @@
-import { RequestOptions, ApiResponse } from '../../http.types';
+import { RequestOptions, ApiResponse } from '../../types/core.types';
 
 /**
  * HttpOperations - Interfaz para todas las operaciones HTTP

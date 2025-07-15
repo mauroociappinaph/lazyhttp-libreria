@@ -1,4 +1,7 @@
-import { CacheConfig, MetricsConfig, ProxyConfig, StreamConfig } from './http.types';
+import { CacheConfig } from './types/cache.types';
+import { MetricsConfig } from './types/metrics.types';
+import { ProxyConfig } from './types/proxy.types';
+import { StreamConfig } from './types/stream.types';
 import { initialize as initializeHelper } from './http-helpers';
 import { cacheManager } from './http-cache';
 import { metricsManager } from './metrics/http-metrics-index';

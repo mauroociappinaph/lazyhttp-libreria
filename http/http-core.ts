@@ -1,4 +1,4 @@
-import { RequestOptions, ApiResponse } from './http.types';
+import { RequestOptions, ApiResponse } from './types/core.types';
 import { retryHandler, errorHandler, prepareHeaders, responseProcessor } from './http-helpers';
 import { cacheManager } from './http-cache';
 import { executeWithCacheStrategy } from './http-cache-strategies';

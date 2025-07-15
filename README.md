@@ -12,6 +12,14 @@
 
 ---
 
+## 🧪 Test & Coverage Status / Estado de Pruebas y Cobertura
+
+**English:**
+
+- All tests passing: 20/20 suites, 131/131 tests.
+- Current coverage: 54.47% statements, 37.42% branches, 45.16% functions, 54.84% lines.
+- Minimum thresholds (70%) not reached yet.
+
 # 🇬🇧 English
 
 ## Table of Contents

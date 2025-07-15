@@ -10,4 +10,4 @@ export { executeWithCacheStrategy } from '../http-cache-strategies';
 export {
   CacheConfig,
   CacheStrategy
-} from '../http.types';
+} from '../types/cache.types';

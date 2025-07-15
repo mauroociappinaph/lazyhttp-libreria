@@ -1,5 +1,5 @@
 import { cacheManager } from '../../http/http-cache';
-import { ApiResponse } from '../../http/http.types';
+import { ApiResponse } from '../../http/types/core.types';
 
 describe('cacheManager', () => {
   beforeEach(() => {

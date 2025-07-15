@@ -6,24 +6,17 @@
  */
 
 // Import directly from core files
-import { HttpClient } from './client/core/http-client';
-import {
-  HttpImplementation,
-  RequestOptions,
-  ApiResponse,
-  HttpMethod,
-  AuthConfig,
-  UserCredentials,
-  AuthInfo,
-  ProxyConfig,
-  StreamConfig,
-  CacheConfig,
-  MetricsConfig
-} from './http.types';
+import { HttpClient as HttpClientClass } from './client/core/http-client';
+import { RequestOptions, ApiResponse, HttpMethod, HttpClient as HttpClientInterface } from './types/core.types';
+import { AuthConfig, UserCredentials, AuthInfo } from './types/core.types';
+import { ProxyConfig } from './types/proxy.types';
+import { StreamConfig } from './types/stream.types';
+import { CacheConfig } from './types/cache.types';
+import { MetricsConfig } from './types/metrics.types';
 
 // Export all types directly
 export {
-  HttpImplementation,
+  HttpClientInterface as HttpClient,
   RequestOptions,
   ApiResponse,
   HttpMethod,
@@ -37,7 +30,7 @@ export {
 };
 
 // Create HTTP client instance directly
-export const http = new HttpClient() as HttpImplementation & {
+export const http = new HttpClientClass() as HttpClientInterface & {
   configureCaching: (config: CacheConfig) => void;
   invalidateCache: (pattern: string) => void;
   invalidateCacheByTags: (tags: string[]) => void;
@@ -57,6 +50,7 @@ export const http = new HttpClient() as HttpImplementation & {
   };
   _proxyConfig?: ProxyConfig;
   _defaultStreamConfig?: StreamConfig;
+  configureProxy: (config: ProxyConfig) => void;
 };
 
 // Bind HTTP methods directly from the http instance

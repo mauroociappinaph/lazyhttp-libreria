@@ -1,5 +1,5 @@
 import { AxiosInstance } from 'axios';
-import { RequestOptions } from '../../http.types';
+import { RequestOptions } from '../../types/core.types';
 import { httpInstance } from '../../http-config';
 import { prepareHeaders } from '../../http-helpers';
 

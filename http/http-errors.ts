@@ -1,5 +1,5 @@
 import { SuggestionService } from './suggestion-service-IA';
-import { ErrorDetails } from './http.types';
+import { ErrorDetails } from './types/error.types';
 
 // Create the suggestion service instance
 const suggestionService = new SuggestionService();

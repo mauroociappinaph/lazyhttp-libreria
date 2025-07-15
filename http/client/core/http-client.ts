@@ -1,9 +1,7 @@
 import { HttpCore } from '../../http-core';
-import {
-  HttpImplementation, RequestOptions, ApiResponse,
-  AuthConfig, UserCredentials, AuthInfo,
-  ProxyConfig, StreamConfig
-} from '../../http.types';
+import { RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, HttpClient as IHttpClient } from '../../types/core.types';
+import { ProxyConfig } from '../../types/proxy.types';
+import { StreamConfig } from '../../types/stream.types';
 import { login as loginHelper, logout as logoutHelper } from '../../http-auth';
 import { interceptorsManager } from '../../interceptors/http-interceptors-manager';
 import { metricsManager } from '../../metrics/http-metrics-index';
@@ -16,7 +14,7 @@ import { HttpOperations } from './http-operations';
 import { createResourceAccessor } from '../utils/create-resource-accessor';
 import { buildUrl, prepareRequestHeaders, createProxyAgent } from '../helpers/http-client.helpers';
 
-export class HttpClient implements HttpImplementation, HttpOperations {
+export class HttpClient implements IHttpClient, HttpOperations {
   private core = new HttpCore();
   private propertyManager: HttpPropertyManager;
   private authManager: HttpAuthManager;

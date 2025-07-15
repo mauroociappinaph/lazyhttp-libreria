@@ -1,11 +1,21 @@
 import { BaseHttpClient } from '../../../../http/common/core/base-http-client';
-import { RetryOptions } from '../../../../http/common/types';
+import { RetryOptions, InitConfig } from '../../../../http/types/core.types';
 
 // Clase concreta para poder probar la clase abstracta BaseHttpClient
 class TestHttpClient extends BaseHttpClient {
   async request<T>() {
     // Implementación simple para satisfacer la clase abstracta
-    return { data: {} as T, status: 200, headers: {} };
+    return {
+      data: {} as T,
+      status: 200,
+      error: null,
+      fullMeta: {
+        requestHeaders: {},
+        responseHeaders: {},
+        timing: { requestStart: Date.now(), responseEnd: Date.now() },
+        rawBody: '',
+      }
+    };
   }
 
   // Métodos públicos para probar los métodos protegidos
@@ -33,7 +43,7 @@ describe('BaseHttpClient - Retry', () => {
         retryableStatusCodes: [429, 500, 503],
         retryableErrors: ['ECONNRESET', 'ETIMEDOUT']
       }
-    });
+    } as Partial<InitConfig>);
   });
 
   describe('calculateRetryDelay', () => {
@@ -98,7 +108,7 @@ describe('BaseHttpClient - Retry', () => {
 
     test('debería retornar false si los reintentos están desactivados', () => {
       // Arrange
-      httpClient.initialize({ retry: { enabled: false } });
+      httpClient.initialize({ retry: { enabled: false } } as Partial<InitConfig>);
       const error = { status: 503, message: 'Service Unavailable' };
 
       // Act & Assert

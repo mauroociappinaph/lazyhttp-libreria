@@ -1,9 +1,9 @@
 import { BaseHttpClient } from '../../common/core/base-http-client';
-import { HttpMethod, ApiResponse, RequestOptions, AuthInfo, UserCredentials, InitConfig } from '../../common/types';
+import { HttpMethod, ApiResponse, RequestOptions, AuthInfo, UserCredentials, InitConfig } from '../../types/core.types';
 import { HttpUtils } from '../../common/utils/http-utils';
 import axios, { isAxiosError } from 'axios';
 import { AuthManager } from '../managers/auth.manager';
-import { CacheManager } from '../managers/cache.manager';
+import { cacheManager } from '../../http-cache';
 
 /**
  * Implementación del cliente HTTP para navegadores
@@ -11,13 +11,24 @@ import { CacheManager } from '../managers/cache.manager';
  */
 export class BrowserHttpClient extends BaseHttpClient {
   private authManager: AuthManager;
-  private cacheManager: CacheManager;
+  
 
   constructor(config: Partial<InitConfig>) {
     super();
-    this.initialize(config);
+    // Normalizar config para cumplir con los tipos requeridos por initialize
+    const safeConfig = {
+      ...config,
+      cache: {
+        enabled: config.cache?.enabled ?? false,
+        defaultStrategy: config.cache?.defaultStrategy,
+        defaultTTL: config.cache?.defaultTTL,
+        storage: config.cache?.storage,
+        maxSize: config.cache?.maxSize,
+      },
+      // Puedes agregar aquí otras normalizaciones si tu initialize lo requiere
+    };
+    this.initialize(safeConfig);
     this.authManager = new AuthManager(this.authConfig, this);
-    this.cacheManager = new CacheManager(this.cacheConfig);
   }
 
   /**
@@ -83,15 +94,15 @@ export class BrowserHttpClient extends BaseHttpClient {
       return {
         data: responseData as T,
         status: response.status,
-        headers: response.headers as Record<string, string>,
-        config: response.config,
+        fullMeta: { responseHeaders: response.headers as Record<string, string> },
+        error: null,
       };
     } catch (error: unknown) {
       if (isAxiosError(error)) {
         return {
           data: null as unknown as T,
           status: error.response?.status || 500,
-          headers: (error.response?.headers as Record<string, string>) || {},
+          fullMeta: { responseHeaders: (error.response?.headers as Record<string, string>) || {} },
           error: error.response?.data?.message || error.message,
         };
       }
@@ -99,7 +110,7 @@ export class BrowserHttpClient extends BaseHttpClient {
       return {
         data: null as unknown as T,
         status: 500,
-        headers: {},
+        fullMeta: { responseHeaders: {} },
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
@@ -133,7 +144,7 @@ export class BrowserHttpClient extends BaseHttpClient {
   /**
    * Obtiene el usuario autenticado
    */
-  getAuthenticatedUser(): unknown | null {
+  async getAuthenticatedUser(): Promise<AuthInfo | null> {
     return this.authManager.getAuthenticatedUser();
   }
 
@@ -148,14 +159,14 @@ export class BrowserHttpClient extends BaseHttpClient {
    * Invalida caché por patrón
    */
   invalidateCache(pattern: string): void {
-    this.cacheManager.invalidateCache(pattern);
+    cacheManager.invalidate(pattern);
   }
 
   /**
    * Invalida caché por tags
    */
   invalidateCacheByTags(tags: string[]): void {
-    this.cacheManager.invalidateCacheByTags(tags);
+    cacheManager.invalidateByTags(tags);
   }
 
   /**

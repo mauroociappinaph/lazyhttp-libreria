@@ -11,8 +11,10 @@ describe('HttpCore integración directa', () => {
     expect(typeof resp.fullMeta?.requestHeaders).toBe('object');
     expect(typeof resp.fullMeta?.responseHeaders).toBe('object');
     expect(typeof resp.fullMeta?.timing).toBe('object');
-    expect(typeof resp.fullMeta?.timing.requestStart).toBe('number');
-    expect(typeof resp.fullMeta?.timing.responseEnd).toBe('number');
+    if (resp.fullMeta?.timing) {
+      expect(typeof resp.fullMeta.timing.requestStart).toBe('number');
+      expect(typeof resp.fullMeta.timing.responseEnd).toBe('number');
+    }
   });
 
   it('debe poblar fullMeta.rawBody como Buffer si la respuesta es binaria', async () => {

@@ -1,16 +1,10 @@
-import {
-  ErrorResponse,
-  HttpMethod,
-  ApiResponse,
-  HttpResponseProcessor,
-  HttpRequestExecutor,
-  HttpRetryHandler,
-  HttpErrorHandler
-} from './http.types';
+import {  ApiResponse, HttpMethod } from './types/core.types';
 import axios, { isAxiosError, AxiosResponse } from 'axios';
 import { HttpNetworkError, HttpUnknownError, HttpAbortedError, HttpAuthError, HttpTimeoutError, HttpAxiosError, HttpError } from './http-errors';
 import { API_URL, DebugLevel, debugConfig } from './http-config';
 import { httpLogger } from './http-logger';
+import { HttpResponseProcessor, HttpRequestExecutor, HttpRetryHandler, HttpErrorHandler } from './types/internals.types';
+import { ErrorResponse } from './types/error.types';
 
 // ===== Sistema de logging avanzado =====
 export const logger = {

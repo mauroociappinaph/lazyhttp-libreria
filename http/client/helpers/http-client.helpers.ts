@@ -1,6 +1,7 @@
 // http/client/helpers/http-client.helpers.ts
 
-import { RequestOptions, ProxyConfig } from '../../http.types';
+import { RequestOptions } from '../../types/core.types';
+import { ProxyConfig } from '../../types/proxy.types';
 import { prepareHeaders } from '../../http-helpers';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import { HttpsProxyAgent } from 'https-proxy-agent';

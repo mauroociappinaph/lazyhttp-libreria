@@ -1,4 +1,5 @@
-import { ApiResponse, CacheOptions, RequestOptions } from './http.types';
+import { ApiResponse, RequestOptions } from './types/core.types';
+import { CacheOptions } from './types/cache.types';
 import * as cache from './http-cache';
 
 /**
