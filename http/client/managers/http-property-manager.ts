@@ -94,11 +94,11 @@ export class HttpPropertyManager {
     retries?: number,
     headers?: Record<string, string>
   }): void {
-    if (config?.baseUrl) {
+    if (config?.baseUrl !== undefined) {
       this.baseUrl = config.baseUrl;
     }
 
-    if (config?.timeout) {
+    if (config?.timeout !== undefined) {
       this.defaultTimeout = config.timeout;
     }
 
@@ -107,7 +107,7 @@ export class HttpPropertyManager {
     }
 
     if (config?.headers) {
-      this.defaultHeaders = {...this.defaultHeaders, ...config.headers};
+      this.defaultHeaders = { ...this.defaultHeaders, ...config.headers };
     }
   }
 }
