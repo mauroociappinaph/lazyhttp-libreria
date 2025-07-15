@@ -5,7 +5,7 @@
 [![npm version](https://img.shields.io/npm/v/httplazy)](https://www.npmjs.com/package/httplazy)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-4.5+-blue)](https://www.typescriptlang.org/)
-![Coverage](https://img.shields.io/badge/coverage-54.47%25-yellow)
+![Coverage](https://img.shields.io/badge/coverage-44.78%25-yellow)
 ![Bundle size](https://img.shields.io/bundlephobia/minzip/httplazy)
 [![Open Issues](https://img.shields.io/github/issues/mauroociappina/lazyhttp-libreria)](https://github.com/mauroociappina/lazyhttp-libreria/issues)
 [![Pull Requests](https://img.shields.io/github/issues-pr/mauroociappina/lazyhttp-libreria)](https://github.com/mauroociappina/lazyhttp-libreria/pulls)
@@ -17,7 +17,7 @@
 **English:**
 
 - All tests passing: 20/20 suites, 131/131 tests.
-- Current coverage: 54.47% statements, 37.42% branches, 45.16% functions, 54.84% lines.
+- Current coverage: 44.78% statements, 28.09% branches, 34.85% functions, 45.35% lines.
 - Minimum thresholds (70%) not reached yet.
 
 # 🇬🇧 English
@@ -2035,9 +2035,9 @@ console.log(curlCommand);
 
 | Tipo       | Porcentaje |
 | ---------- | ---------- |
-| Statements | 54.47%     |
-| Branches   | 36.27%     |
-| Functions  | 44.63%     |
-| Lines      | 54.74%     |
+| Statements | 44.78%     |
+| Branches   | 28.09%     |
+| Functions  | 34.85%     |
+| Lines      | 45.35%     |
 
 > _Cobertura generada automáticamente el último build/test._
