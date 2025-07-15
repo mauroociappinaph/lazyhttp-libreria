@@ -12,7 +12,7 @@ export { HttpTypes };
 // Funcionalidades principales
 import * as HttpCore from './http-core';
 
-import * as HttpCache from './http-cache';
+import * as HttpCache from './client/managers/http-cache-manager';
 import * as HttpInterceptors from './http-interceptors';
 import * as HttpStreaming from './http-streaming';
 import * as HttpErrors from './http-errors';

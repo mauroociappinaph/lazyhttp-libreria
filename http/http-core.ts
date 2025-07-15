@@ -1,6 +1,6 @@
 import { RequestOptions, ApiResponse } from './types/core.types';
 import { retryHandler, errorHandler, prepareHeaders, responseProcessor } from './http-helpers';
-import { cacheManager } from './http-cache';
+import { httpCacheManager } from './client/managers/http-cache-manager';
 import { executeWithCacheStrategy } from './http-cache-strategies';
 import { metricsManager } from './metrics/http-metrics-index';
 
@@ -25,7 +25,7 @@ export class HttpCore {
 
     // Aplicar estrategia de caché si está configurada
     if (options.cache) {
-      const cacheKey = cacheManager.generateCacheKey(endpoint, options);
+      const cacheKey = httpCacheManager.generateCacheKey(endpoint, options);
       const result = await executeWithCacheStrategy<T>(
         cacheKey,
         async () => this.performRequest<T>(endpoint, options),
@@ -68,7 +68,7 @@ export class HttpCore {
       );
 
       if (method !== 'GET') {
-        cacheManager.invalidateByMethod(method, endpoint);
+        httpCacheManager.invalidateByMethod(method, endpoint);
       }
 
       // Si la respuesta ya tiene fullMeta, devolverla tal cual

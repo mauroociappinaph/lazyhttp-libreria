@@ -3,7 +3,7 @@
  */
 
 // Caché
-export { cacheManager } from '../http-cache';
+export { httpCacheManager } from '../client/managers/http-cache-manager';
 export { executeWithCacheStrategy } from '../http-cache-strategies';
 
 // Tipos relacionados con caché

@@ -200,9 +200,11 @@ export function prepareHeaders(headers: Record<string, string>, withAuth: boolea
       }
     } catch (error) {
       // Fallback al comportamiento anterior
-      const token = localStorage.getItem('token');
-      if (token) {
-        defaultHeaders['Authorization'] = `Bearer ${token}`;
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('token');
+        if (token) {
+          defaultHeaders['Authorization'] = `Bearer ${token}`;
+        }
       }
     }
   }
@@ -399,15 +401,17 @@ export async function initialize(): Promise<void> {
   setupInterceptors();
 
   // Cargar configuración de autenticación desde localStorage si existe
-  try {
-    const savedConfig = localStorage.getItem('auth_config');
-    if (savedConfig) {
-      const auth = require('./http-auth');
-      const parsedConfig = JSON.parse(savedConfig);
-      auth.configureAuth(parsedConfig);
+  if (typeof window !== 'undefined') {
+    try {
+      const savedConfig = localStorage.getItem('auth_config');
+      if (savedConfig) {
+        const auth = require('./http-auth');
+        const parsedConfig = JSON.parse(savedConfig);
+        auth.configureAuth(parsedConfig);
+      }
+    } catch (error) {
+      console.warn('Error al cargar configuración de autenticación', error);
     }
-  } catch (error) {
-    console.warn('Error al cargar configuración de autenticación', error);
   }
 
   return Promise.resolve();

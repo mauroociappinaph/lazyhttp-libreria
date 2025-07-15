@@ -3,7 +3,7 @@ import { HttpMethod, ApiResponse, RequestOptions, AuthInfo, UserCredentials, Ini
 import { HttpUtils } from '../../common/utils/http-utils';
 import axios, { isAxiosError } from 'axios';
 import { AuthManager } from '../managers/auth.manager';
-import { cacheManager } from '../../http-cache';
+import { httpCacheManager } from '../managers/http-cache-manager';
 
 /**
  * Implementación del cliente HTTP para navegadores
@@ -159,14 +159,14 @@ export class BrowserHttpClient extends BaseHttpClient {
    * Invalida caché por patrón
    */
   invalidateCache(pattern: string): void {
-    cacheManager.invalidate(pattern);
+    httpCacheManager.invalidate(pattern);
   }
 
   /**
    * Invalida caché por tags
    */
   invalidateCacheByTags(tags: string[]): void {
-    cacheManager.invalidateByTags(tags);
+    httpCacheManager.invalidateByTags(tags);
   }
 
   /**

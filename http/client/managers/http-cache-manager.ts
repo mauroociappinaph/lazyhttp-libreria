@@ -307,3 +307,9 @@ export class HttpCacheManager {
     entries.slice(0, toRemove).forEach(([key]) => this.remove(key));
   }
 }
+
+/**
+ * Instancia singleton del HttpCacheManager.
+ * Se exporta para ser utilizada en toda la aplicación, asegurando un único punto de gestión de la caché.
+ */
+export const httpCacheManager = new HttpCacheManager();

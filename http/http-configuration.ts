@@ -3,7 +3,7 @@ import { MetricsConfig } from './types/metrics.types';
 import { ProxyConfig } from './types/proxy.types';
 import { StreamConfig } from './types/stream.types';
 import { initialize as initializeHelper } from './http-helpers';
-import { cacheManager } from './http-cache';
+import { httpCacheManager } from './client/managers/http-cache-manager';
 import { metricsManager } from './metrics/http-metrics-index';
 import { streamingManager } from './http-streaming';
 
@@ -86,21 +86,21 @@ export class HttpConfiguration {
    * Configura el caché
    */
   configureCaching(config: CacheConfig): void {
-    cacheManager.configure(config);
+    httpCacheManager.configure(config);
   }
 
   /**
    * Invalida las entradas de caché que coincidan con el patrón
    */
   invalidateCache(pattern: string): void {
-    cacheManager.invalidate(pattern);
+    httpCacheManager.invalidate(pattern);
   }
 
   /**
    * Invalida las entradas de caché que tengan las etiquetas especificadas
    */
   invalidateCacheByTags(tags: string[]): void {
-    cacheManager.invalidateByTags(tags);
+    httpCacheManager.invalidateByTags(tags);
   }
 
   /**
