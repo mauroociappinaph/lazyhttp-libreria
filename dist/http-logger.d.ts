@@ -1,4 +1,4 @@
-import { ApiResponse } from './http.types';
+import { ApiResponse } from './types/core.types';
 import { DebugLevel } from './http-config';
 export interface LoggerConfig {
     enabled: boolean;

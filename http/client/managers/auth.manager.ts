@@ -1,5 +1,5 @@
 
-import { AuthInfo, UserCredentials } from '../../common/types';
+import { AuthInfo, UserCredentials } from '../../types/core.types';
 import { IAuthManager } from '../../common/interfaces/auth.manager.interface';
 import { BaseHttpClient } from '../../common/core/base-http-client';
 
@@ -23,9 +23,9 @@ export class AuthManager implements IAuthManager {
         throw new Error(response.error || 'Error de autenticación');
       }
 
-      const { token, refreshToken, user } = response.data;
+      const { accessToken, refreshToken, user } = response.data;
 
-      this._storeToken(this.authConfig.tokenKey || 'token', token);
+      this._storeToken(this.authConfig.tokenKey || 'token', accessToken);
 
       if (refreshToken && this.authConfig.refreshTokenKey) {
         this._storeToken(this.authConfig.refreshTokenKey, refreshToken);

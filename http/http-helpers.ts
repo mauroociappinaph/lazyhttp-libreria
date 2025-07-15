@@ -1,16 +1,10 @@
-import {
-  ErrorResponse,
-  HttpMethod,
-  ApiResponse,
-  HttpResponseProcessor,
-  HttpRequestExecutor,
-  HttpRetryHandler,
-  HttpErrorHandler
-} from './http.types';
+import {  ApiResponse, HttpMethod } from './types/core.types';
 import axios, { isAxiosError, AxiosResponse } from 'axios';
 import { HttpNetworkError, HttpUnknownError, HttpAbortedError, HttpAuthError, HttpTimeoutError, HttpAxiosError, HttpError } from './http-errors';
 import { API_URL, DebugLevel, debugConfig } from './http-config';
 import { httpLogger } from './http-logger';
+import { HttpResponseProcessor, HttpRequestExecutor, HttpRetryHandler, HttpErrorHandler } from './types/internals.types';
+import { ErrorResponse } from './types/error.types';
 
 // ===== Sistema de logging avanzado =====
 export const logger = {
@@ -206,9 +200,11 @@ export function prepareHeaders(headers: Record<string, string>, withAuth: boolea
       }
     } catch (error) {
       // Fallback al comportamiento anterior
-      const token = localStorage.getItem('token');
-      if (token) {
-        defaultHeaders['Authorization'] = `Bearer ${token}`;
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('token');
+        if (token) {
+          defaultHeaders['Authorization'] = `Bearer ${token}`;
+        }
       }
     }
   }
@@ -405,15 +401,17 @@ export async function initialize(): Promise<void> {
   setupInterceptors();
 
   // Cargar configuración de autenticación desde localStorage si existe
-  try {
-    const savedConfig = localStorage.getItem('auth_config');
-    if (savedConfig) {
-      const auth = require('./http-auth');
-      const parsedConfig = JSON.parse(savedConfig);
-      auth.configureAuth(parsedConfig);
+  if (typeof window !== 'undefined') {
+    try {
+      const savedConfig = localStorage.getItem('auth_config');
+      if (savedConfig) {
+        const auth = require('./http-auth');
+        const parsedConfig = JSON.parse(savedConfig);
+        auth.configureAuth(parsedConfig);
+      }
+    } catch (error) {
+      console.warn('Error al cargar configuración de autenticación', error);
     }
-  } catch (error) {
-    console.warn('Error al cargar configuración de autenticación', error);
   }
 
   return Promise.resolve();

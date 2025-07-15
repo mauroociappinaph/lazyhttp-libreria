@@ -1,22 +1,33 @@
-import { httpInstance, API_URL, DEFAULT_TIMEOUT } from '../../http/http-config';
+import { http } from '../../http/http-index';
+import { API_URL, DEFAULT_TIMEOUT } from '../../http/http-config';
 
-// No es necesario importar axios para comprobar la instancia, ya que axios crea instancias con prototipo especial
-
-describe('httpInstance (http-config)', () => {
-  it('debería estar definida y tener propiedades de instancia de Axios', () => {
-    expect(httpInstance).toBeDefined();
-    // Puede ser función o tipo especial, pero debe tener interceptors y defaults
-    expect(httpInstance).toHaveProperty('interceptors');
-    expect(httpInstance).toHaveProperty('defaults');
-    expect(typeof httpInstance.request).toBe('function');
-    expect(typeof httpInstance.get).toBe('function');
-    expect(typeof httpInstance.post).toBe('function');
+describe('HttpLazy Configuration', () => {
+  beforeEach(() => {
+    // Resetear la configuración de http antes de cada test
+    http.initialize({
+      baseURL: API_URL,
+      timeout: DEFAULT_TIMEOUT,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
   });
 
   it('debería tener la configuración base correcta', () => {
-    expect(httpInstance.defaults.baseURL).toBe(API_URL);
-    expect(httpInstance.defaults.timeout).toBe(DEFAULT_TIMEOUT);
-    expect(httpInstance.defaults.withCredentials).toBe(true);
-    expect(httpInstance.defaults.headers['Content-Type']).toBe('application/json');
+    expect(http['_baseUrl']).toBe(API_URL);
+    expect(http['_defaultTimeout']).toBe(DEFAULT_TIMEOUT);
+    expect(http['_defaultHeaders']?.['Content-Type']).toBe('application/json');
+  });
+
+  it('debería permitir actualizar la configuración', () => {
+    const newBaseURL = 'https://newapi.example.com';
+    const newTimeout = 5000;
+    http.initialize({
+      baseURL: newBaseURL,
+      timeout: newTimeout,
+    });
+
+    expect(http['_baseUrl']).toBe(newBaseURL);
+    expect(http['_defaultTimeout']).toBe(newTimeout);
   });
 });

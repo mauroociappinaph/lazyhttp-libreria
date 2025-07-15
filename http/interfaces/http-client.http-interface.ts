@@ -47,10 +47,7 @@ export interface HttpClient {
    * Inicializa el cliente HTTP
    * @param config Configuración opcional
    */
-  initialize(config?: {
-    suggestionService?: { enabled: boolean, url: string },
-    cache?: CacheConfig
-  }): Promise<void>;
+  initialize(config?: Partial<InitConfig>): Promise<void>;
 
   /**
    * Configura el sistema de autenticación
@@ -108,4 +105,6 @@ export interface HttpClient {
 }
 
 // Exporta los tipos utilizados en esta interfaz
-import { RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, CacheConfig } from '../http.types';
+import { RequestOptions, ApiResponse, InitConfig } from '../types/core.types';
+import { AuthConfig, UserCredentials, AuthInfo } from '../types/auth.types';
+import { CacheConfig } from '../types/cache.types';

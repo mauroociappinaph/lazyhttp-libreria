@@ -12,6 +12,9 @@ export * from '../common/utils/http-utils';
 // Exportar la implementación específica para servidor
 import { NodeHttpClient } from './core/node-http-client';
 
+// Importar fetch desde undici para Node.js
+import { fetch } from 'undici';
+
 // Crear una instancia singleton
 const nodeHttpClient = new NodeHttpClient();
 
@@ -48,7 +51,7 @@ export const createSoaClient = (_options: any) => {
   console.log('Creating SOA client with Node.js specific modules');
   return {
     connect: () => Promise.resolve(true),
-    call: (_service: string, _method: string, _args: any[]) => Promise.resolve({}),
+    call: (_: string, __: string, ___: any[]) => Promise.resolve({}),
     disconnect: () => Promise.resolve()
   };
 };

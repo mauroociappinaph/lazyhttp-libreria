@@ -1,4 +1,4 @@
-import { SessionMetrics, MetricsConfig } from '../http.types';
+import { SessionMetrics, MetricsConfig } from '../types/core.types';
 declare const NotificationService: {
     notifyMetricsUpdate: () => void;
 };

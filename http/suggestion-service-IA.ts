@@ -1,4 +1,4 @@
-import { ErrorInfo } from './http.types';
+import { ErrorInfo } from './types/error.types';
 
 
 export class SuggestionService {
@@ -28,13 +28,13 @@ export class SuggestionService {
       }
 
       return false;
-    } catch (e) {
+    } catch {
       console.warn('Suggestion service not available');
       return false;
     }
   }
 
-  async getSuggestion(error: any, request?: Request): Promise<string> {
+  async getSuggestion(error: ErrorInfo & { name?: string; status?: number; suggestion?: string; message?: string }, request?: Request): Promise<string> {
     if (!this.enabled) {
       return error.suggestion || "Verifica tu conexión a internet";
     }
@@ -58,7 +58,7 @@ export class SuggestionService {
         const data = await response.json();
         return data.suggestion;
       }
-    } catch (e) {
+    } catch {
       // Silenciar errores
     }
 
@@ -66,7 +66,7 @@ export class SuggestionService {
   }
 
   async provideFeedback(
-    error: any,
+    error: ErrorInfo & { name?: string; status?: number; message?: string },
     request: Request | undefined,
     suggestion: string,
     wasHelpful: boolean
@@ -89,7 +89,7 @@ export class SuggestionService {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(feedbackData)
       });
-    } catch (e) {
+    } catch {
       // Silenciar errores
     }
   }

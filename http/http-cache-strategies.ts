@@ -1,5 +1,6 @@
-import { ApiResponse, CacheOptions, RequestOptions } from './http.types';
-import * as cache from './http-cache';
+import { ApiResponse, RequestOptions } from './types/core.types';
+import { CacheOptions } from './types/cache.types';
+import { httpCacheManager as cache } from './client/managers/http-cache-manager';
 
 /**
  * Tipo para una función de red que obtiene datos

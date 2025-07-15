@@ -1,4 +1,4 @@
-import { HttpResponseProcessor } from '../http.types';
+import { HttpResponseProcessor } from '../types/core.types';
 import { AxiosResponse } from 'axios';
 import { ApiResponse } from '../types/core/response.types';
 import { FullResponseMetadata } from '../types/core/response.types';

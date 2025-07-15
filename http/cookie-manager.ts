@@ -1,4 +1,4 @@
-import { CookieOptions } from './http.types';
+import { CookieOptions } from './types/auth.types';
 
 /**
  * Clase para manejar cookies de forma segura

@@ -8,6 +8,8 @@ export { interceptorsManager } from '../interceptors/http-interceptors-manager';
 
 // Tipos de configuración
 export {
-  ProxyConfig,
+  ProxyConfig
+} from '../types/proxy.types';
+export {
   StreamConfig
-} from '../http.types';
+} from '../types/stream.types';

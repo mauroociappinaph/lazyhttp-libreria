@@ -2,19 +2,17 @@
  * Barrel file para la capa de cliente HTTP
  * Re-exporta todo desde core/index.ts para mantener compatibilidad
  */
-export * from './core';
+
 
 /**
  * Cliente HTTP para entornos de navegador
  *
  * Esta versión es completamente compatible con navegadores y excluye
  * todas las características que dependen de módulos específicos de Node.js.
- */
+ */import { HttpClient } from './core/http-client';
 
-import { HttpClient } from './core/http-client';
-
-export const http = new HttpClient();
-
+const http = new HttpClient();
+export { http };
 export const request = http.request.bind(http);
 export const get = http.get.bind(http);
 export const getAll = http.getAll.bind(http);

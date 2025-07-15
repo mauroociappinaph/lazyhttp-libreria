@@ -1,9 +1,7 @@
-import {
-  CacheConfig,
-  MetricsConfig,
-  ProxyConfig,
-  StreamConfig
-} from '../../http.types';
+import { CacheConfig } from '../../types/cache.types';
+import { MetricsConfig } from '../../types/metrics.types';
+import { ProxyConfig } from '../../types/proxy.types';
+import { StreamConfig } from '../../types/stream.types';
 import { httpConfiguration } from '../../http-configuration';
 import { HttpPropertyManager } from './http-property-manager';
 
@@ -20,6 +18,7 @@ export class HttpConfigManager {
    */
   async initialize(config?: {
     baseUrl?: string,
+    baseURL?: string,
     frontendUrl?: string,
     suggestionService?: { enabled: boolean, url: string },
     cache?: CacheConfig,
@@ -30,15 +29,20 @@ export class HttpConfigManager {
     proxy?: ProxyConfig,
     stream?: StreamConfig
   }): Promise<void> {
+    // Normalizar baseURL a baseUrl si es necesario
+    const normalizedConfig = {
+      ...config,
+      baseUrl: config?.baseUrl !== undefined ? config.baseUrl : config?.baseURL
+    };
     // Inicializar la configuración global
-    await httpConfiguration.initialize(config);
+    await httpConfiguration.initialize(normalizedConfig);
 
     // Actualizar las propiedades del cliente
     this.propertyManager.updateFromConfig({
-      baseUrl: config?.baseUrl,
-      timeout: config?.timeout,
-      retries: config?.retries,
-      headers: config?.headers
+      baseUrl: normalizedConfig.baseUrl,
+      timeout: normalizedConfig.timeout,
+      retries: normalizedConfig.retries,
+      headers: normalizedConfig.headers
     });
 
     return Promise.resolve();

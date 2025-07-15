@@ -52,7 +52,8 @@
     "npm-size": "echo '\n📦 Información de publicación de httplazy 📦\n' && echo 'Versión: '$(node -e \"console.log(require('./package.json').version)\") && npm pack --json | node -e \"const data = require('fs').readFileSync(0, 'utf-8'); const pkg = JSON.parse(data)[0]; console.log('\\nTamaño del paquete (tarball): ' + (pkg.size / 1024).toFixed(2) + ' KB'); console.log('Tamaño instalado: ' + (pkg.unpackedSize / 1024).toFixed(2) + ' KB')\" && echo '\nEsto es lo que verán los usuarios en npm al descargar la biblioteca\n'",
     "complexity": "echo '\n📊 Complejidad del código\n' && find http -name \"*.ts\" | xargs wc -l | sort -nr | head -10 && echo '\nLos 10 archivos con más líneas de código'",
     "summary": "node scripts/summary.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "bundle:size": "node scripts/bundle-size.js"
   },
   "lint-staged": {
     "http/**/*.ts": [
@@ -94,13 +95,18 @@
   },
   "homepage": "https://github.com/mauroociappinaph/lazyhttp-libreria/blob/master/README.md",
   "dependencies": {
-    "axios": "^1.x"
+    "axios": "^1.x",
+    "undici": "^7.11.0"
   },
   "optionalDependencies": {
     "https-proxy-agent": "^7.0.6",
     "socks-proxy-agent": "^8.0.5"
   },
   "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "@rollup/plugin-typescript": "^12.1.4",
+    "@size-limit/preset-big-lib": "^11.2.0",
     "@types/express": "^5.0.1",
     "@types/jest": "^29.5.14",
     "@types/pluralize": "^0.0.33",
@@ -116,12 +122,20 @@
     "nodemon": "^3.1.10",
     "pluralize": "^8.0.0",
     "prettier": "^3.5.3",
-    "terser": "^5.39.0",
+    "rollup": "^4.45.0",
+    "size-limit": "^11.2.0",
+    "terser": "^5.43.1",
     "ts-jest": "^29.3.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },
   "peerDependencies": {
     "axios": "^1.x"
-  }
+  },
+  "size-limit": [
+    {
+      "path": "index.js",
+      "limit": "14 KB"
+    }
+  ]
 }
