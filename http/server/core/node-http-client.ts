@@ -1,5 +1,5 @@
 import { BaseHttpClient } from '../../common/core/base-http-client';
-import { HttpMethod, ApiResponse, RequestOptions, AuthInfo, UserCredentials, ProxyConfig } from '../../common/types';
+import { HttpMethod, ApiResponse, RequestOptions, AuthInfo, UserCredentials, ProxyConfig } from '../../types/core.types';
 import { HttpUtils } from '../../common/utils/http-utils';
 import axios, { isAxiosError, AxiosRequestConfig } from 'axios';
 import * as fs from 'fs';
@@ -115,8 +115,9 @@ export class NodeHttpClient extends BaseHttpClient {
       return {
         data: responseData,
         status: response.status,
-        headers: response.headers as Record<string, string>,
-        config: response.config
+        fullMeta: { responseHeaders: response.headers as Record<string, string> },
+        config: response.config,
+        error: null
       };
     } catch (error) {
       // Gestión de errores específica para axios
@@ -124,7 +125,7 @@ export class NodeHttpClient extends BaseHttpClient {
         return {
           data: null as unknown as T,
           status: error.response?.status || 500,
-          headers: error.response?.headers as Record<string, string> || {},
+          fullMeta: { responseHeaders: error.response?.headers as Record<string, string> || {} },
           error: error.response?.data?.message || error.message
         };
       }
@@ -133,7 +134,7 @@ export class NodeHttpClient extends BaseHttpClient {
       return {
         data: null as unknown as T,
         status: 500,
-        headers: {},
+        fullMeta: { responseHeaders: {} },
         error: this.parseErrorMessage(error)
       };
     }
@@ -161,7 +162,7 @@ export class NodeHttpClient extends BaseHttpClient {
       }
 
       // Para proxy SOCKS
-      if (proxyConfig.protocol === 'socks4' || proxyConfig.protocol === 'socks5') {
+      if (proxyConfig.protocol === 'socks') {
         // En producción usar:
         // const SocksProxyAgent = require('socks-proxy-agent');
 
@@ -202,17 +203,17 @@ export class NodeHttpClient extends BaseHttpClient {
       }
 
       // Desestructurar solo las propiedades que se usan
-      const { token, refreshToken, user } = response.data;
+      const { accessToken, refreshToken, user } = response.data;
       // La variable expiresAt no se usa, por lo que no la desestructuramos
 
       // Almacenar token y datos de usuario
-      this._storeToken(this.authConfig.tokenKey || 'token', token);
+      this._storeToken(this.authConfig.tokenKey || 'token', accessToken);
 
       if (refreshToken && this.authConfig.refreshTokenKey) {
         this._storeToken(this.authConfig.refreshTokenKey, refreshToken);
       }
 
-      if (user && this.authConfig.userKey) {
+      if (user && 'userKey' in this.authConfig && typeof this.authConfig.userKey === 'string' && this.authConfig.userKey) {
         this._storeToken(this.authConfig.userKey, JSON.stringify(user));
       }
 
@@ -242,7 +243,7 @@ export class NodeHttpClient extends BaseHttpClient {
       this._removeToken(this.authConfig.refreshTokenKey);
     }
 
-    if (this.authConfig.userKey) {
+    if ('userKey' in this.authConfig && typeof this.authConfig.userKey === 'string' && this.authConfig.userKey) {
       this._removeToken(this.authConfig.userKey);
     }
   }
@@ -273,7 +274,7 @@ export class NodeHttpClient extends BaseHttpClient {
    * Obtiene el usuario autenticado
    */
   getAuthenticatedUser(): any | null {
-    if (!this.authConfig.userKey) return null;
+    if (!('userKey' in this.authConfig && typeof this.authConfig.userKey === 'string' && this.authConfig.userKey)) return null;
 
     try {
       const userData = this._getToken(this.authConfig.userKey);
@@ -467,7 +468,9 @@ export class NodeHttpClient extends BaseHttpClient {
   /**
    * Implementación pública de request requerida por la clase base
    */
-  async request<T>(method: HttpMethod, url: string, data?: any, options?: RequestOptions): Promise<ApiResponse<T>> {
+  async request<T>(url: string, options?: RequestOptions): Promise<ApiResponse<T>> {
+    const method = options?.method || 'GET';
+    const data = options?.body;
     return this._requestWithTransforms<T>(method, url, data, options);
   }
 }

@@ -19,7 +19,6 @@ export { httpLogger, LoggerConfig } from '../http-logger';
 
 // Tipos básicos
 export {
-  HttpImplementation,
   RequestOptions,
   ApiResponse,
   HttpMethod,
@@ -27,4 +26,4 @@ export {
   HttpRequestExecutor,
   HttpRetryHandler,
   HttpErrorHandler
-} from '../http.types';
+} from '../types/core.types';

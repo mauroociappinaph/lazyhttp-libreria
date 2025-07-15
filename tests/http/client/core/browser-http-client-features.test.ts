@@ -1,6 +1,6 @@
 import { BrowserHttpClient } from '../../../../http/client/core/browser-http-client';
 import axios from 'axios';
-import { RequestOptions } from '../../../../http/http.types';
+import { RequestOptions, InitConfig } from '../../../../http/types/core.types';
 
 
 
@@ -72,7 +72,7 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
       httpClient.initialize({
         baseUrl: 'https://api.ejemplo.com',
         headers: customHeaders
-      });
+      } as Partial<InitConfig>);
 
       (axios.request as jest.Mock).mockResolvedValueOnce({
         data: {},
@@ -100,7 +100,7 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
       httpClient.initialize({
         baseUrl: 'https://api.ejemplo.com',
         headers: globalHeaders
-      });
+      } as Partial<InitConfig>);
 
       (axios.request as jest.Mock).mockResolvedValueOnce({
         data: {},
@@ -131,7 +131,7 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
       httpClient.initialize({
         baseUrl: 'https://api.ejemplo.com',
         timeout: customTimeout
-      });
+      } as Partial<InitConfig>);
 
       (axios.request as jest.Mock).mockResolvedValueOnce({
         data: {},
@@ -159,7 +159,7 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
       httpClient.initialize({
         baseUrl: 'https://api.ejemplo.com',
         timeout: globalTimeout
-      });
+      } as Partial<InitConfig>);
 
       (axios.request as jest.Mock).mockResolvedValueOnce({
         data: {},
@@ -191,13 +191,13 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
         auth: {
           tokenKey: 'auth_token'
         }
-      });
+      } as Partial<InitConfig>);
       httpClient.initialize({
         baseUrl: 'https://api.ejemplo.com',
         auth: {
           tokenKey: 'auth_token'
         }
-      });
+      } as Partial<InitConfig>);
 
       (axios.request as jest.Mock).mockResolvedValueOnce({
         data: {},
@@ -233,12 +233,12 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
       jest.restoreAllMocks();
       jest.spyOn(axios, 'request');
       httpClient = new BrowserHttpClient({});
-      httpClient.initialize({ baseUrl: 'https://api.ejemplo.com' });
+      httpClient.initialize({ baseUrl: 'https://api.ejemplo.com' } as Partial<InitConfig>);
     });
 
     test('aplica transformRequest global antes de enviar la data', async () => {
       const transformFn = jest.fn((data) => ({ ...data, extra: true }));
-      httpClient.initialize({ transformRequest: transformFn });
+      httpClient.initialize({ transformRequest: transformFn } as Partial<InitConfig>);
       (axios.request as jest.Mock).mockResolvedValueOnce({
         data: { ok: true }, status: 200, headers: {}, config: {}
       });
@@ -251,7 +251,7 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
 
     test('aplica transformResponse global después de recibir la data', async () => {
       const transformFn = jest.fn((data) => ({ ...data, transformed: true }));
-      httpClient.initialize({ transformResponse: transformFn });
+      httpClient.initialize({ transformResponse: transformFn } as Partial<InitConfig>);
       (axios.request as jest.Mock).mockResolvedValueOnce({
         data: { ok: true }, status: 200, headers: {}, config: {}
       });
@@ -263,7 +263,7 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
     test('aplica transformadores por petición y sobreescribe los globales', async () => {
       const globalTransform = jest.fn((data) => ({ ...data, global: true }));
       const perRequestTransform = jest.fn((data) => ({ ...data, perRequest: true }));
-      httpClient.initialize({ transformRequest: globalTransform });
+      httpClient.initialize({ transformRequest: globalTransform } as Partial<InitConfig>);
       (axios.request as jest.Mock).mockResolvedValueOnce({
         data: { ok: true }, status: 200, headers: {}, config: {}
       });
@@ -278,7 +278,7 @@ describe('BrowserHttpClient - Características Avanzadas', () => {
     test('aplica múltiples transformadores en orden', async () => {
       const t1 = jest.fn((data) => ({ ...data, t1: true }));
       const t2 = jest.fn((data) => ({ ...data, t2: true }));
-      httpClient.initialize({ transformRequest: [t1, t2] });
+      httpClient.initialize({ transformRequest: [t1, t2] } as Partial<InitConfig>);
       (axios.request as jest.Mock).mockResolvedValueOnce({
         data: { ok: true }, status: 200, headers: {}, config: {}
       });

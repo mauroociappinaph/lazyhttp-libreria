@@ -10,7 +10,9 @@ describe('Integración: fullMeta en ApiResponse', () => {
     expect(typeof response.fullMeta?.requestHeaders).toBe('object');
     expect(typeof response.fullMeta?.responseHeaders).toBe('object');
     expect(typeof response.fullMeta?.timing).toBe('object');
-    expect(typeof response.fullMeta?.timing.requestStart).toBe('number');
-    expect(typeof response.fullMeta?.timing.responseEnd).toBe('number');
+    expect(response.fullMeta?.timing?.requestStart).toBeDefined();
+    expect(typeof response.fullMeta?.timing?.requestStart).toBe('number');
+    expect(response.fullMeta?.timing?.responseEnd).toBeDefined();
+    expect(typeof response.fullMeta?.timing?.responseEnd).toBe('number');
   });
 });

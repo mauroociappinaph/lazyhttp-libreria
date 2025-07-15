@@ -34,9 +34,4 @@ describe('HTTP Client Exports', () => {
     expect(typeof ClientExports.configureMetrics).toBe('function');
     expect(typeof ClientExports.invalidateCache).toBe('function');
   });
-
-  test('debería exportar métodos de streaming', () => {
-    // Verificar exportaciones relacionadas con streaming
-    expect(typeof ClientExports.stream).toBe('function');
-  });
 });

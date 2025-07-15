@@ -1,4 +1,4 @@
-import { HttpErrorHandler, ApiResponse } from '../http.types';
+import { HttpErrorHandler, ApiResponse } from '../types/core.types';
 import { isAxiosError } from 'axios';
 import {
   HttpTimeoutError,

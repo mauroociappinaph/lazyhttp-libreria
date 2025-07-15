@@ -8,4 +8,4 @@ export { metricsManager } from '../metrics/http-metrics-index';
 // Tipos relacionados con métricas
 export {
   MetricsConfig
-} from '../http.types';
+} from '../types/metrics.types';

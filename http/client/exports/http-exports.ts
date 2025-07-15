@@ -1,22 +1,24 @@
 import { HttpClient } from '../core/http-client';
-import {
-  HttpImplementation,
-  ProxyConfig,
-  StreamConfig,
-  CacheConfig,
-  MetricsConfig
-} from '../../http.types';
+import { InternalHttpClient } from '../../types/internals.types';
+import { ProxyConfig } from '../../types/proxy.types';
+import { StreamConfig } from '../../types/stream.types';
+import { CacheConfig } from '../../types/cache.types';
+import { MetricsConfig } from '../../types/metrics.types';
+
+export interface MetricsSnapshot {
+  [key: string]: number | string | boolean;
+}
 
 /**
  * Crea la instancia singleton del cliente HTTP
  */
-export const http = new HttpClient() as HttpImplementation & {
+export const http = new HttpClient() as InternalHttpClient & {
   configureCaching: (config: CacheConfig) => void;
   invalidateCache: (pattern: string) => void;
   invalidateCacheByTags: (tags: string[]) => void;
   configureMetrics: (config: MetricsConfig) => void;
   trackActivity: (type: string) => void;
-  getCurrentMetrics: () => any;
+  getCurrentMetrics: () => MetricsSnapshot;
   _baseUrl?: string;
   _frontendUrl?: string;
   _defaultTimeout?: number;

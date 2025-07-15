@@ -1,4 +1,5 @@
-import { HttpImplementation, RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, CacheConfig, MetricsConfig, ProxyConfig, HttpMethod, RetryConfig, RetryOptions, InitConfig } from '../types';
+import { HttpClient, RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, CacheConfig, MetricsConfig, ProxyConfig, HttpMethod } from '../types';
+import { RetryConfig, RetryOptions, InitConfig } from '../../types/core.types';
 import { HttpUtils } from '../utils/http-utils';
 
 /**
@@ -8,7 +9,7 @@ import { HttpUtils } from '../utils/http-utils';
  * mientras deja que las implementaciones específicas definan
  * el comportamiento dependiente del entorno.
  */
-export abstract class BaseHttpClient implements HttpImplementation {
+export abstract class BaseHttpClient implements HttpClient {
   // Propiedades compartidas
   protected baseUrl: string = '';
   protected frontendUrl: string = '';
@@ -16,7 +17,7 @@ export abstract class BaseHttpClient implements HttpImplementation {
   protected defaultRetries: number = 0;
   protected defaultHeaders: Record<string, string> = {};
   protected authConfig: Partial<AuthConfig> = {};
-  protected cacheConfig: Partial<CacheConfig> = { enabled: false, ttl: 300000 };
+  protected cacheConfig: Partial<CacheConfig> = { enabled: false, defaultTTL: 300000 };
   protected metricsConfig: Partial<MetricsConfig> = { enabled: false };
   protected retryConfig: Partial<RetryConfig> = {
     enabled: false,
@@ -35,7 +36,8 @@ export abstract class BaseHttpClient implements HttpImplementation {
   protected _activeTransformResponse?: ((data: unknown) => unknown)[];
 
   // Método de inicialización común
-  initialize(config: Partial<InitConfig>): void {
+  async initialize(config?: Partial<InitConfig>): Promise<void> {
+    if (!config) return;
     if (config.baseUrl) this.baseUrl = config.baseUrl;
     if (config.frontendUrl) this.frontendUrl = config.frontendUrl;
     if (config.timeout !== undefined) this.defaultTimeout = config.timeout;
@@ -56,8 +58,6 @@ export abstract class BaseHttpClient implements HttpImplementation {
         ? config.transformResponse
         : [config.transformResponse];
     }
-
-    // Permitir que las implementaciones específicas realicen inicialización adicional
     this.onInitialize(config);
   }
 
@@ -90,32 +90,32 @@ export abstract class BaseHttpClient implements HttpImplementation {
 
   // Implementación de métodos HTTP comunes
   async get<T>(url: string, options?: RequestOptions): Promise<ApiResponse<T>> {
-    return this.request<T>('GET', url, undefined, options);
+    return this.request<T>(url, { ...options, method: 'GET' });
   }
 
-  async getAll<T>(url: string, options?: RequestOptions): Promise<ApiResponse<T[]>> {
-    return this.request<T[]>('GET', url, undefined, options);
+  async getAll<T>(url: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
+    return this.request<T>(url, { ...options, method: 'GET' });
   }
 
   async getById<T>(url: string, id: string | number, options?: RequestOptions): Promise<ApiResponse<T>> {
     const fullUrl = `${url}/${id}`;
-    return this.request<T>('GET', fullUrl, undefined, options);
+    return this.request<T>(fullUrl, { ...options, method: 'GET' });
   }
 
   async post<T>(url: string, data?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
-    return this.request<T>('POST', url, data, options);
+    return this.request<T>(url, { ...options, method: 'POST', body: data });
   }
 
   async put<T>(url: string, data?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
-    return this.request<T>('PUT', url, data, options);
+    return this.request<T>(url, { ...options, method: 'PUT', body: data });
   }
 
   async patch<T>(url: string, data?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
-    return this.request<T>('PATCH', url, data, options);
+    return this.request<T>(url, { ...options, method: 'PATCH', body: data });
   }
 
   async delete<T>(url: string, options?: RequestOptions): Promise<ApiResponse<T>> {
-    return this.request<T>('DELETE', url, undefined, options);
+    return this.request<T>(url, { ...options, method: 'DELETE' });
   }
 
   // Métodos comunes relacionados con la autenticación
@@ -137,7 +137,7 @@ export abstract class BaseHttpClient implements HttpImplementation {
     throw new Error("isAuthenticated() debe ser implementado por la clase derivada");
   }
 
-  getAuthenticatedUser(): unknown | null {
+  getAuthenticatedUser(): Promise<any | null> {
     throw new Error("getAuthenticatedUser() debe ser implementado por la clase derivada");
   }
 
@@ -228,7 +228,10 @@ export abstract class BaseHttpClient implements HttpImplementation {
     return false;
   }
 
-  async request<T>(method: HttpMethod, url: string, data?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
+  async request<T>(url: string, options?: RequestOptions): Promise<ApiResponse<T>> {
+    const method = options?.method || 'GET'; // Asume GET si no se especifica
+    const data = options?.body; // Asume que el cuerpo está en options.body
+
     // Combinar transformadores globales y de la petición
     const transformRequestFns = [
       ...this.transformRequest,

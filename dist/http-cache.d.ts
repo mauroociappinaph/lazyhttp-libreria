@@ -1,4 +1,5 @@
-import { ApiResponse, CacheConfig, CacheOptions, CacheStrategy, HttpMethod, RequestOptions } from './http.types';
+import { CacheConfig, CacheOptions, CacheStrategy } from './types/cache.types';
+import { RequestOptions, ApiResponse, HttpMethod } from './types/core.types';
 export declare function configure(config: Partial<CacheConfig>): void;
 export declare function isEnabled(): boolean;
 export declare function generateCacheKey(endpoint: string, options?: RequestOptions): string;

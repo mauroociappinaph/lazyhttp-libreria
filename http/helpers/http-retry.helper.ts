@@ -1,4 +1,4 @@
-import { HttpMethod, ApiResponse, HttpRetryHandler } from '../http.types';
+import { HttpMethod, ApiResponse, HttpRetryHandler } from '../types/core.types';
 import axios, { isAxiosError } from 'axios';
 import { HttpNetworkError } from '../http-errors';
 import { responseProcessor } from '../http-helpers';

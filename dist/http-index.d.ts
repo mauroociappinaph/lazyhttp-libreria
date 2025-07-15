@@ -1,6 +1,11 @@
-import { HttpImplementation, RequestOptions, ApiResponse, HttpMethod, AuthConfig, UserCredentials, AuthInfo, ProxyConfig, StreamConfig, CacheConfig, MetricsConfig } from './http.types';
-export { HttpImplementation, RequestOptions, ApiResponse, HttpMethod, AuthConfig, UserCredentials, AuthInfo, ProxyConfig, StreamConfig, CacheConfig, MetricsConfig };
-export declare const http: HttpImplementation & {
+import { RequestOptions, ApiResponse, HttpMethod, HttpClient as HttpClientInterface } from './types/core.types';
+import { AuthConfig, UserCredentials, AuthInfo } from './types/core.types';
+import { ProxyConfig } from './types/proxy.types';
+import { StreamConfig } from './types/stream.types';
+import { CacheConfig } from './types/cache.types';
+import { MetricsConfig } from './types/metrics.types';
+export { HttpClientInterface as HttpClient, RequestOptions, ApiResponse, HttpMethod, AuthConfig, UserCredentials, AuthInfo, ProxyConfig, StreamConfig, CacheConfig, MetricsConfig };
+export declare const http: HttpClientInterface & {
     configureCaching: (config: CacheConfig) => void;
     invalidateCache: (pattern: string) => void;
     invalidateCacheByTags: (tags: string[]) => void;
@@ -20,6 +25,7 @@ export declare const http: HttpImplementation & {
     };
     _proxyConfig?: ProxyConfig;
     _defaultStreamConfig?: StreamConfig;
+    configureProxy: (config: ProxyConfig) => void;
 };
 export declare const request: <T>(endpoint: string, options?: RequestOptions) => Promise<ApiResponse<T>>;
 export declare const getAll: <T>(endpoint: string, options?: Omit<RequestOptions, "method" | "body">) => Promise<ApiResponse<T>>;
@@ -39,9 +45,9 @@ export declare const initialize: (config?: {
         enabled: boolean;
         url: string;
     };
-    cache?: CacheConfig;
+    cache?: import("./types/cache.types").CacheConfig;
 }) => Promise<void>;
-export declare const configureCaching: ((config: CacheConfig) => void) & ((config: CacheConfig) => void);
+export declare const configureCaching: ((config: import("./types/cache.types").CacheConfig) => void) & ((config: CacheConfig) => void);
 export declare const invalidateCache: ((pattern: string) => void) & ((pattern: string) => void);
 export declare const invalidateCacheByTags: ((tags: string[]) => void) & ((tags: string[]) => void);
 export declare const configureMetrics: (config: MetricsConfig) => void;

@@ -1,7 +1,9 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { SocksProxyAgent } from 'socks-proxy-agent';
-import { ProxyConfig, RequestOptions, StreamConfig } from './http.types';
+import { ProxyConfig } from './types/proxy.types';
+import { RequestOptions } from './types/core.types';
+import { StreamConfig } from './types/stream.types';
 import { prepareHeaders } from './http-helpers';
 
 /**
@@ -119,10 +121,13 @@ export class HttpStreamingManager {
       proxyUrl.password = auth.password;
     }
 
-    const proxyString = proxyUrl.toString();
+    let proxyString = proxyUrl.toString();
 
-    // Para SOCKS, usamos la URL directamente
+    // Para SOCKS, aseguramos que la URL termine en '/'
     if (protocol === 'socks') {
+      if (!proxyString.endsWith('/')) {
+        proxyString += '/';
+      }
       return new SocksProxyAgent(proxyString);
     }
 

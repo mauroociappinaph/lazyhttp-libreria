@@ -101,7 +101,7 @@ describe('HttpPropertyManager', () => {
 
   test('debería configurar proxyConfig correctamente', () => {
     // Arrange
-    const proxyConfig = { url: 'http://proxy.ejemplo.com' };
+    const proxyConfig = { url: 'http://proxy.ejemplo.com', host: 'proxy.ejemplo.com', port: 8080 };
 
     // Act
     propertyManager.proxyConfig = proxyConfig;

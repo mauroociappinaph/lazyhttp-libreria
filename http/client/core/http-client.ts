@@ -1,12 +1,10 @@
 import { HttpCore } from '../../http-core';
-import {
-  HttpImplementation, RequestOptions, ApiResponse,
-  AuthConfig, UserCredentials, AuthInfo,
-  ProxyConfig, StreamConfig
-} from '../../http.types';
-import { login as loginHelper, logout as logoutHelper } from '../../http-auth';
+import { RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, HttpClient as IHttpClient } from '../../types/core.types';
+import { ProxyConfig } from '../../types/proxy.types';
+import { StreamConfig } from '../../types/stream.types';
+
 import { interceptorsManager } from '../../interceptors/http-interceptors-manager';
-import { metricsManager } from '../../metrics/http-metrics-index';
+
 import { httpLogger } from '../../http-logger';
 import { HttpPropertyManager } from '../managers/http-property-manager';
 import { HttpAuthManager } from '../managers/http-auth-manager';
@@ -16,7 +14,7 @@ import { HttpOperations } from './http-operations';
 import { createResourceAccessor } from '../utils/create-resource-accessor';
 import { buildUrl, prepareRequestHeaders, createProxyAgent } from '../helpers/http-client.helpers';
 
-export class HttpClient implements HttpImplementation, HttpOperations {
+export class HttpClient implements IHttpClient, HttpOperations {
   private core = new HttpCore();
   private propertyManager: HttpPropertyManager;
   private authManager: HttpAuthManager;
@@ -81,17 +79,8 @@ export class HttpClient implements HttpImplementation, HttpOperations {
 
   // Auth methods
   public configureAuth(config: AuthConfig): void { this.authManager.configureAuth(config); }
-  public async login(credentials: UserCredentials): Promise<AuthInfo> {
-    const response = await loginHelper(credentials);
-    const authInfo: AuthInfo = { accessToken: response.access_token, isAuthenticated: true, refreshToken: response.refresh_token };
-    if (authInfo.isAuthenticated) metricsManager.startTracking();
-    return authInfo;
-  }
-  public async logout(): Promise<void> {
-    const metrics = await metricsManager.stopTracking();
-    if (metrics) console.log(`[HTTP] Session ended - Active time: ${Math.round(metrics.activeTime / 1000)}s, Requests: ${metrics.requestCount}`);
-    return logoutHelper();
-  }
+  public async login(credentials: UserCredentials): Promise<AuthInfo> { return this.authManager.login(credentials); }
+  public async logout(): Promise<void> { return this.authManager.logout(); }
   public isAuthenticated(): boolean { return this.authManager.isAuthenticated(); }
   public async getAuthenticatedUser(): Promise<unknown | null> { return this.authManager.getAuthenticatedUser(); }
   public getAccessToken(): string | null { return this.authManager.getAccessToken(); }
@@ -104,7 +93,9 @@ export class HttpClient implements HttpImplementation, HttpOperations {
   public _decodeToken(): unknown { return null; /* Future implementation */ }
 
   // Config methods
-  public async initialize(): Promise<void> { /* Future implementation */ }
+  public async initialize(config?: any): Promise<void> {
+    await this.configManager.initialize(config);
+  }
   public configureCaching(): void { /* Future implementation */ }
   public invalidateCache(pattern: string): void { this.configManager.invalidateCache(pattern); }
   public invalidateCacheByTags(tags: string[]): void { this.configManager.invalidateCacheByTags(tags); }

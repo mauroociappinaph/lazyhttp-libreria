@@ -11,8 +11,8 @@ export { HttpTypes };
 
 // Funcionalidades principales
 import * as HttpCore from './http-core';
-import * as HttpAuth from './http-auth';
-import * as HttpCache from './http-cache';
+
+import * as HttpCache from './client/managers/http-cache-manager';
 import * as HttpInterceptors from './http-interceptors';
 import * as HttpStreaming from './http-streaming';
 import * as HttpErrors from './http-errors';
@@ -20,7 +20,7 @@ import * as HttpCookies from './http-cookies';
 import * as HttpConfig from './http-config';
 
 // Exportar módulos con namespace para evitar colisiones
-export { HttpCore, HttpAuth, HttpCache, HttpInterceptors, HttpStreaming, HttpErrors, HttpCookies, HttpConfig };
+export { HttpCore, HttpCache, HttpInterceptors, HttpStreaming, HttpErrors, HttpCookies, HttpConfig };
 
 // Exportar módulos de logging
 export { Logger } from './logging/logger';

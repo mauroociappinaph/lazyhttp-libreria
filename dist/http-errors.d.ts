@@ -1,4 +1,4 @@
-import { ErrorDetails } from './http.types';
+import { ErrorDetails } from './types/error.types';
 export declare class HttpError extends Error {
     suggestion?: string;
     details?: ErrorDetails;

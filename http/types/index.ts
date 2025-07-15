@@ -1,22 +1,10 @@
-/**
- * Exportación de todos los tipos HTTP organizados por dominio funcional
- * Este archivo actúa como punto único de importación para tipos
- */
+export * from './auth.types';
+export * from './cache.types';
+export * from './error.types';
+export * from './internals.types';
+export * from './metrics.types';
+export * from './pagination.types';
+export * from './proxy.types';
+export * from './stream.types';
 
-// Tipos del núcleo
-export * from './core';
-
-// Tipos de autenticación
-export * from './auth';
-
-// Tipos de caché
-export * from './cache';
-
-// Tipos de interceptores
-export * from './interceptors';
-
-// Tipos de métricas
-export * from './metrics';
-
-// Tipos de streaming
-export * from './streaming';
+export type { HttpMethod, RequestOptions, ApiResponse, HttpClient, RetryConfig, RetryOptions, InitConfig, HttpResponseProcessor, HttpRequestExecutor, HttpRetryHandler, HttpErrorHandler } from './core.types';

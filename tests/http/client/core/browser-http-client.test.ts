@@ -32,7 +32,7 @@ describe('BrowserHttpClient', () => {
     }));
     expect(response.data).toEqual(responseData);
     expect(response.status).toBe(200);
-    expect(response.error).toBe(undefined);
+    expect(response.error).toBe(null);
   });
 
   test('debería ejecutar una petición POST exitosa', async () => {

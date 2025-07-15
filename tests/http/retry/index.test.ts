@@ -1,4 +1,4 @@
-import { RetryConfig, RetryOptions } from '../../../http/common/types';
+import { RetryConfig, RetryOptions } from '../../../http/types/core.types';
 
 /**
  * Test de integración para el sistema de retry automático

@@ -1,7 +1,7 @@
 // http/client/managers/http-operations-manager.ts
 
 import { HttpCore } from '../../http-core';
-import { RequestOptions, ApiResponse } from '../../http.types';
+import { RequestOptions, ApiResponse } from '../../types/core.types';
 import { streamingManager } from '../../http-streaming';
 
 export class HttpOperationsManager {

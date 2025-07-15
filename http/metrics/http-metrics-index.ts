@@ -1,5 +1,5 @@
 import { debugConfig } from '../http-config';
-import { SessionMetrics, MetricsConfig } from '../http.types';
+import { SessionMetrics, MetricsConfig } from '../types/core.types';
 
 /**
  * Módulo de gestión de estado
