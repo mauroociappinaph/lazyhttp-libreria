@@ -12,6 +12,7 @@
  */import { HttpClient } from './core/http-client';
 
 const http = new HttpClient();
+export { http };
 export const request = http.request.bind(http);
 export const get = http.get.bind(http);
 export const getAll = http.getAll.bind(http);

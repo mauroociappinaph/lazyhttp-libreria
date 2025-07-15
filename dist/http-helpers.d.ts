@@ -1,5 +1,6 @@
-import { HttpMethod, ApiResponse, HttpResponseProcessor, HttpRequestExecutor, HttpRetryHandler, HttpErrorHandler } from './http.types';
+import { ApiResponse, HttpMethod } from './types/core.types';
 import { AxiosResponse } from 'axios';
+import { HttpResponseProcessor, HttpRequestExecutor, HttpRetryHandler, HttpErrorHandler } from './types/internals.types';
 export declare const logger: {
     error(message: string, data?: unknown): void;
     warn(message: string, data?: unknown): void;
@@ -20,7 +21,7 @@ export declare function handleRefreshTokenFailure(): Promise<void>;
 export declare function initialize(): Promise<void>;
 export declare const _handleError: (error: unknown) => ApiResponse<never>;
 export declare const _executeRequest: <T>(endpoint: string, method: HttpMethod, headers: Record<string, string>, body: unknown | undefined, signal: AbortSignal) => Promise<AxiosResponse<T>>;
-export declare const _processResponse: <T>(response: import("axios").AxiosResponse<T>, metaOpcional?: {
+export declare const _processResponse: <T>(response: AxiosResponse<T>, metaOpcional?: {
     requestHeaders?: Record<string, string>;
     timing?: Record<string, number>;
     rawBody?: string | Uint8Array;
