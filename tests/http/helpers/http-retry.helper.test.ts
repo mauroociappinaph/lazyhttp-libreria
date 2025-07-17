@@ -75,7 +75,7 @@ describe('retryHandler.executeWithRetry', () => {
 
   it('retries on retryable error and succeeds', async () => {
     const mockHeaders = new AxiosHeaders();
-    const error = new AxiosError('fail', 'ERR_NETWORK', undefined, undefined, { headers: mockHeaders } as any);
+    const error = new AxiosError('fail', 'ERR_NETWORK');
     const mockResponse: AxiosResponse<string> = {
       data: 'ok',
       status: 200,
