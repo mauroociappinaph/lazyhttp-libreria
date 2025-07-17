@@ -2,6 +2,31 @@ import { AxiosResponse } from 'axios';
 import { DebugLevel, debugConfig } from '../http-config';
 
 /**
+ * Oculta datos sensibles de los headers (como Authorization)
+ */
+function sanitizeHeaders(headers: Record<string, string>): Record<string, string> {
+  const safeHeaders = { ...headers };
+  if (safeHeaders.Authorization) {
+    safeHeaders.Authorization = safeHeaders.Authorization.replace(/Bearer .+/, 'Bearer [REDACTED]');
+  }
+  return safeHeaders;
+}
+
+/**
+ * Formatea los datos para logging (clonado seguro y pretty print si aplica)
+ */
+function formatLogData(data: unknown): unknown {
+  if (debugConfig.prettyPrintJSON && typeof data === 'object' && data !== null) {
+    try {
+      return JSON.parse(JSON.stringify(data));
+    } catch {
+      return data;
+    }
+  }
+  return data;
+}
+
+/**
  * Sistema de logging avanzado para el cliente HTTP
  */
 export const logger = {
@@ -91,15 +116,9 @@ export function logRequest(
 ): void {
   if (!debugConfig.logRequests || debugConfig.level < DebugLevel.INFO) return;
 
-  // Ocultar tokens y datos sensibles
-  const safeHeaders = { ...headers };
-  if (safeHeaders.Authorization) {
-    safeHeaders.Authorization = safeHeaders.Authorization.replace(/Bearer .+/, 'Bearer [REDACTED]');
-  }
-
   logger.info(`${method} ${url}`, {
-    headers: safeHeaders,
-    body: body && debugConfig.prettyPrintJSON ? JSON.parse(JSON.stringify(body)) : body
+    headers: sanitizeHeaders(headers),
+    body: formatLogData(body)
   });
 }
 
