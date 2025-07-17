@@ -6,29 +6,35 @@
  * Prepara las cabeceras HTTP incluyendo autenticación si es necesario
  * @param headers Cabeceras base
  * @param withAuth Indicador para incluir autenticación
+ * @param getTokenFn (opcional) función para obtener el token
  * @returns Cabeceras HTTP preparadas
  */
-export function prepareHeaders(headers: Record<string, string>, withAuth: boolean): Record<string, string> {
+export function prepareHeaders(
+  headers: Record<string, string>,
+  withAuth: boolean,
+  getTokenFn?: () => string | null
+): Record<string, string> {
   const defaultHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
     ...headers,
   };
 
   if (withAuth) {
-    try {
-      // Intentar importar dinámicamente para evitar dependencias circulares
-      const auth = require('../../http-auth');
-      const token = auth.getAccessToken();
-
-      if (token) {
-        defaultHeaders['Authorization'] = `Bearer ${token}`;
+    let token: string | null | undefined;
+    if (getTokenFn) {
+      token = getTokenFn();
+    } else {
+      try {
+        // Intentar importar dinámicamente para evitar dependencias circulares
+        const auth = require('../../http-auth');
+        token = auth.getAccessToken();
+      } catch (error) {
+        // Fallback al comportamiento anterior
+        token = localStorage.getItem('token');
       }
-    } catch (error) {
-      // Fallback al comportamiento anterior
-      const token = localStorage.getItem('token');
-      if (token) {
-        defaultHeaders['Authorization'] = `Bearer ${token}`;
-      }
+    }
+    if (token) {
+      defaultHeaders['Authorization'] = `Bearer ${token}`;
     }
   }
 
