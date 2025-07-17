@@ -91,6 +91,19 @@ Existe la oportunidad de integrar el componente `ml-suggestions` con los hooks d
 *   **Exportaciones:** Se prefieren las exportaciones nombradas sobre las exportaciones por defecto para facilitar el *tree-shaking*.
 *   **Manejo de Errores:** Todas las funciones que realizan peticiones HTTP deben devolver un objeto con la estructura `{ data, error, status }`. No se deben lanzar excepciones para errores HTTP.
 
+### 6.1. Estrategia de Commits Atómicos
+
+Para mantener un historial de cambios limpio, legible y fácil de auditar, el proyecto adopta una política de **commits atómicos**.
+
+*   **Definición:** Un commit debe representar una **única unidad lógica de cambio**. No debe mezclar múltiples arreglos o funcionalidades no relacionadas.
+*   **Ejemplo Positivo (Buen Commit):**
+    *   **Mensaje:** `feat(auth): añadir soporte para autenticación OAuth2`
+    *   **Archivos:** `http/auth/oauth2.ts`, `tests/auth/oauth2.test.ts`, `docs/auth.md`
+*   **Ejemplo Negativo (Mal Commit):**
+    *   **Mensaje:** `fix: arreglos varios`
+    *   **Archivos:** `http/auth/jwt.ts` (un fix de JWT), `http/cache/index.ts` (un fix de caché), `package.json` (actualización de una dependencia no relacionada).
+*   **Responsabilidad:** Es responsabilidad del desarrollador (o del agente de IA) agrupar los cambios de manera lógica antes de proponer un commit. El objetivo es que cada commit cuente una historia coherente y autocontenida.
+
 ## 7. Componente de IA (Sugerencias de Errores)
 
 El directorio `ml-suggestions/` contiene un servidor Flask que proporciona sugerencias para errores HTTP.
