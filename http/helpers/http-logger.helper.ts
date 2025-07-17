@@ -101,6 +101,8 @@ export const logger = {
   }
 };
 
+export { sanitizeHeaders, formatLogData, debugConfig };
+
 /**
  * Utilidad para registrar información de solicitudes HTTP
  * @param method Método HTTP
