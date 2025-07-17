@@ -69,3 +69,10 @@ GETTING_STARTED.md
 # Ignorar todos los archivos .md excepto README.md
 *.md
 !README.md
+
+# Python specific
+__pycache__/
+*.pyc
+
+# ML Suggestions logs
+ml-suggestions/log.txt
