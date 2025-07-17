@@ -1,0 +1,9 @@
+# memory.yml - Memoria para el Componente de Sugerencias de IA (ml-suggestions)
+
+# Este archivo se utiliza para almacenar hechos específicos y memoria a corto plazo
+# relacionados con el microservicio de sugerencias de IA.
+
+# Ejemplos de entradas:
+# - "El modelo actual fue entrenado con datos hasta el 15 de julio de 2025."
+# - "La última actualización de dependencias de Python se realizó el 10 de julio de 2025."
+# - "El endpoint /suggest espera un JSON con los campos 'error_code' y 'error_message'."

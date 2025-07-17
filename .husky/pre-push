@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🚀 Ejecutando verificaciones pre-push con Husky..."
+echo "Este proceso es más exhaustivo y puede tardar unos minutos."
+
+# 1. Ejecutar la suite de pruebas completa (unitarias y de integración)
+echo "🧪 Ejecutando la suite de pruebas completa..."
+pnpm test:ci
+if [ $? -ne 0 ]; then
+  echo "⛔ Las pruebas completas fallaron. Revisa los errores antes de hacer push."
+  exit 1
+fi
+
+# 2. Verificación de seguridad estricta sobre dependencias de producción
+echo "🔒 Realizando una auditoría de seguridad de producción..."
+pnpm audit --prod
+if [ $? -ne 0 ]; then
+  echo "⛔ Se encontraron vulnerabilidades de seguridad de producción. Arréglalas antes de hacer push."
+  exit 1
+fi
+
+echo "✅ Todas las verificaciones pre-push pasaron. ¡Push autorizado!"

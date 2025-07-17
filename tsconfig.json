@@ -22,8 +22,9 @@
     "paths": {
       "@/*": ["./http/*"]
     },
-    "lib": ["dom", "es2018"]
+    "lib": ["dom", "es2018"],
+    "types": ["jest", "node"]
   },
-  "include": ["http/**/*"],
+  "include": ["http/**/*", "tests/**/*"],
   "exclude": ["node_modules", "dist", "examples"]
 }

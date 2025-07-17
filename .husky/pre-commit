@@ -3,34 +3,23 @@
 
 echo "🔍 Ejecutando verificaciones pre-commit con Husky para httplazy..."
 
-# 1. Lint sobre archivos staged
+# 1. Lint y formato sobre archivos staged
 npx lint-staged
+if [ $? -ne 0 ]; then
+  echo "⛔ Fallaron las verificaciones de linting o formato. No se puede realizar el commit."
+  exit 1
+fi
 
-# 2. Test unitarios
-echo "🧪 Ejecutando tests unitarios..."
-pnpm test
+# 2. Test unitarios relacionados con los cambios
+echo "🧪 Ejecutando tests unitarios relacionados..."
+# Ejecuta tests solo para los archivos relacionados con los cambios staged
+pnpm test --findRelatedTests $(git diff --name-only --cached)
 if [ $? -ne 0 ]; then
   echo "⛔ Los tests fallaron. No se puede realizar el commit."
   exit 1
 fi
 
-# 3. Verificación de tipos TypeScript
-echo "🔡 Verificando tipos TypeScript..."
-pnpm tsc --noEmit
-if [ $? -ne 0 ]; then
-  echo "⛔ Errores de tipos encontrados. Arreglalos antes de commitear."
-  exit 1
-fi
-
-# 4. Verificación de formato con Prettier
-echo "🧼 Verificando formato con Prettier..."
-pnpm prettier --check .
-if [ $? -ne 0 ]; then
-  echo "⛔ El código no está bien formateado. Ejecutá 'pnpm prettier --write .'"
-  exit 1
-fi
-
-# 5. Verificación de dependencias circulares
+# 3. Verificación de dependencias circulares
 echo "📊 Verificando dependencias circulares..."
 npx madge --circular http/
 if [ $? -ne 0 ]; then
@@ -38,18 +27,42 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# 6. Revisión de export default
+# 4. Revisión de export default
 echo "📦 Verificando reglas de exportación..."
 grep -r "export default" http/ --include="*.ts" | grep -v "node_modules" > /dev/null
 if [ $? -eq 0 ]; then
   echo "⚠️ Advertencia: Se encontraron usos de 'export default'. Considera usar exportaciones nombradas."
 fi
 
-# 7. Detección de console.log, debugger, TODO
+# 5. Detección de console.log, debugger, TODO
 echo "🕵️ Buscando console.log, debugger o TODOs..."
 grep -rnw './http' -e 'console.log\|debugger\|TODO' --include \*.ts
 if [ $? -eq 0 ]; then
   echo "⛔ Se encontraron 'console.log', 'debugger' o 'TODO'. Eliminalos antes de commitear."
+  exit 1
+fi
+
+# 6. Agente de Auditoría de Seguridad
+echo "🔒 Realizando auditoría de seguridad de dependencias..."
+pnpm audit
+if [ $? -ne 0 ]; then
+  echo "⚠️  Se encontraron vulnerabilidades de seguridad. Revisa el reporte de 'pnpm audit'."
+  # No usamos 'exit 1' aquí para no ser demasiado restrictivos, pero se podría añadir.
+fi
+
+# 7. Agente de Verificación de Tamaño de Bundle (Deshabilitado hasta crear el script)
+# echo "📏 Verificando el tamaño del bundle..."
+# pnpm run check-bundle-size 
+# if [ $? -ne 0 ]; then
+#   echo "⛔ El tamaño del bundle excede el límite permitido."
+#   exit 1
+# fi
+
+# 8. Verificación del build
+echo "📦 Ejecutando el build del proyecto con Rollup..."
+pnpm run build
+if [ $? -ne 0 ]; then
+  echo "⛔ El build falló. Revisa los errores de compilación antes de commitear."
   exit 1
 fi
 

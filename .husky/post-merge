@@ -1,0 +1,6 @@
+#!/bin/sh
+# Compara el package.json de la rama anterior y la nueva
+if ! cmp -s "HEAD@{1}:package.json" "HEAD:package.json"; then
+  echo " El archivo package.json ha cambiado. Ejecutando 'pnpm install'..."
+  pnpm install
+fi
