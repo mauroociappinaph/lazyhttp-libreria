@@ -42,4 +42,28 @@ if [ $? -eq 0 ]; then
   exit 1
 fi
 
+# 6. Agente de Auditoría de Seguridad
+echo "🔒 Realizando auditoría de seguridad de dependencias..."
+pnpm audit
+if [ $? -ne 0 ]; then
+  echo "⚠️  Se encontraron vulnerabilidades de seguridad. Revisa el reporte de 'pnpm audit'."
+  # No usamos 'exit 1' aquí para no ser demasiado restrictivos, pero se podría añadir.
+fi
+
+# 7. Agente de Verificación de Tamaño de Bundle (Deshabilitado hasta crear el script)
+# echo "📏 Verificando el tamaño del bundle..."
+# pnpm run check-bundle-size 
+# if [ $? -ne 0 ]; then
+#   echo "⛔ El tamaño del bundle excede el límite permitido."
+#   exit 1
+# fi
+
+# 8. Verificación del build
+echo "📦 Ejecutando el build del proyecto con Rollup..."
+pnpm run build
+if [ $? -ne 0 ]; then
+  echo "⛔ El build falló. Revisa los errores de compilación antes de commitear."
+  exit 1
+fi
+
 echo "✅ Todas las verificaciones pasaron correctamente."
