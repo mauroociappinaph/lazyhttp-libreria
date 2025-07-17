@@ -12,7 +12,13 @@ export const responseProcessor: HttpResponseProcessor = {
    * @returns Respuesta API estandarizada
    */
   processResponse<T>(response: AxiosResponse<T>): ApiResponse<T> {
-    logResponse(response);
+    logResponse({
+      ...response,
+      config: {
+        ...response.config,
+        url: response.config.url ?? ''
+      }
+    });
 
     // Extraer datos y preparar respuesta estandarizada
     const apiResponse: ApiResponse<T> = {
