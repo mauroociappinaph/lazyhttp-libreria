@@ -92,7 +92,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mauroociappinaph/lazyhttp-libreria"
+    "url": "git+https://github.com/mauroociappinaph/lazyhttp-libreria.git"
   },
   "bugs": {
     "url": "https://github.com/maurociappina/httplazy/issues"
