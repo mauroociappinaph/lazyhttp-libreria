@@ -98,7 +98,14 @@ export function logRequest(
   });
 }
 
-export function logResponse(response: any): void {
+export interface HttpResponseLog {
+  status: number;
+  config: { url: string };
+  headers: Record<string, unknown>;
+  data: unknown;
+}
+
+export function logResponse(response: HttpResponseLog): void {
   if (!debugConfig.logResponses) return;
 
   const level = response.status >= 400 ? 'error' : 'info';

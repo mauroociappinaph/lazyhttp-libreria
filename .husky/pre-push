@@ -1,0 +1,20 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🚀 Ejecutando verificaciones pre-push..."
+
+# Ejecuta pruebas de integración completas (ejemplo)
+pnpm test:ci
+if [ $? -ne 0 ]; then
+  echo "⛔ Las pruebas de CI fallaron. No se puede realizar el push."
+  exit 1
+fi
+
+# Ejecuta análisis de seguridad (ejemplo)
+npm run check-security
+if [ $? -ne 0 ]; then
+  echo "⛔ El análisis de seguridad encontró problemas. No se puede realizar el push."
+  exit 1
+fi
+
+echo "✅ Verificaciones pre-push completadas."

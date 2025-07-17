@@ -76,7 +76,7 @@ export class HttpStreamingManager {
       const stream = response.data;
 
       if (streamConfig.onChunk) {
-        stream.on('data', (chunk: any) => {
+        stream.on('data', (chunk: unknown) => {
           streamConfig.onChunk!(chunk);
         });
       }
