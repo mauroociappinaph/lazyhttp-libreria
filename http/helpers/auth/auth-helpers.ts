@@ -28,7 +28,7 @@ export function prepareHeaders(
         // Intentar importar dinámicamente para evitar dependencias circulares
         const auth = require('../../http-auth');
         token = auth.getAccessToken();
-      } catch (error) {
+      } catch {
         // Fallback al comportamiento anterior
         token = localStorage.getItem('token');
       }

@@ -7,7 +7,7 @@ describe('prepareHeaders', () => {
   beforeEach(() => {
     // Mock localStorage
     getItemMock = jest.fn();
-    (global as any).localStorage = { getItem: getItemMock };
+    (global as typeof globalThis & { localStorage: Storage }).localStorage = { getItem: getItemMock } as never;
   });
 
   afterAll(() => {
