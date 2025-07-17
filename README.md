@@ -16,8 +16,8 @@
 
 **English:**
 
-- All tests passing: 20/20 suites, 131/131 tests.
-- Current coverage: 55.16% statements, 39.32% branches, 43.7% functions, 55.75% lines.
+- All tests passing: 27/27 suites, 172/172 tests.
+- Current coverage: 55.16% statements, 39.22% branches, 43.7% functions, 55.75% lines.
 - Minimum thresholds (70%) not reached yet.
 
 # 🇬🇧 English
@@ -2036,7 +2036,7 @@ console.log(curlCommand);
 | Tipo       | Porcentaje |
 | ---------- | ---------- |
 | Statements | 55.16%     |
-| Branches   | 39.32%     |
+| Branches   | 39.22%     |
 | Functions  | 43.7%      |
 | Lines      | 55.75%     |
 
