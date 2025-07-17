@@ -58,9 +58,13 @@
   "lint-staged": {
     "http/**/*.ts": [
       "npx tsc --noEmit",
-      "npx eslint"
+      "npx eslint --cache --fix",
+      "npx prettier --write"
     ],
-    "*.{js,ts}": "npx eslint --cache --fix"
+    "*.{js,ts}": [
+      "npx eslint --cache --fix",
+      "npx prettier --write"
+    ]
   },
   "files": [
     "dist/**/*.js",
@@ -103,6 +107,8 @@
     "socks-proxy-agent": "^8.0.5"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
     "@rollup/plugin-commonjs": "^28.0.6",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@rollup/plugin-typescript": "^12.1.4",

@@ -1,4 +1,3 @@
-
 # GEMINI.md - Guía de Desarrollo para lazyHttp
 
 Este documento proporciona un contexto esencial para el desarrollo y mantenimiento de la biblioteca `lazyHttp`. Está diseñado para ser una guía de referencia rápida para desarrolladores y para la IA.
@@ -61,6 +60,29 @@ Los scripts más importantes se encuentran en `package.json`:
 3.  **Pruebas:** Añade o actualiza las pruebas en `tests/` y ejecútalas con `npm test`.
 4.  **Verificación:** Antes de hacer commit, asegúrate de que todas las verificaciones pasen ejecutando `npm run verify:full`.
 5.  **Commit:** El hook de `pre-commit` de Husky ejecutará automáticamente las verificaciones.
+
+### 5.1. Hooks de Git (Husky)
+
+Para asegurar la calidad del código y mantener un historial de commits limpio, `lazyHttp` utiliza hooks de Git gestionados por Husky.
+
+*   **`pre-commit`:**
+    *   Se ejecuta **antes de cada commit**.
+    *   Utiliza `lint-staged` para ejecutar linters (ESLint) y formateadores (Prettier) solo en los archivos modificados y staged, optimizando el rendimiento.
+    *   Ejecuta pruebas unitarias (`pnpm test --findRelatedTests`) solo para los archivos relacionados con los cambios staged, acelerando el ciclo de feedback.
+    *   Verifica dependencias circulares (`npx madge --circular http/`).
+    *   Realiza revisiones de estilo y buenas prácticas (ej. detección de `export default`, `console.log`, `debugger`, `TODO`).
+
+*   **`commit-msg`:**
+    *   Se ejecuta **después de escribir el mensaje de commit y antes de que el commit se complete**.
+    *   Utiliza `commitlint` para validar que el mensaje de commit siga la especificación de [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/). Esto es crucial para mantener un historial de commits consistente y para la generación automática de changelogs.
+
+*   **`pre-push`:**
+    *   Se ejecuta **antes de enviar los cambios a un repositorio remoto (`git push`)**.
+    *   Realiza verificaciones más exhaustivas que no son necesarias en cada commit, pero sí antes de compartir el código.
+    *   Actualmente, ejecuta pruebas de integración completas (`pnpm test:ci`) y un análisis de seguridad (`npm run check-security`). Estos comandos pueden ser personalizados para incluir otras verificaciones necesarias.
+
+**Mejora del Feedback (Oportunidad Futura):**
+Existe la oportunidad de integrar el componente `ml-suggestions` con los hooks de Husky. Si un hook falla, la salida de error podría enviarse al servidor `ml-suggestions` para obtener y mostrar sugerencias automáticas de solución al desarrollador, mejorando significativamente la experiencia de depuración.
 
 ## 6. Convenciones del Proyecto
 
