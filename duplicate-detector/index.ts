@@ -66,15 +66,34 @@ export { StructuralAnalyzer } from './analyzers/structural-analyzer';
 
 // Export utilities
 export {
+  // Hash utilities
   generateHash,
   generateShortHash,
   compareHashes,
+  generateNormalizedCodeHash,
+
+  // File utilities
   readFileContent,
   isTypeScriptFile,
   isJavaScriptFile,
   isSupportedFile,
   getFileStats,
+
+  // Validation utilities
   isValidThreshold,
   isValidFilePath,
-  validateRequiredFields
+  isValidArray,
+  isValidPositiveNumber,
+  isValidNonNegativeNumber,
+  isNonEmptyString,
+  isValidObject,
+  validateRequiredFields,
+
+  // Performance utilities
+  PerformanceTimer,
+  MemoryMonitor,
+  measureAsync,
+  measureSync,
+  debounce,
+  throttle
 } from './utils/index';

@@ -242,13 +242,47 @@ export enum ErrorType {
 // Error handling
 export class DuplicateDetectionError extends Error {
   constructor(
-    public type: ErrorType,
-    public file?: string,
-    public details?: unknown
+    public readonly type: ErrorType,
+    message?: string,
+    public readonly file?: string,
+    public readonly details?: unknown
   ) {
-    const message = details && typeof details === 'object' && 'message' in details
-      ? String((details as { message: unknown }).message)
-      : 'Unknown error';
-    super(`${type}: ${message}`);
+    const errorMessage = message || DuplicateDetectionError.getDefaultMessage(type);
+    super(`${type}: ${errorMessage}`);
+
+    // Maintain proper stack trace
+    this.name = 'DuplicateDetectionError';
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, DuplicateDetectionError);
+    }
+  }
+
+  private static getDefaultMessage(type: ErrorType): string {
+    switch (type) {
+      case ErrorType.PARSE_ERROR:
+        return 'Failed to parse file';
+      case ErrorType.FILE_ACCESS_ERROR:
+        return 'Unable to access file';
+      case ErrorType.MEMORY_LIMIT_EXCEEDED:
+        return 'Memory limit exceeded during analysis';
+      case ErrorType.CONFIGURATION_ERROR:
+        return 'Invalid configuration provided';
+      case ErrorType.ANALYSIS_TIMEOUT:
+        return 'Analysis operation timed out';
+      default:
+        return 'Unknown error occurred';
+    }
+  }
+
+  /**
+   * Creates a DuplicateDetectionError from an unknown error
+   */
+  static fromError(error: unknown, type: ErrorType, file?: string): DuplicateDetectionError {
+    if (error instanceof DuplicateDetectionError) {
+      return error;
+    }
+
+    const message = error instanceof Error ? error.message : String(error);
+    return new DuplicateDetectionError(type, message, file, error);
   }
 }
