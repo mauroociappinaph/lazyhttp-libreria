@@ -144,7 +144,8 @@ export async function measureAsync<T>(
       rss: memoryAfter.rss - memoryBefore.rss,
       heapTotal: memoryAfter.heapTotal - memoryBefore.heapTotal,
       heapUsed: memoryAfter.heapUsed - memoryBefore.heapUsed,
-      external: memoryAfter.external - memoryBefore.external
+      external: memoryAfter.external - memoryBefore.external,
+      arrayBuffers: memoryAfter.arrayBuffers - memoryBefore.arrayBuffers
     }
   };
 }
@@ -175,7 +176,8 @@ export function measureSync<T>(
       rss: memoryAfter.rss - memoryBefore.rss,
       heapTotal: memoryAfter.heapTotal - memoryBefore.heapTotal,
       heapUsed: memoryAfter.heapUsed - memoryBefore.heapUsed,
-      external: memoryAfter.external - memoryBefore.external
+      external: memoryAfter.external - memoryBefore.external,
+      arrayBuffers: memoryAfter.arrayBuffers - memoryBefore.arrayBuffers
     }
   };
 }
@@ -183,7 +185,7 @@ export function measureSync<T>(
 /**
  * Debounce utility for performance optimization
  */
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
@@ -203,7 +205,7 @@ export function debounce<T extends (...args: any[]) => any>(
 /**
  * Throttle utility for performance optimization
  */
-export function throttle<T extends (...args: any[]) => any>(
+export function throttle<T extends (...args: unknown[]) => unknown>(
   func: T,
   limit: number
 ): (...args: Parameters<T>) => void {
