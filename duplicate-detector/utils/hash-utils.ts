@@ -81,3 +81,51 @@ export function generateNormalizedCodeHash(code: string): string {
 
   return generateHash(normalizedCode);
 }
+
+/**
+ * Generates multiple hash types for comprehensive comparison
+ * @param content - The content to hash
+ * @returns Object containing different hash types
+ */
+export function generateMultipleHashes(content: string): {
+  sha256: string;
+  md5: string;
+  short: string;
+  normalized: string;
+} {
+  if (!isNonEmptyString(content)) {
+    throw new Error('Content must be a non-empty string');
+  }
+
+  return {
+    sha256: generateHash(content, 'sha256'),
+    md5: generateHash(content, 'md5'),
+    short: generateShortHash(content),
+    normalized: generateNormalizedCodeHash(content)
+  };
+}
+
+/**
+ * Validates hash format
+ * @param hash - Hash string to validate
+ * @param expectedLength - Expected length of the hash
+ * @returns True if hash format is valid
+ */
+export function isValidHashFormat(hash: string, expectedLength?: number): boolean {
+  if (!isNonEmptyString(hash)) {
+    return false;
+  }
+
+  // Check if hash contains only hexadecimal characters
+  const hexPattern = /^[a-f0-9]+$/i;
+  if (!hexPattern.test(hash)) {
+    return false;
+  }
+
+  // Check length if specified
+  if (expectedLength && hash.length !== expectedLength) {
+    return false;
+  }
+
+  return true;
+}
