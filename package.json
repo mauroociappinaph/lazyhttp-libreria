@@ -53,7 +53,8 @@
     "complexity": "echo '\n📊 Complejidad del código\n' && find http -name \"*.ts\" | xargs wc -l | sort -nr | head -10 && echo '\nLos 10 archivos con más líneas de código'",
     "summary": "node scripts/summary.js",
     "dev": "nodemon index.js",
-    "bundle:size": "node scripts/bundle-size.js"
+    "bundle:size": "node scripts/bundle-size.js",
+    "setup:github-hook": "./.kiro/hooks/setup-github-hook.sh"
   },
   "lint-staged": {
     "http/**/*.ts": [

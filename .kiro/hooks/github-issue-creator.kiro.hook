@@ -1,0 +1,22 @@
+{
+  "enabled": true,
+  "name": "GitHub Issue Auto-Creator",
+  "description": "Automatically creates GitHub issues when starting new features based on branch names. Triggers when creating feature/, feat/, or enhancement/ branches.",
+  "version": "1",
+  "when": {
+    "type": "userTriggered",
+    "patterns": [
+      "feature/*",
+      "feat/*",
+      "enhancement/*"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "You are a GitHub Issue Auto-Creator for the httplazy project. A new feature branch has been created. Based on the branch name, automatically create a comprehensive GitHub issue.\n\nAnalyze the branch name and:\n\n1. **Extract the feature name** from the branch (feature/retry-logic → Retry Logic)\n2. **Create a GitHub issue** with:\n   - Clear, descriptive title: \"Implement [Feature Name]\"\n   - Detailed description with feature overview\n   - Implementation checklist with specific tasks\n   - Acceptance criteria for completion\n   - List of files likely to be modified\n   - Appropriate labels (enhancement, feature, auto-created)\n   - Assign to mauroociappinaph\n\n3. **For httplazy specifically**, consider:\n   - HTTP client functionality improvements\n   - Error handling enhancements\n   - Performance optimizations\n   - TypeScript definitions\n   - Test coverage requirements\n   - Documentation updates\n   - Browser and Node.js compatibility\n\n4. **Use the GitHub API** to create the issue in repository: mauroociappinaph/lazyhttp-libreria\n\n5. **Provide the issue URL** in your response\n\nBranch naming patterns to handle:\n- feature/retry-logic → \"Implement Retry Logic\"\n- feat/cache-optimization → \"Implement Cache Optimization\"\n- enhancement/error-handling → \"Implement Error Handling\"\n\nMake the issue actionable and well-structured for development workflow. Include environment variable GITHUB_TOKEN for API authentication."
+  },
+  "settings": {
+    "autoRun": true,
+    "requiresApproval": false
+  }
+}

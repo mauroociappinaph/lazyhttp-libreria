@@ -1,0 +1,29 @@
+{
+  "name": "Code Quality Analyzer",
+  "description": "Analyzes modified source code files for potential improvements, code smells, design patterns, and best practices",
+  "trigger": {
+    "type": "fileChange",
+    "patterns": ["**/*.ts", "**/*.js", "**/*.tsx", "**/*.jsx"],
+    "excludePatterns": [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/coverage/**",
+      "**/*.test.ts",
+      "**/*.test.js",
+      "**/*.spec.ts",
+      "**/*.spec.js",
+      "**/jest.config.*",
+      "**/rollup.config.*",
+      "**/tsconfig.json"
+    ]
+  },
+  "agent": {
+    "prompt": "Analyze the modified code in the following file(s) for potential improvements. Focus on:\n\n1. **Code Smells**: Identify any code smells like long methods, large classes, duplicate code, or complex conditionals\n2. **Design Patterns**: Suggest appropriate design patterns that could improve the code structure\n3. **Best Practices**: Check for adherence to TypeScript/JavaScript best practices\n4. **Performance**: Identify potential performance optimizations\n5. **Readability**: Suggest improvements for code clarity and maintainability\n6. **Security**: Flag any potential security concerns\n\nFor each suggestion:\n- Explain WHY the change would be beneficial\n- Provide a concrete code example when possible\n- Prioritize suggestions by impact (high/medium/low)\n\nMaintain the existing functionality while improving code quality. Be specific and actionable in your recommendations.",
+    "includeContext": ["changedFiles", "gitDiff"]
+  },
+  "settings": {
+    "autoRun": true,
+    "debounceMs": 2000,
+    "maxFilesPerTrigger": 5
+  }
+}
