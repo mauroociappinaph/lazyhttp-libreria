@@ -1,16 +1,11 @@
-module.exports = {
-  preset: "ts-jest",
-  testEnvironment: "node",
-  roots: ["<rootDir>/tests"],
-  testMatch: ["**/*.test.ts"],
-  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
-  collectCoverageFrom: [
-    "http/**/*.ts",
-    "!http/barrels/**",
-    "!http/**/*.d.ts",
-    "!http/**/index.ts",
-  ],
-  coverageDirectory: "coverage",
+export default {
+  preset: 'ts-jest',
+  testEnvironment: 'node',
+  roots: ['<rootDir>/tests'],
+  testMatch: ['**/*.test.ts'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  collectCoverageFrom: ['http/**/*.ts', '!http/barrels/**', '!http/**/*.d.ts', '!http/**/index.ts'],
+  coverageDirectory: 'coverage',
   coverageThreshold: {
     global: {
       branches: 70,
@@ -21,11 +16,11 @@ module.exports = {
   },
   // Configuración para manejar imports absolutos
   moduleNameMapper: {
-    "^@/(.*)$": "<rootDir>/http/$1",
+    '^@/(.*)$': '<rootDir>/http/$1',
   },
   // Ignorar archivos específicos
-  testPathIgnorePatterns: ["/node_modules/", "/dist/"],
-  setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
+  testPathIgnorePatterns: ['/node_modules/', '/dist/'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   globals: {
     'ts-jest': {
       tsconfig: 'tsconfig.json',
