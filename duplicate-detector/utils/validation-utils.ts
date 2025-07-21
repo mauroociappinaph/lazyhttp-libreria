@@ -16,6 +16,18 @@ export function isValidPositiveNumber(value: any): value is number {
   return typeof value === 'number' && value > 0;
 }
 
+export function isValidNonNegativeNumber(value: any): value is number {
+  return typeof value === 'number' && value >= 0;
+}
+
+export function isNonEmptyString(value: any): value is string {
+  return typeof value === 'string' && value.length > 0;
+}
+
+export function isValidObject(value: any): value is Record<string, any> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 export function validateRequiredFields<T extends Record<string, any>>(
   obj: T,
   requiredFields: (keyof T)[]

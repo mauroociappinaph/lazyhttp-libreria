@@ -60,9 +60,14 @@ export { FileDiscoveryEngine } from './core/file-discovery';
 export { ASTParser } from './core/ast-parser';
 
 // Export analyzers
-export { SyntacticAnalyzer } from './analyzers/syntactic-analyzer';
-export { SemanticAnalyzer } from './analyzers/semantic-analyzer';
-export { StructuralAnalyzer } from './analyzers/structural-analyzer';
+export { DefaultSyntacticAnalyzer } from './analyzers/syntactic-analyzer';
+export { DefaultSemanticAnalyzer } from './analyzers/semantic-analyzer';
+export { DefaultStructuralAnalyzer } from './analyzers/structural-analyzer';
+
+// Export analyzer interfaces
+export type { SyntacticAnalyzer } from './analyzers/syntactic-analyzer';
+export type { SemanticAnalyzer } from './analyzers/semantic-analyzer';
+export type { StructuralAnalyzer } from './analyzers/structural-analyzer';
 
 // Export utilities
 export {
