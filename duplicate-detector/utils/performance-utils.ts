@@ -80,13 +80,15 @@ export class MemoryMonitor {
     heapTotal: number;
     heapUsed: number;
     external: number;
+    arrayBuffers: number;
   } {
     const current = this.getCurrentUsage();
     return {
       rss: current.rss - this.initialMemory.rss,
       heapTotal: current.heapTotal - this.initialMemory.heapTotal,
       heapUsed: current.heapUsed - this.initialMemory.heapUsed,
-      external: current.external - this.initialMemory.external
+      external: current.external - this.initialMemory.external,
+      arrayBuffers: current.arrayBuffers - this.initialMemory.arrayBuffers
     };
   }
 

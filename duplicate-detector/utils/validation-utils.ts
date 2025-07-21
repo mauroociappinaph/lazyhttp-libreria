@@ -8,27 +8,27 @@ export function isValidFilePath(filePath: string): boolean {
   return typeof filePath === 'string' && filePath.length > 0;
 }
 
-export function isValidArray<T>(arr: any): arr is T[] {
+export function isValidArray<T>(arr: unknown): arr is T[] {
   return Array.isArray(arr);
 }
 
-export function isValidPositiveNumber(value: any): value is number {
-  return typeof value === 'number' && value > 0;
+export function isValidPositiveNumber(value: unknown): value is number {
+  return typeof value === 'number' && value > 0 && !Number.isNaN(value) && Number.isFinite(value);
 }
 
-export function isValidNonNegativeNumber(value: any): value is number {
-  return typeof value === 'number' && value >= 0;
+export function isValidNonNegativeNumber(value: unknown): value is number {
+  return typeof value === 'number' && value >= 0 && !Number.isNaN(value) && Number.isFinite(value);
 }
 
-export function isNonEmptyString(value: any): value is string {
-  return typeof value === 'string' && value.length > 0;
+export function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
 }
 
-export function isValidObject(value: any): value is Record<string, any> {
+export function isValidObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-export function validateRequiredFields<T extends Record<string, any>>(
+export function validateRequiredFields<T extends Record<string, unknown>>(
   obj: T,
   requiredFields: (keyof T)[]
 ): { isValid: boolean; missingFields: string[] } {
