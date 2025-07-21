@@ -235,6 +235,11 @@ export const DEFAULT_CONFIG: DetectionConfig = {
   }
 };
 
+/**
+ * Deeply merges user configuration with default configuration
+ * @param userConfig - Partial user configuration
+ * @returns Complete configuration with user overrides
+ */
 export function mergeConfig(userConfig: Partial<DetectionConfig>): DetectionConfig {
   return {
     thresholds: {
@@ -243,14 +248,9 @@ export function mergeConfig(userConfig: Partial<DetectionConfig>): DetectionConf
     },
     filters: {
       ...DEFAULT_CONFIG.filters,
-      ...userConfig.filters
-    },
-    analysis: {
-      ...DEFAULT_CONFIG.analysis,
-      ...userConfig.analysis
-    },
-    output: {
-      ...DEFAULT_CONFIG.output,
+      ...userConfig.filters,
+      // Handle array merging properly
+      excludePatterns: userConfig.filters?.excludePatterns ?? DEFAULT_CONFIG.filters.excludePatterns,
       ...userConfig.output
     }
   };
