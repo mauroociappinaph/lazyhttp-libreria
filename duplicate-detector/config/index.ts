@@ -150,12 +150,12 @@ export class ConfigValidator {
   ): void {
     const validateThreshold = (name: string, value: unknown) => {
       const field = `thresholds.${name}`;
-      if (this.validateNumericRange(value, field, 0, 1, errors)) {
+      if (this.validateNumericRange(value, field, VALIDATION_CONSTANTS.THRESHOLD.MIN, VALIDATION_CONSTANTS.THRESHOLD.MAX, errors)) {
         this.addWarningIf(
-          typeof value === 'number' && value < 0.5,
+          typeof value === 'number' && value < VALIDATION_CONSTANTS.THRESHOLD.LOW_WARNING,
           field,
           'Very low threshold may produce too many false positives',
-          'Consider using a threshold >= 0.5',
+          `Consider using a threshold >= ${VALIDATION_CONSTANTS.THRESHOLD.LOW_WARNING}`,
           warnings
         );
       }
@@ -182,10 +182,10 @@ export class ConfigValidator {
     if (filters.minLines !== undefined) {
       if (this.validatePositiveNumber(filters.minLines, 'filters.minLines', errors)) {
         this.addWarningIf(
-          typeof filters.minLines === 'number' && filters.minLines > 50,
+          typeof filters.minLines === 'number' && filters.minLines > VALIDATION_CONSTANTS.MIN_LINES.HIGH_WARNING,
           'filters.minLines',
           'Very high minimum lines may miss smaller duplications',
-          'Consider using a value between 3-20',
+          `Consider using a value between ${VALIDATION_CONSTANTS.MIN_LINES.DEFAULT}-20`,
           warnings
         );
       }
@@ -212,7 +212,7 @@ export class ConfigValidator {
     if (analysis.maxFileSize !== undefined) {
       if (this.validatePositiveNumber(analysis.maxFileSize, 'analysis.maxFileSize', errors)) {
         this.addWarningIf(
-          typeof analysis.maxFileSize === 'number' && analysis.maxFileSize > 10 * 1024 * 1024, // 10MB
+          typeof analysis.maxFileSize === 'number' && analysis.maxFileSize > VALIDATION_CONSTANTS.FILE_SIZE.MAX_RECOMMENDED,
           'analysis.maxFileSize',
           'Very large file size limit may impact performance',
           'Consider using a limit under 10MB',
@@ -224,7 +224,7 @@ export class ConfigValidator {
     if (analysis.concurrency !== undefined) {
       if (this.validatePositiveNumber(analysis.concurrency, 'analysis.concurrency', errors)) {
         this.addWarningIf(
-          typeof analysis.concurrency === 'number' && analysis.concurrency > 16,
+          typeof analysis.concurrency === 'number' && analysis.concurrency > VALIDATION_CONSTANTS.CONCURRENCY.MAX_RECOMMENDED,
           'analysis.concurrency',
           'Very high concurrency may not improve performance',
           'Consider using a value between 2-8',
@@ -259,8 +259,8 @@ export const DEFAULT_CONFIG: DetectionConfig = {
     structural: 0.75
   },
   filters: {
-    minLines: 3,
-    minTokens: 10,
+    minLines: VALIDATION_CONSTANTS.MIN_LINES.DEFAULT,
+    minTokens: VALIDATION_CONSTANTS.MIN_TOKENS.DEFAULT,
     excludePatterns: [
       'node_modules/**',
       'dist/**',
@@ -279,8 +279,8 @@ export const DEFAULT_CONFIG: DetectionConfig = {
   analysis: {
     enableSemanticAnalysis: true,
     enablePatternDetection: true,
-    maxFileSize: 5 * 1024 * 1024, // 5MB
-    concurrency: 4
+    maxFileSize: VALIDATION_CONSTANTS.FILE_SIZE.DEFAULT,
+    concurrency: VALIDATION_CONSTANTS.CONCURRENCY.DEFAULT
   },
   output: {
     format: 'json',

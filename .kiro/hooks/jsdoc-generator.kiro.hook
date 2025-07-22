@@ -1,0 +1,27 @@
+{
+  "name": "JSDoc Auto-Generator",
+  "description": "Automatically generates JSDoc documentation for new functions and methods that lack proper documentation",
+  "trigger": {
+    "type": "fileChange",
+    "patterns": ["**/*.ts", "**/*.js"],
+    "excludePatterns": [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/coverage/**",
+      "**/*.test.ts",
+      "**/*.test.js",
+      "**/*.spec.ts",
+      "**/*.spec.js",
+      "**/*.d.ts"
+    ]
+  },
+  "agent": {
+    "prompt": "Analyze the changed files to identify functions, methods, and classes that lack proper JSDoc documentation. For each undocumented item:\n\n1. **Detection**: Find functions, methods, classes, and interfaces without JSDoc comments\n2. **Analysis**: Understand the purpose, parameters, return values, and behavior by examining the code\n3. **Documentation Generation**: Create comprehensive JSDoc comments including:\n   - Clear description of what the function/method does\n   - @param tags for all parameters with types and descriptions\n   - @returns tag with return type and description\n   - @throws tag if the function can throw errors\n   - @example tag with usage examples when helpful\n   - @since tag if it's a new addition\n\n4. **TypeScript Integration**: \n   - Leverage existing TypeScript types\n   - Don't duplicate type information unnecessarily\n   - Focus on behavior and usage rather than just types\n\n5. **Quality Standards**:\n   - Use clear, concise language\n   - Provide meaningful examples\n   - Follow JSDoc best practices\n   - Maintain consistency with existing documentation style\n\nOnly add documentation for public APIs and significant internal functions. Skip trivial getters/setters unless they have complex behavior.",
+    "includeContext": ["changedFiles", "gitDiff"]
+  },
+  "settings": {
+    "autoRun": true,
+    "debounceMs": 2000,
+    "maxFilesPerTrigger": 5
+  }
+}
