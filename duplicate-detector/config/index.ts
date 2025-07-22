@@ -25,6 +25,30 @@ export interface ValidationRule {
   warn?: (value: unknown, field: string) => ConfigValidationWarning | null;
 }
 
+// Validation constants
+const VALIDATION_CONSTANTS = {
+  THRESHOLD: {
+    MIN: 0,
+    MAX: 1,
+    LOW_WARNING: 0.5
+  },
+  FILE_SIZE: {
+    MAX_RECOMMENDED: 10 * 1024 * 1024, // 10MB
+    DEFAULT: 5 * 1024 * 1024 // 5MB
+  },
+  CONCURRENCY: {
+    MAX_RECOMMENDED: 16,
+    DEFAULT: 4
+  },
+  MIN_LINES: {
+    HIGH_WARNING: 50,
+    DEFAULT: 3
+  },
+  MIN_TOKENS: {
+    DEFAULT: 10
+  }
+} as const;
+
 export class ConfigValidator {
 
   /**
@@ -186,41 +210,34 @@ export class ConfigValidator {
     warnings: ConfigValidationWarning[]
   ): void {
     if (analysis.maxFileSize !== undefined) {
-      if (typeof analysis.maxFileSize !== 'number' || analysis.maxFileSize < 1) {
-        errors.push({
-          field: 'analysis.maxFileSize',
-          message: 'Must be a positive number',
-          value: analysis.maxFileSize
-        });
-      } else if (analysis.maxFileSize > 10 * 1024 * 1024) { // 10MB
-        warnings.push({
-          field: 'analysis.maxFileSize',
-          message: 'Very large file size limit may impact performance',
-          suggestion: 'Consider using a limit under 10MB'
-        });
+      if (this.validatePositiveNumber(analysis.maxFileSize, 'analysis.maxFileSize', errors)) {
+        this.addWarningIf(
+          typeof analysis.maxFileSize === 'number' && analysis.maxFileSize > 10 * 1024 * 1024, // 10MB
+          'analysis.maxFileSize',
+          'Very large file size limit may impact performance',
+          'Consider using a limit under 10MB',
+          warnings
+        );
       }
     }
 
     if (analysis.concurrency !== undefined) {
-      if (typeof analysis.concurrency !== 'number' || analysis.concurrency < 1) {
-        errors.push({
-          field: 'analysis.concurrency',
-          message: 'Must be a positive number',
-          value: analysis.concurrency
-        });
-      } else if (analysis.concurrency > 16) {
-        warnings.push({
-          field: 'analysis.concurrency',
-          message: 'Very high concurrency may not improve performance',
-          suggestion: 'Consider using a value between 2-8'
-        });
+      if (this.validatePositiveNumber(analysis.concurrency, 'analysis.concurrency', errors)) {
+        this.addWarningIf(
+          typeof analysis.concurrency === 'number' && analysis.concurrency > 16,
+          'analysis.concurrency',
+          'Very high concurrency may not improve performance',
+          'Consider using a value between 2-8',
+          warnings
+        );
       }
     }
   }
 
   private validateOutput(
     output: Partial<DetectionConfig['output']>,
-    errors: ConfigValidationError[]
+    errors: ConfigValidationError[],
+    warnings: ConfigValidationWarning[]
   ): void {
     if (output.format !== undefined) {
       const validFormats = ['json', 'html', 'markdown'];
