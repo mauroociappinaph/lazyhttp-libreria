@@ -1,0 +1,163 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🐙 Verificando si se deben crear issues en GitHub..."
+
+# Configuración - Ajusta estos valores según tu repositorio
+GITHUB_REPO="mauroociappina/lazyhttp-libreria"
+GITHUB_TOKEN_FILE=".github-token" # Archivo con tu token (no commitear)
+
+# Verificar si existe el token
+if [ ! -f "$GITHUB_TOKEN_FILE" ]; then
+  echo "⚠️ No se encontró archivo de token de GitHub ($GITHUB_TOKEN_FILE)"
+  echo "💡 Para habilitar la creación automática de issues:"
+  echo "   1. Crea un Personal Access Token en GitHub"
+  echo "   2. Guárdalo en $GITHUB_TOKEN_FILE"
+  echo "   3. Agrega $GITHUB_TOKEN_FILE a .gitignore"
+  exit 0
+fi
+
+GITHUB_TOKEN=$(cat "$GITHUB_TOKEN_FILE")
+
+# Función para crear issue en GitHub
+create_github_issue() {
+  local title="$1"
+  local body="$2"
+  local labels="$3"
+
+  curl -s -X POST \
+    -H "Authorization: token $GITHUB_TOKEN" \
+    -H "Accept: application/vnd.github.v3+json" \
+    "https://api.github.com/repos/$GITHUB_REPO/issues" \
+    -d "{
+      \"title\": \"$title\",
+      \"body\": \"$body\",
+      \"labels\": [$labels]
+    }" > /dev/null
+
+  if [ $? -eq 0 ]; then
+    echo "✅ Issue creado: $title"
+  else
+    echo "❌ Error creando issue: $title"
+  fi
+}
+
+# Obtener archivos modificados en el último commit
+MODIFIED_FILES=$(git diff-tree --no-commit-id --name-only -r HEAD)
+
+# 1. Detectar TODOs y FIXMEs
+echo "🔍 Buscando TODOs y FIXMEs..."
+for file in $MODIFIED_FILES; do
+  if [ -f "$file" ] && [[ "$file" =~ \.(ts|js|tsx|jsx)$ ]]; then
+    # Buscar TODOs
+    grep -n "TODO\|FIXME\|HACK\|XXX" "$file" | while read -r line; do
+      line_number=$(echo "$line" | cut -d: -f1)
+      content=$(echo "$line" | cut -d: -f2- | sed 's/^[[:space:]]*//')
+
+      # Extraer el comentario limpio
+      clean_comment=$(echo "$content" | sed 's|//||g' | sed 's|/\*||g' | sed 's|\*/||g' | sed 's/^[[:space:]]*//')
+
+      if [[ "$clean_comment" =~ TODO|FIXME|HACK|XXX ]]; then
+        title="[AUTO] $(echo "$clean_comment" | head -c 50)..."
+        body="**Archivo:** \`$file\` (línea $line_number)
+
+**Comentario encontrado:**
+\`\`\`
+$clean_comment
+\`\`\`
+
+**Commit:** $(git rev-parse --short HEAD)
+**Autor:** $(git log -1 --pretty=format:'%an')
+**Fecha:** $(date)
+
+---
+*Issue creado automáticamente por hook post-commit*"
+
+        create_github_issue "$title" "$body" "\"todo\", \"auto-generated\""
+      fi
+    done
+  fi
+done
+
+# 2. Detectar console.log en producción
+echo "🔍 Buscando console.log en archivos de producción..."
+for file in $MODIFIED_FILES; do
+  if [ -f "$file" ] && [[ "$file" =~ \.(ts|js)$ ]] && [[ ! "$file" =~ test|spec ]]; then
+    if grep -q "console\.log\|console\.error\|console\.warn" "$file"; then
+      title="[AUTO] Console statements found in production code"
+      body="**Archivo:** \`$file\`
+
+Se encontraron declaraciones de console en código de producción que deberían ser removidas.
+
+**Commit:** $(git rev-parse --short HEAD)
+**Autor:** $(git log -1 --pretty=format:'%an')
+
+**Líneas encontradas:**
+\`\`\`
+$(grep -n "console\." "$file")
+\`\`\`
+
+---
+*Issue creado automáticamente por hook post-commit*"
+
+      create_github_issue "$title" "$body" "\"bug\", \"cleanup\", \"auto-generated\""
+    fi
+  fi
+done
+
+# 3. Detectar dependencias con vulnerabilidades
+echo "🔍 Verificando vulnerabilidades en dependencias..."
+if command -v pnpm >/dev/null 2>&1; then
+  AUDIT_OUTPUT=$(pnpm audit --json 2>/dev/null || echo "")
+  if [ ! -z "$AUDIT_OUTPUT" ] && echo "$AUDIT_OUTPUT" | grep -q "vulnerabilities"; then
+    VULN_COUNT=$(echo "$AUDIT_OUTPUT" | grep -o '"vulnerabilities":[0-9]*' | cut -d: -f2)
+    if [ "$VULN_COUNT" -gt 0 ]; then
+      title="[AUTO] Security vulnerabilities detected in dependencies"
+      body="Se detectaron $VULN_COUNT vulnerabilidades en las dependencias del proyecto.
+
+**Commit:** $(git rev-parse --short HEAD)
+**Fecha:** $(date)
+
+**Acción recomendada:**
+\`\`\`bash
+pnpm audit
+pnpm audit --fix
+\`\`\`
+
+---
+*Issue creado automáticamente por hook post-commit*"
+
+      create_github_issue "$title" "$body" "\"security\", \"dependencies\", \"auto-generated\""
+    fi
+  fi
+fi
+
+# 4. Detectar archivos grandes (>100KB)
+echo "🔍 Verificando archivos grandes..."
+for file in $MODIFIED_FILES; do
+  if [ -f "$file" ]; then
+    file_size=$(wc -c < "$file")
+    if [ "$file_size" -gt 102400 ]; then # 100KB
+      title="[AUTO] Large file detected: $(basename "$file")"
+      body="**Archivo:** \`$file\`
+**Tamaño:** $(($file_size / 1024))KB
+
+Se detectó un archivo grande que podría afectar el rendimiento del repositorio.
+
+**Commit:** $(git rev-parse --short HEAD)
+**Autor:** $(git log -1 --pretty=format:'%an')
+
+**Considerar:**
+- ¿Es necesario este archivo en el repositorio?
+- ¿Debería estar en .gitignore?
+- ¿Se puede optimizar o comprimir?
+
+---
+*Issue creado automáticamente por hook post-commit*"
+
+      create_github_issue "$title" "$body" "\"performance\", \"cleanup\", \"auto-generated\""
+    fi
+  fi
+done
+
+echo "🎉 Verificación de issues automáticos completada"
