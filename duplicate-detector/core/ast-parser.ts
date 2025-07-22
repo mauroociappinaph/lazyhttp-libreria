@@ -231,41 +231,46 @@ export class TypeScriptASTParser implements IASTParser {
       case 'FunctionDeclaration':
       case 'MethodDeclaration':
       case 'ArrowFunction':
-      case 'FunctionExpression':
+      case 'FunctionExpression': {
         const functionNode = this.extractFunctionNode(node);
         if (functionNode) {
           metadata.functions.push(functionNode);
         }
         break;
+      }
 
-      case 'ClassDeclaration':
+      case 'ClassDeclaration': {
         const classNode = this.extractClassNode(node);
         if (classNode) {
           metadata.classes.push(classNode);
         }
         break;
+      }
 
-      case 'ModuleDeclaration':
+      case 'ModuleDeclaration': {
         const moduleNode = this.extractModuleNode(node);
         if (moduleNode) {
           metadata.modules.push(moduleNode);
         }
         break;
+      }
 
-      case 'ImportDeclaration':
+      case 'ImportDeclaration': {
         const importNode = this.extractImportNode(node);
         if (importNode) {
           metadata.imports.push(importNode);
         }
         break;
+      }
 
       case 'ExportDeclaration':
-      case 'ExportAssignment':
+      case 'ExportAssignment': {
         const exportNode = this.extractExportNode(node);
         if (exportNode) {
           metadata.exports.push(exportNode);
         }
         break;
+      }
     }
 
     // Recursively process children
