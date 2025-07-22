@@ -20,30 +20,95 @@ export interface ConfigValidationWarning {
   suggestion: string;
 }
 
+export interface ValidationRule {
+  validate: (value: unknown, field: string) => ConfigValidationError | null;
+  warn?: (value: unknown, field: string) => ConfigValidationWarning | null;
+}
+
 export class ConfigValidator {
+
+  /**
+   * Validates a numeric value within a specified range
+   */
+  private validateNumericRange(
+    value: unknown,
+    field: string,
+    min: number,
+    max: number,
+    errors: ConfigValidationError[]
+  ): boolean {
+    if (typeof value !== 'number') {
+      errors.push({ field, message: 'Must be a number', value });
+      return false;
+    }
+    if (value < min || value > max) {
+      errors.push({ field, message: `Must be between ${min} and ${max}`, value });
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Validates a positive number
+   */
+  private validatePositiveNumber(
+    value: unknown,
+    field: string,
+    errors: ConfigValidationError[]
+  ): boolean {
+    if (typeof value !== 'number' || value < 1) {
+      errors.push({ field, message: 'Must be a positive number', value });
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Validates an array type
+   */
+  private validateArray(
+    value: unknown,
+    field: string,
+    errors: ConfigValidationError[]
+  ): boolean {
+    if (!Array.isArray(value)) {
+      errors.push({ field, message: 'Must be an array of strings', value });
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Adds a warning if condition is met
+   */
+  private addWarningIf(
+    condition: boolean,
+    field: string,
+    message: string,
+    suggestion: string,
+    warnings: ConfigValidationWarning[]
+  ): void {
+    if (condition) {
+      warnings.push({ field, message, suggestion });
+    }
+  }
+
   validate(config: Partial<DetectionConfig>): ConfigValidationResult {
     const errors: ConfigValidationError[] = [];
     const warnings: ConfigValidationWarning[] = [];
 
-    // Validate thresholds
-    if (config.thresholds) {
-      this.validateThresholds(config.thresholds, errors, warnings);
-    }
+    const validators = [
+      { key: 'thresholds', data: config.thresholds, validator: this.validateThresholds },
+      { key: 'filters', data: config.filters, validator: this.validateFilters },
+      { key: 'analysis', data: config.analysis, validator: this.validateAnalysis },
+      { key: 'output', data: config.output, validator: this.validateOutput }
+    ];
 
-    // Validate filters
-    if (config.filters) {
-      this.validateFilters(config.filters, errors, warnings);
-    }
-
-    // Validate analysis settings
-    if (config.analysis) {
-      this.validateAnalysis(config.analysis, errors, warnings);
-    }
-
-    // Validate output settings
-    if (config.output) {
-      this.validateOutput(config.output, errors, warnings);
-    }
+    validators.forEach(({ data, validator }) => {
+      if (data) {
+        validator.call(this, data, errors, warnings);
+      }
+    });
 
     return {
       isValid: errors.length === 0,
@@ -52,42 +117,37 @@ export class ConfigValidator {
     };
   }
 
+
+
   private validateThresholds(
     thresholds: Partial<DetectionConfig['thresholds']>,
     errors: ConfigValidationError[],
     warnings: ConfigValidationWarning[]
   ): void {
-    const validateThreshold = (name: string, value: number) => {
-      if (typeof value !== 'number') {
-        errors.push({
-          field: `thresholds.${name}`,
-          message: 'Must be a number',
-          value
-        });
-      } else if (value < 0 || value > 1) {
-        errors.push({
-          field: `thresholds.${name}`,
-          message: 'Must be between 0 and 1',
-          value
-        });
-      } else if (value < 0.5) {
-        warnings.push({
-          field: `thresholds.${name}`,
-          message: 'Very low threshold may produce too many false positives',
-          suggestion: 'Consider using a threshold >= 0.5'
-        });
+    const validateThreshold = (name: string, value: unknown) => {
+      const field = `thresholds.${name}`;
+      if (this.validateNumericRange(value, field, 0, 1, errors)) {
+        this.addWarningIf(
+          typeof value === 'number' && value < 0.5,
+          field,
+          'Very low threshold may produce too many false positives',
+          'Consider using a threshold >= 0.5',
+          warnings
+        );
       }
     };
 
-    if (thresholds.syntactic !== undefined) {
-      validateThreshold('syntactic', thresholds.syntactic);
-    }
-    if (thresholds.semantic !== undefined) {
-      validateThreshold('semantic', thresholds.semantic);
-    }
-    if (thresholds.structural !== undefined) {
-      validateThreshold('structural', thresholds.structural);
-    }
+    const thresholdEntries = [
+      ['syntactic', thresholds.syntactic],
+      ['semantic', thresholds.semantic],
+      ['structural', thresholds.structural]
+    ] as const;
+
+    thresholdEntries.forEach(([name, value]) => {
+      if (value !== undefined) {
+        validateThreshold(name, value);
+      }
+    });
   }
 
   private validateFilters(
@@ -182,8 +242,7 @@ export class ConfigValidator {
 
   private validateOutput(
     output: Partial<DetectionConfig['output']>,
-    errors: ConfigValidationError[],
-    warnings: ConfigValidationWarning[]
+    errors: ConfigValidationError[]
   ): void {
     if (output.format !== undefined) {
       const validFormats = ['json', 'html', 'markdown'];
@@ -251,14 +310,41 @@ export function mergeConfig(userConfig: Partial<DetectionConfig>): DetectionConf
       ...userConfig.filters,
       // Handle array merging properly
       excludePatterns: userConfig.filters?.excludePatterns ?? DEFAULT_CONFIG.filters.excludePatterns,
+      includePatterns: userConfig.filters?.includePatterns ?? DEFAULT_CONFIG.filters.includePatterns
+    },
+    analysis: {
+      ...DEFAULT_CONFIG.analysis,
+      ...userConfig.analysis
+    },
+    output: {
+      ...DEFAULT_CONFIG.output,
       ...userConfig.output
     }
   };
 }
 
-export function loadConfigFromFile(_filePath: string): Promise<DetectionConfig> {
+/**
+ * Creates a configuration with safe defaults for missing values
+ * @param config - Potentially incomplete configuration
+ * @returns Complete configuration with all required fields
+ */
+export function ensureCompleteConfig(config: Partial<DetectionConfig>): DetectionConfig {
+  const merged = mergeConfig(config);
+
+  // Validate that all required fields are present
+  const requiredFields = ['thresholds', 'filters', 'analysis', 'output'] as const;
+  const missingFields = requiredFields.filter(field => !merged[field]);
+
+  if (missingFields.length > 0) {
+    throw new Error(`Missing required configuration fields: ${missingFields.join(', ')}`);
+  }
+
+  return merged;
+}
+
+export function loadConfigFromFile(filePath: string): Promise<DetectionConfig> {
   // This will be implemented in a later task
-  return Promise.reject(new Error('loadConfigFromFile not yet implemented'));
+  return Promise.reject(new Error(`loadConfigFromFile not yet implemented for: ${filePath}`));
 }
 
 export function validateAndMergeConfig(userConfig: Partial<DetectionConfig>): DetectionConfig {
@@ -268,6 +354,14 @@ export function validateAndMergeConfig(userConfig: Partial<DetectionConfig>): De
   if (!validation.isValid) {
     const errorMessages = validation.errors.map(e => `${e.field}: ${e.message}`);
     throw new Error(`Configuration validation failed:\n${errorMessages.join('\n')}`);
+  }
+
+  // Log warnings if any exist
+  if (validation.warnings.length > 0) {
+    console.warn('Configuration warnings:');
+    validation.warnings.forEach(warning => {
+      console.warn(`  ${warning.field}: ${warning.message} (${warning.suggestion})`);
+    });
   }
 
   return mergeConfig(userConfig);
