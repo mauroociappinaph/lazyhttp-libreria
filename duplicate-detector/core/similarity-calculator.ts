@@ -19,6 +19,13 @@ export class TreeSimilarityCalculator implements ISimilarityCalculator {
   }
 
   /**
+   * Get current threshold value
+   */
+  getThreshold(): number {
+    return this.threshold;
+  }
+
+  /**
    * Calculate similarity between two ASTs using multiple algorithms
    */
   calculateSimilarity(ast1: AST, ast2: AST): SimilarityScore {
