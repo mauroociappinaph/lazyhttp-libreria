@@ -16,6 +16,7 @@ export type {
   RefactoringSuggestion,
   QualityMetrics,
   FileMetadata,
+  FileStats,
   AST,
   NormalizedAST,
   ASTNode,

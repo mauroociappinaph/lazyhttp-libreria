@@ -57,6 +57,19 @@ export interface ReportGenerator {
 export interface FileDiscoveryEngine {
   discoverFiles(rootPath: string, config: DetectionConfig): Promise<string[]>;
   filterFiles(files: string[], patterns: string[]): string[];
+  filterByFileSize(files: string[], maxFileSize: number): Promise<string[]>;
+  createFileStream(filePath: string, chunkSize?: number): AsyncGenerator<string>;
+  readFileContent(filePath: string, maxFileSize?: number): Promise<string>;
+  getFileStats(filePath: string): Promise<FileStats>;
+}
+
+export interface FileStats {
+  path: string;
+  size: number;
+  extension: string;
+  isSupported: boolean;
+  lastModified: Date;
+  created: Date;
 }
 
 export interface ASTParser {

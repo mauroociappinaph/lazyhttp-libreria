@@ -101,6 +101,8 @@
   "homepage": "https://github.com/mauroociappinaph/lazyhttp-libreria/blob/master/README.md",
   "dependencies": {
     "axios": "^1.x",
+    "glob": "^11.0.3",
+    "minimatch": "^10.0.3",
     "undici": "^7.11.0"
   },
   "optionalDependencies": {
@@ -115,7 +117,9 @@
     "@rollup/plugin-typescript": "^12.1.4",
     "@size-limit/preset-big-lib": "^11.2.0",
     "@types/express": "^5.0.1",
+    "@types/glob": "^8.1.0",
     "@types/jest": "^29.5.14",
+    "@types/minimatch": "^5.1.2",
     "@types/pluralize": "^0.0.33",
     "@typescript-eslint/eslint-plugin": "^8.36.0",
     "esbuild": "^0.25.6",
