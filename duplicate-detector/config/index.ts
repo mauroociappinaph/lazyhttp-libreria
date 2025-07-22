@@ -156,49 +156,27 @@ export class ConfigValidator {
     warnings: ConfigValidationWarning[]
   ): void {
     if (filters.minLines !== undefined) {
-      if (typeof filters.minLines !== 'number' || filters.minLines < 1) {
-        errors.push({
-          field: 'filters.minLines',
-          message: 'Must be a positive number',
-          value: filters.minLines
-        });
-      } else if (filters.minLines > 50) {
-        warnings.push({
-          field: 'filters.minLines',
-          message: 'Very high minimum lines may miss smaller duplications',
-          suggestion: 'Consider using a value between 3-20'
-        });
+      if (this.validatePositiveNumber(filters.minLines, 'filters.minLines', errors)) {
+        this.addWarningIf(
+          typeof filters.minLines === 'number' && filters.minLines > 50,
+          'filters.minLines',
+          'Very high minimum lines may miss smaller duplications',
+          'Consider using a value between 3-20',
+          warnings
+        );
       }
     }
 
     if (filters.minTokens !== undefined) {
-      if (typeof filters.minTokens !== 'number' || filters.minTokens < 1) {
-        errors.push({
-          field: 'filters.minTokens',
-          message: 'Must be a positive number',
-          value: filters.minTokens
-        });
-      }
+      this.validatePositiveNumber(filters.minTokens, 'filters.minTokens', errors);
     }
 
     if (filters.excludePatterns !== undefined) {
-      if (!Array.isArray(filters.excludePatterns)) {
-        errors.push({
-          field: 'filters.excludePatterns',
-          message: 'Must be an array of strings',
-          value: filters.excludePatterns
-        });
-      }
+      this.validateArray(filters.excludePatterns, 'filters.excludePatterns', errors);
     }
 
     if (filters.includePatterns !== undefined) {
-      if (!Array.isArray(filters.includePatterns)) {
-        errors.push({
-          field: 'filters.includePatterns',
-          message: 'Must be an array of strings',
-          value: filters.includePatterns
-        });
-      }
+      this.validateArray(filters.includePatterns, 'filters.includePatterns', errors);
     }
   }
 
