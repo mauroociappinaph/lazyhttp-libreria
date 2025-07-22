@@ -1,10 +1,10 @@
 // Builder pattern for configuration management
 
-import { DetectionConfig } from '../types';
+import { DetectionConfig, PartialDetectionConfig } from '../types';
 import { DEFAULT_CONFIG } from './index';
 
 export class ConfigBuilder {
-  private config: Partial<DetectionConfig> = {};
+  private config: PartialDetectionConfig = {};
 
   static create(): ConfigBuilder {
     return new ConfigBuilder();

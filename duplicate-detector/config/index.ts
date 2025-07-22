@@ -1,6 +1,6 @@
 // Configuration management for duplicate code detection
 
-import { DetectionConfig } from '../types';
+import { DetectionConfig, PartialDetectionConfig } from '../types';
 
 export interface ConfigValidationResult {
   isValid: boolean;
@@ -117,22 +117,25 @@ export class ConfigValidator {
     }
   }
 
-  validate(config: Partial<DetectionConfig>): ConfigValidationResult {
+  validate(config: PartialDetectionConfig): ConfigValidationResult {
     const errors: ConfigValidationError[] = [];
     const warnings: ConfigValidationWarning[] = [];
 
-    const validators = [
-      { key: 'thresholds', data: config.thresholds, validator: this.validateThresholds },
-      { key: 'filters', data: config.filters, validator: this.validateFilters },
-      { key: 'analysis', data: config.analysis, validator: this.validateAnalysis },
-      { key: 'output', data: config.output, validator: this.validateOutput }
-    ];
+    if (config.thresholds) {
+      this.validateThresholds(config.thresholds, errors, warnings);
+    }
 
-    validators.forEach(({ data, validator }) => {
-      if (data) {
-        validator.call(this, data, errors, warnings);
-      }
-    });
+    if (config.filters) {
+      this.validateFilters(config.filters, errors, warnings);
+    }
+
+    if (config.analysis) {
+      this.validateAnalysis(config.analysis, errors, warnings);
+    }
+
+    if (config.output) {
+      this.validateOutput(config.output, errors, warnings);
+    }
 
     return {
       isValid: errors.length === 0,
@@ -237,7 +240,7 @@ export class ConfigValidator {
   private validateOutput(
     output: Partial<DetectionConfig['output']>,
     errors: ConfigValidationError[],
-    warnings: ConfigValidationWarning[]
+    _warnings: ConfigValidationWarning[]
   ): void {
     if (output.format !== undefined) {
       const validFormats = ['json', 'html', 'markdown'];
@@ -294,7 +297,7 @@ export const DEFAULT_CONFIG: DetectionConfig = {
  * @param userConfig - Partial user configuration
  * @returns Complete configuration with user overrides
  */
-export function mergeConfig(userConfig: Partial<DetectionConfig>): DetectionConfig {
+export function mergeConfig(userConfig: PartialDetectionConfig): DetectionConfig {
   return {
     thresholds: {
       ...DEFAULT_CONFIG.thresholds,
@@ -323,7 +326,7 @@ export function mergeConfig(userConfig: Partial<DetectionConfig>): DetectionConf
  * @param config - Potentially incomplete configuration
  * @returns Complete configuration with all required fields
  */
-export function ensureCompleteConfig(config: Partial<DetectionConfig>): DetectionConfig {
+export function ensureCompleteConfig(config: PartialDetectionConfig): DetectionConfig {
   const merged = mergeConfig(config);
 
   // Validate that all required fields are present
@@ -337,12 +340,51 @@ export function ensureCompleteConfig(config: Partial<DetectionConfig>): Detectio
   return merged;
 }
 
-export function loadConfigFromFile(filePath: string): Promise<DetectionConfig> {
-  // This will be implemented in a later task
-  return Promise.reject(new Error(`loadConfigFromFile not yet implemented for: ${filePath}`));
+export async function loadConfigFromFile(filePath: string): Promise<DetectionConfig> {
+  try {
+    // Use require for Node.js modules to avoid dynamic import issues in tests
+    const fs = require('fs/promises');
+    const path = require('path');
+
+    // Check if file exists
+    await fs.access(filePath);
+
+    const fileContent = await fs.readFile(filePath, 'utf-8');
+    const extension = path.extname(filePath).toLowerCase();
+
+    let userConfig: PartialDetectionConfig;
+
+    switch (extension) {
+      case '.json':
+        userConfig = JSON.parse(fileContent);
+        break;
+      case '.js':
+      case '.mjs':
+        // For JS config files, use require for CommonJS or dynamic import for ES modules
+        try {
+          // Try dynamic import first for ES modules
+          const configModule = await import(path.resolve(filePath));
+          userConfig = configModule.default || configModule;
+        } catch {
+          // Fallback to require for CommonJS
+          delete require.cache[require.resolve(path.resolve(filePath))];
+          userConfig = require(path.resolve(filePath));
+        }
+        break;
+      default:
+        throw new Error(`Unsupported config file format: ${extension}. Supported formats: .json, .js, .mjs`);
+    }
+
+    return validateAndMergeConfig(userConfig);
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Failed to load configuration from ${filePath}: ${error.message}`);
+    }
+    throw new Error(`Failed to load configuration from ${filePath}: Unknown error`);
+  }
 }
 
-export function validateAndMergeConfig(userConfig: Partial<DetectionConfig>): DetectionConfig {
+export function validateAndMergeConfig(userConfig: PartialDetectionConfig): DetectionConfig {
   const validator = new ConfigValidator();
   const validation = validator.validate(userConfig);
 
@@ -361,3 +403,6 @@ export function validateAndMergeConfig(userConfig: Partial<DetectionConfig>): De
 
   return mergeConfig(userConfig);
 }
+
+// Re-export CLI configuration utilities
+export { CLIConfigParser, type CLIOptions } from './cli-config';

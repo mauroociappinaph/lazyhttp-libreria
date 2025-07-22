@@ -26,6 +26,14 @@ export interface DetectionConfig {
   };
 }
 
+// Utility type for partial configuration with deep partial support
+export type PartialDetectionConfig = {
+  thresholds?: Partial<DetectionConfig['thresholds']>;
+  filters?: Partial<DetectionConfig['filters']>;
+  analysis?: Partial<DetectionConfig['analysis']>;
+  output?: Partial<DetectionConfig['output']>;
+};
+
 export interface DuplicateDetector {
   analyze(files: string[]): Promise<DuplicationReport>;
   configure(config: DetectionConfig): void;
