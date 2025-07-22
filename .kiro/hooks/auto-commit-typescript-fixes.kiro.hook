@@ -1,0 +1,9 @@
+{
+  "name": "Auto Commit TypeScript Fixes",
+  "description": "Realiza commits automáticos después de corregir errores de tipos TypeScript",
+  "events": ["file:save"],
+  "filePatterns": ["**/*.ts", "**/*.tsx"],
+  "runAfter": ["typescript-auto-fixer"],
+  "script": "git add {{file.path}} && git commit -m \"fix(types): Corrige errores de tipos en {{file.path}}\"",
+  "prompt": "Eres un asistente especializado en crear mensajes de commit descriptivos y útiles. Un archivo TypeScript ha sido corregido automáticamente y necesitas crear un mensaje de commit inteligente.\n\nArchivo: {{file.path}}\n\nCambios realizados (diff):\n```diff\n{{git.diff}}\n```\n\nTu tarea es:\n1. Analizar los cambios realizados en el archivo\n2. Crear un mensaje de commit descriptivo que explique claramente qué se corrigió\n3. Seguir el formato de Conventional Commits (tipo(alcance): descripción)\n4. Ser específico sobre los tipos de errores corregidos\n\nFormato del mensaje de commit:\n- Para correcciones de tipos: \"fix(types): Descripción específica\"\n- Para mejoras de código: \"refactor(types): Descripción específica\"\n- Para cambios en pruebas: \"test(types): Descripción específica\"\n\nEjemplos de buenos mensajes:\n- \"fix(types): Corrige uso de 'any' en SyntacticAnalyzer\"\n- \"refactor(types): Mejora tipado de interfaces en módulo de detección\"\n- \"test(types): Corrige acceso a propiedades privadas en pruebas\"\n\nDevuelve SOLO el mensaje de commit, sin ningún otro texto o explicación."
+}
