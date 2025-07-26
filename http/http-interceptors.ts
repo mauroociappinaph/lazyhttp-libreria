@@ -1,6 +1,10 @@
-import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
-import { HttpAuthError } from './http-errors';
-import { httpInstance, AUTH_ENDPOINTS, AUTH_STORAGE } from './http-config';
+import axios, {
+  AxiosError,
+  AxiosInstance,
+  InternalAxiosRequestConfig,
+} from "axios";
+import { HttpAuthError } from "./http-errors";
+import { httpInstance, AUTH_ENDPOINTS, AUTH_STORAGE } from "./http-config";
 
 // Estado para manejar el refresh token
 let isRefreshing = false;
@@ -10,7 +14,9 @@ let failedRequests: Array<() => void> = [];
  * Configura los interceptores para la instancia de Axios
  * @param instance Instancia de Axios a configurar
  */
-export function setupInterceptors(instance: AxiosInstance = httpInstance): void {
+export function setupInterceptors(
+  instance: AxiosInstance = httpInstance
+): void {
   // Interceptor de solicitud
   instance.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
@@ -101,7 +107,7 @@ export function setupInterceptors(instance: AxiosInstance = httpInstance): void 
 export async function refreshToken(): Promise<string> {
   const refreshToken = localStorage.getItem(AUTH_STORAGE.REFRESH_TOKEN_KEY);
   if (!refreshToken) {
-    throw new HttpAuthError('No refresh token available');
+    throw new HttpAuthError("No refresh token available");
   }
 
   const response = await axios.post<{ token: string }>(
@@ -111,7 +117,7 @@ export async function refreshToken(): Promise<string> {
   );
 
   if (!response.data?.token) {
-    throw new HttpAuthError('Invalid token response');
+    throw new HttpAuthError("Invalid token response");
   }
 
   return response.data.token;
@@ -126,8 +132,8 @@ export function handleRefreshTokenFailure(): void {
   localStorage.removeItem(AUTH_STORAGE.REFRESH_TOKEN_KEY);
 
   // Redirigir a login
-  if (typeof window !== 'undefined') {
-    window.location.href = '/login';
+  if (typeof window !== "undefined") {
+    window.location.href = "/login";
   }
 }
 
@@ -135,5 +141,5 @@ export function handleRefreshTokenFailure(): void {
 export const authInterceptors = {
   setupInterceptors,
   refreshToken,
-  handleRefreshTokenFailure
+  handleRefreshTokenFailure,
 };

@@ -1,10 +1,10 @@
-import axios, { AxiosRequestConfig } from 'axios';
-import { HttpsProxyAgent } from 'https-proxy-agent';
-import { SocksProxyAgent } from 'socks-proxy-agent';
-import { ProxyConfig } from './types/proxy.types';
-import { RequestOptions } from './types/core.types';
-import { StreamConfig } from './types/stream.types';
-import { prepareHeaders } from './http-helpers';
+import axios, { AxiosRequestConfig } from "axios";
+import { HttpsProxyAgent } from "https-proxy-agent";
+import { SocksProxyAgent } from "socks-proxy-agent";
+import { ProxyConfig } from "./types/proxy.types";
+import { RequestOptions } from "./types/core.types";
+import { StreamConfig } from "./types/stream.types";
+import { prepareHeaders } from "./http-helpers";
 
 /**
  * Clase que maneja las operaciones de streaming HTTP
@@ -19,10 +19,10 @@ export class HttpStreamingManager {
    * Configura las opciones por defecto para streaming
    */
   configure(config: {
-    streamConfig?: StreamConfig,
-    proxyConfig?: ProxyConfig,
-    baseUrl?: string,
-    timeout?: number
+    streamConfig?: StreamConfig;
+    proxyConfig?: ProxyConfig;
+    baseUrl?: string;
+    timeout?: number;
   }): void {
     if (config.streamConfig) {
       this.defaultStreamConfig = config.streamConfig;
@@ -41,16 +41,19 @@ export class HttpStreamingManager {
   /**
    * Ejecuta una petición HTTP en modo streaming
    */
-  async stream<T>(endpoint: string, options: Omit<RequestOptions, 'method' | 'body'> = {}): Promise<ReadableStream<T>> {
+  async stream<T>(
+    endpoint: string,
+    options: Omit<RequestOptions, "method" | "body"> = {}
+  ): Promise<ReadableStream<T>> {
     const streamConfig: StreamConfig = {
       enabled: true,
       chunkSize: 8192,
       ...this.defaultStreamConfig,
-      ...options.stream
+      ...options.stream,
     };
 
     if (!streamConfig.enabled) {
-      throw new Error('Streaming no está habilitado para esta petición');
+      throw new Error("Streaming no está habilitado para esta petición");
     }
 
     const proxyConfig = options.proxy || this.proxyConfig;
@@ -58,17 +61,17 @@ export class HttpStreamingManager {
 
     // Si se especifica rejectUnauthorized como false, desactivamos la verificación de certificados
     if (proxyConfig?.rejectUnauthorized === false) {
-      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
     }
 
     const axiosConfig: AxiosRequestConfig = {
-      method: 'GET',
+      method: "GET",
       url: this.buildUrl(endpoint),
-      responseType: 'stream',
+      responseType: "stream",
       headers: this.prepareHeaders(options),
       timeout: options.timeout || this.defaultTimeout,
       proxy: false, // Desactivamos el proxy de axios para usar nuestro propio agente
-      httpsAgent
+      httpsAgent,
     };
 
     try {
@@ -76,19 +79,19 @@ export class HttpStreamingManager {
       const stream = response.data;
 
       if (streamConfig.onChunk) {
-        stream.on('data', (chunk: unknown) => {
+        stream.on("data", (chunk: unknown) => {
           streamConfig.onChunk!(chunk);
         });
       }
 
       if (streamConfig.onEnd) {
-        stream.on('end', () => {
+        stream.on("end", () => {
           streamConfig.onEnd!();
         });
       }
 
       if (streamConfig.onError) {
-        stream.on('error', (error: Error) => {
+        stream.on("error", (error: Error) => {
           streamConfig.onError!(error);
         });
       }
@@ -102,7 +105,7 @@ export class HttpStreamingManager {
     } finally {
       // Restaurar la configuración de verificación de certificados
       if (proxyConfig?.rejectUnauthorized === false) {
-        process.env.NODE_TLS_REJECT_UNAUTHORIZED = '1';
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = "1";
       }
     }
   }
@@ -113,7 +116,12 @@ export class HttpStreamingManager {
   private createProxyAgent(proxyConfig?: ProxyConfig) {
     if (!proxyConfig) return undefined;
 
-    const { url, protocol = 'http', auth, rejectUnauthorized = false } = proxyConfig;
+    const {
+      url,
+      protocol = "http",
+      auth,
+      rejectUnauthorized = false,
+    } = proxyConfig;
     const proxyUrl = new URL(url);
 
     if (auth) {
@@ -124,15 +132,15 @@ export class HttpStreamingManager {
     let proxyString = proxyUrl.toString();
 
     // Para SOCKS, aseguramos que la URL termine en '/'
-    if (protocol === 'socks') {
-      if (!proxyString.endsWith('/')) {
-        proxyString += '/';
+    if (protocol === "socks") {
+      if (!proxyString.endsWith("/")) {
+        proxyString += "/";
       }
       return new SocksProxyAgent(proxyString);
     }
 
     // Para HTTPS, configuramos las opciones específicas
-    process.env.NODE_TLS_REJECT_UNAUTHORIZED = rejectUnauthorized ? '1' : '0';
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = rejectUnauthorized ? "1" : "0";
     return new HttpsProxyAgent(proxyString);
   }
 
