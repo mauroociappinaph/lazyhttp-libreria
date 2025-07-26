@@ -7,6 +7,7 @@ import { DefaultStructuralAnalyzer } from './duplicate-detector/analyzers/struct
 import { DEFAULT_CONFIG } from './duplicate-detector/config';
 import { ASTParser } from './duplicate-detector/core/ast-parser';
 import { FileDiscoveryEngine } from './duplicate-detector/core/file-discovery';
+import { ClassNode } from './duplicate-detector/types';
 
 async function analyzeHttpLazyCode() {
   console.log('🔍 Analizando código real de HTTPLazy...\n');
@@ -40,7 +41,7 @@ async function analyzeHttpLazyCode() {
 
     // Parsear archivos y extraer clases
     console.log('🔧 Parseando archivos y extrayendo clases...');
-    const allClasses: unknown[] = [];
+    const allClasses: ClassNode[] = [];
     let parsedFiles = 0;
 
     for (const file of files.slice(0, 50)) { // Limitar a 50 archivos para no sobrecargar
@@ -50,7 +51,7 @@ async function analyzeHttpLazyCode() {
 
         if (metadata.classes.length > 0) {
           console.log(`   📄 ${path.basename(file)}: ${metadata.classes.length} clases`);
-          allClasses.push(...metadata.classes);
+          allClasses.push(...(metadata.classes as ClassNode[]));
         }
         parsedFiles++;
       } catch (error) {
@@ -70,7 +71,7 @@ async function analyzeHttpLazyCode() {
     console.log('🏗️  Análisis 1: Duplicación Estructural');
     console.log('=' .repeat(50));
 
-    const structuralDuplicates = analyzer.detectStructuralDuplicates(allClasses);
+    const structuralDuplicates = analyzer.detectStructuralDuplicates(allClasses as ClassNode[]);
 
     if (structuralDuplicates.length > 0) {
       console.log(`✅ Encontradas ${structuralDuplicates.length} duplicaciones estructurales:\n`);
@@ -90,7 +91,7 @@ async function analyzeHttpLazyCode() {
     console.log('🎯 Análisis 2: Patrones Arquitectónicos');
     console.log('=' .repeat(50));
 
-    const architecturalPatterns = analyzer.detectArchitecturalPatterns(allClasses);
+    const architecturalPatterns = analyzer.detectArchitecturalPatterns(allClasses as ClassNode[]);
 
     if (architecturalPatterns.length > 0) {
       console.log(`✅ Encontrados ${architecturalPatterns.length} patrones arquitectónicos:\n`);
@@ -110,7 +111,7 @@ async function analyzeHttpLazyCode() {
     console.log('🔄 Análisis 3: Métodos Duplicados Entre Clases');
     console.log('=' .repeat(50));
 
-    const crossClassDuplicates = analyzer.detectCrossClassMethodDuplication(allClasses);
+    const crossClassDuplicates = analyzer.detectCrossClassMethodDuplication(allClasses as ClassNode[]);
 
     if (crossClassDuplicates.length > 0) {
       console.log(`✅ Encontrados ${crossClassDuplicates.length} métodos duplicados:\n`);

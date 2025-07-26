@@ -105,12 +105,13 @@ export class HttpClient implements IHttpClient, HttpOperations {
   public async initialize(config?: any): Promise<void> {
     await this.configManager.initialize(config);
   }
-  public configureCaching(config?: any): void { this.services.cacheService.configureCaching(config); }
+  public configureCaching(config?: unknown): void { this.services.cacheService.configureCaching(config); }
   public invalidateCache(pattern: string): void { this.services.cacheService.invalidateCache(pattern); }
   public invalidateCacheByTags(tags: string[]): void { this.services.cacheService.invalidateCacheByTags(tags); }
   public configureMetrics(config?: unknown): void { this.services.metricsService.configureMetrics(config); }
   public trackActivity(type: string): void { this.services.metricsService.trackActivity(type); }
   public getCurrentMetrics() { return this.services.metricsService.getCurrentMetrics(); }
+  public resetMetrics(): void { this.services.metricsService.resetMetrics(); }
   public configureProxy(config: ProxyConfig): void { this.configManager.configureProxy(config); }
 
   // Utility methods

@@ -7,6 +7,7 @@ export interface IMetricsService {
   trackActivity(type: string, data?: any): void;
   getCurrentMetrics(): MetricsData;
   configureMetrics(config?: any): void;
+  resetMetrics(): void;
 }
 
 export interface MetricsData {
@@ -116,7 +117,7 @@ export class MetricsService implements IMetricsService {
   /**
    * Configura el sistema de métricas
    */
-  configureMetrics(config?: any): void {
+  configureMetrics(config?: unknown): void {
     if (config) {
       this.metricsConfig = { ...this.metricsConfig, ...config };
     }

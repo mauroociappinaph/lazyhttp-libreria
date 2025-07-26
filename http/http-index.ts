@@ -7,31 +7,23 @@
 
 // Import directly from core files
 import { HttpClient as HttpClientClass } from "./client/core/http-client";
+import { CacheConfig } from "./types/cache.types";
 import {
-  RequestOptions,
-  ApiResponse,
-  HttpMethod,
-  HttpClient as HttpClientInterface,
+    ApiResponse,
+    AuthConfig,
+    AuthInfo,
+    HttpClient as HttpClientInterface,
+    HttpMethod,
+    RequestOptions,
+    UserCredentials,
 } from "./types/core.types";
-import { AuthConfig, UserCredentials, AuthInfo } from "./types/core.types";
+import { MetricsConfig } from "./types/metrics.types";
 import { ProxyConfig } from "./types/proxy.types";
 import { StreamConfig } from "./types/stream.types";
-import { CacheConfig } from "./types/cache.types";
-import { MetricsConfig } from "./types/metrics.types";
 
 // Export all types directly
 export {
-  HttpClientInterface as HttpClient,
-  RequestOptions,
-  ApiResponse,
-  HttpMethod,
-  AuthConfig,
-  UserCredentials,
-  AuthInfo,
-  ProxyConfig,
-  StreamConfig,
-  CacheConfig,
-  MetricsConfig,
+    ApiResponse, AuthConfig, AuthInfo, CacheConfig, HttpClientInterface as HttpClient, HttpMethod, MetricsConfig, ProxyConfig, RequestOptions, StreamConfig, UserCredentials
 };
 
 // Create HTTP client instance directly
@@ -83,6 +75,7 @@ export const invalidateCacheByTags = http.invalidateCacheByTags.bind(http);
 export const configureMetrics = http.configureMetrics.bind(http);
 export const trackActivity = http.trackActivity.bind(http);
 export const getCurrentMetrics = http.getCurrentMetrics.bind(http);
+export const resetMetrics = http.resetMetrics.bind(http);
 
 // Logger exports - import from http-logger.ts
 import { httpLogger } from "./http-logger";

@@ -195,6 +195,13 @@ export class BrowserHttpClient extends BaseHttpClient {
   getCurrentMetrics(): { requests: number; errors: number; cacheHits: number; cacheMisses: number } {
     return this.services.metricsService.getCurrentMetrics();
   }
+
+  /**
+   * Resetea las métricas
+   */
+  resetMetrics(): void {
+    this.services.metricsService.resetMetrics();
+  }
 }
 
 

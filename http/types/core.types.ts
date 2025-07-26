@@ -1,7 +1,7 @@
+import { AuthConfig, AuthInfo, UserCredentials } from "./auth.types";
 import { CacheOptions } from "./cache.types";
 import { ProxyConfig } from "./proxy.types";
 import { StreamConfig } from "./stream.types";
-import { AuthConfig, UserCredentials, AuthInfo } from "./auth.types";
 
 /**
  * Métodos HTTP soportados
@@ -166,6 +166,10 @@ export interface HttpClient {
   configureCaching(config: import("./cache.types").CacheConfig): void;
   invalidateCache(pattern: string): void;
   invalidateCacheByTags(tags: string[]): void;
+  configureMetrics(config?: unknown): void;
+  trackActivity(type: string): void;
+  getCurrentMetrics(): unknown;
+  resetMetrics(): void;
 }
 
 /**
@@ -220,9 +224,9 @@ export interface InitConfig {
     | Array<(data: unknown) => unknown>;
 }
 
-export type { AuthConfig, UserCredentials, AuthInfo } from "./auth.types";
+export type { AuthConfig, AuthInfo, UserCredentials } from "./auth.types";
+export type { CacheConfig } from "./cache.types";
+export type { MetricsConfig, SessionMetrics } from "./metrics.types";
 export type { ProxyConfig } from "./proxy.types";
 export type { StreamConfig } from "./stream.types";
-export type { CacheConfig } from "./cache.types";
-export type { MetricsConfig } from "./metrics.types";
-export type { SessionMetrics } from "./metrics.types";
+
