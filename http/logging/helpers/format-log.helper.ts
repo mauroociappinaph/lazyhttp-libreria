@@ -1,4 +1,4 @@
-import { LogEntry } from '../types/logger.http-interface';
+import { LogEntry } from "../types/logger.http-interface";
 
 export function formatLogEntry(entry: LogEntry): string {
   const { timestamp, level, message, context } = entry;

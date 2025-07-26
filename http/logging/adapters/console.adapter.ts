@@ -1,4 +1,4 @@
-import { ILoggerAdapter, LogEntry } from '../types/logger.http-interface';
+import { ILoggerAdapter, LogEntry } from "../types/logger.http-interface";
 
 export class ConsoleLoggerAdapter implements ILoggerAdapter {
   log(entry: LogEntry): void {
@@ -9,19 +9,19 @@ export class ConsoleLoggerAdapter implements ILoggerAdapter {
       logMsg += ` | Context: ${JSON.stringify(context)}`;
     }
     switch (level) {
-      case 'debug':
+      case "debug":
         // eslint-disable-next-line no-console
         console.debug(logMsg);
         break;
-      case 'info':
+      case "info":
         // eslint-disable-next-line no-console
         console.info(logMsg);
         break;
-      case 'warn':
+      case "warn":
         // eslint-disable-next-line no-console
         console.warn(logMsg);
         break;
-      case 'error':
+      case "error":
         // eslint-disable-next-line no-console
         console.error(logMsg);
         break;

@@ -4,6 +4,6 @@
  */
 
 // Cliente HTTP público
-export { HttpClient } from './http-client.http-interface';
+export { HttpClient } from "./http-client.http-interface";
 
 // Añadir más exportaciones de interfaces aquí conforme se vayan creando
