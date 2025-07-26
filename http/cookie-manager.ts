@@ -1,4 +1,4 @@
-import { CookieOptions } from './types/auth.types';
+import { CookieOptions } from "./types/auth.types";
 
 /**
  * Clase para manejar cookies de forma segura
@@ -30,11 +30,11 @@ export class CookieManager {
     }
 
     if (options.secure) {
-      cookie += '; secure';
+      cookie += "; secure";
     }
 
     if (options.httpOnly) {
-      cookie += '; httpOnly';
+      cookie += "; httpOnly";
     }
 
     if (options.sameSite) {
@@ -50,9 +50,9 @@ export class CookieManager {
    * @returns Valor de la cookie o null si no existe
    */
   static get(name: string): string | null {
-    const cookies = document.cookie.split(';');
+    const cookies = document.cookie.split(";");
     for (const cookie of cookies) {
-      const [cookieName, cookieValue] = cookie.split('=').map(c => c.trim());
+      const [cookieName, cookieValue] = cookie.split("=").map((c) => c.trim());
       if (cookieName === name) {
         return decodeURIComponent(cookieValue);
       }
@@ -69,9 +69,9 @@ export class CookieManager {
     const deleteOptions = {
       ...options,
       maxAge: 0,
-      expires: new Date(0)
+      expires: new Date(0),
     };
-    this.set(name, '', deleteOptions);
+    this.set(name, "", deleteOptions);
   }
 
   /**

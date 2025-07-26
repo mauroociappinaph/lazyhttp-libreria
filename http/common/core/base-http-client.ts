@@ -1,5 +1,5 @@
-import { HttpClient, RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, CacheConfig, MetricsConfig, ProxyConfig, HttpMethod } from '../types';
-import { RetryConfig, RetryOptions, InitConfig } from '../../types/core.types';
+import { InitConfig, RetryConfig, RetryOptions } from '../../types/core.types';
+import { ApiResponse, AuthConfig, AuthInfo, CacheConfig, HttpClient, HttpMethod, MetricsConfig, ProxyConfig, RequestOptions, UserCredentials } from '../types';
 import { HttpUtils } from '../utils/http-utils';
 
 /**
@@ -172,6 +172,10 @@ export abstract class BaseHttpClient implements HttpClient {
 
   getCurrentMetrics(): unknown {
     throw new Error("getCurrentMetrics() debe ser implementado por la clase derivada");
+  }
+
+  resetMetrics(): void {
+    throw new Error("resetMetrics() debe ser implementado por la clase derivada");
   }
 
   // Configuración de proxy

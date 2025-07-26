@@ -1,4 +1,8 @@
-import { ILoggerAdapter, LogEntry, LogLevel } from './types/logger.http-interface';
+import {
+  ILoggerAdapter,
+  LogEntry,
+  LogLevel,
+} from "./types/logger.http-interface";
 
 export interface LoggerConfig {
   level?: LogLevel;
@@ -8,7 +12,7 @@ export interface LoggerConfig {
 export class Logger {
   private static instance: Logger;
   private adapters: ILoggerAdapter[] = [];
-  private level: LogLevel = 'info';
+  private level: LogLevel = "info";
 
   private constructor() {}
 
@@ -34,27 +38,27 @@ export class Logger {
         timestamp: Date.now(),
         level,
         message,
-        context
+        context,
       };
       this.adapters.forEach((adapter) => adapter.log(entry));
     }
   }
 
   debug(message: string, context?: Record<string, any>): void {
-    this.log('debug', message, context);
+    this.log("debug", message, context);
   }
   info(message: string, context?: Record<string, any>): void {
-    this.log('info', message, context);
+    this.log("info", message, context);
   }
   warn(message: string, context?: Record<string, any>): void {
-    this.log('warn', message, context);
+    this.log("warn", message, context);
   }
   error(message: string, context?: Record<string, any>): void {
-    this.log('error', message, context);
+    this.log("error", message, context);
   }
 
   private shouldLog(level: LogLevel): boolean {
-    const levels: LogLevel[] = ['debug', 'info', 'warn', 'error'];
+    const levels: LogLevel[] = ["debug", "info", "warn", "error"];
     return levels.indexOf(level) >= levels.indexOf(this.level);
   }
 }

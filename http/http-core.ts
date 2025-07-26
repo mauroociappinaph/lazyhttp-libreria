@@ -1,8 +1,13 @@
-import { RequestOptions, ApiResponse } from './types/core.types';
-import { retryHandler, errorHandler, prepareHeaders, responseProcessor } from './http-helpers';
-import { httpCacheManager } from './client/managers/http-cache-manager';
-import { executeWithCacheStrategy } from './http-cache-strategies';
-import { metricsManager } from './metrics/http-metrics-index';
+import { RequestOptions, ApiResponse } from "./types/core.types";
+import {
+  retryHandler,
+  errorHandler,
+  prepareHeaders,
+  responseProcessor,
+} from "./http-helpers";
+import { httpCacheManager } from "./client/managers/http-cache-manager";
+import { executeWithCacheStrategy } from "./http-cache-strategies";
+import { metricsManager } from "./metrics/http-metrics-index";
 
 const DEFAULT_TIMEOUT = 10000; // 10 segundos
 const DEFAULT_RETRIES = 0;
@@ -17,9 +22,12 @@ export class HttpCore {
   _defaultRetries: number = DEFAULT_RETRIES;
   _defaultHeaders: Record<string, string> = {};
 
-  async request<T>(endpoint: string, options: RequestOptions = {}): Promise<ApiResponse<T>> {
+  async request<T>(
+    endpoint: string,
+    options: RequestOptions = {}
+  ): Promise<ApiResponse<T>> {
     // Normalizar endpoint
-    if (!endpoint.startsWith('/') && !endpoint.startsWith('http')) {
+    if (!endpoint.startsWith("/") && !endpoint.startsWith("http")) {
       endpoint = `/${endpoint}`;
     }
 
@@ -39,20 +47,28 @@ export class HttpCore {
   }
 
   // Método privado para realizar la solicitud HTTP real
-  private async performRequest<T>(endpoint: string, options: RequestOptions): Promise<ApiResponse<T>> {
+  private async performRequest<T>(
+    endpoint: string,
+    options: RequestOptions
+  ): Promise<ApiResponse<T>> {
     const {
-      method = 'GET',
+      method = "GET",
       headers = {},
       body,
       withAuth = false,
       timeout = DEFAULT_TIMEOUT,
-      retries = DEFAULT_RETRIES
+      retries = DEFAULT_RETRIES,
     } = options;
 
     try {
       metricsManager.trackRequest(endpoint);
-      const isFullUrl = endpoint.startsWith('http://') || endpoint.startsWith('https://');
-      const finalEndpoint = isFullUrl ? endpoint : this._baseUrl ? `${this._baseUrl}${endpoint}` : endpoint;
+      const isFullUrl =
+        endpoint.startsWith("http://") || endpoint.startsWith("https://");
+      const finalEndpoint = isFullUrl
+        ? endpoint
+        : this._baseUrl
+          ? `${this._baseUrl}${endpoint}`
+          : endpoint;
       const requestHeaders = prepareHeaders(headers, withAuth);
 
       // Capturar tiempo de inicio
@@ -63,39 +79,53 @@ export class HttpCore {
         requestHeaders,
         body,
         timeout || this._defaultTimeout || DEFAULT_TIMEOUT,
-        retries !== undefined ? retries : this._defaultRetries !== undefined ? this._defaultRetries : DEFAULT_RETRIES,
+        retries !== undefined
+          ? retries
+          : this._defaultRetries !== undefined
+            ? this._defaultRetries
+            : DEFAULT_RETRIES,
         { requestStart }
       );
 
-      if (method !== 'GET') {
+      if (method !== "GET") {
         httpCacheManager.invalidateByMethod(method, endpoint);
       }
 
       // Si la respuesta ya tiene fullMeta, devolverla tal cual
-      if (response && typeof response === 'object' && 'fullMeta' in response) {
+      if (response && typeof response === "object" && "fullMeta" in response) {
         return response as ApiResponse<T>;
       }
 
       // Si la respuesta es un objeto tipo AxiosResponse (tiene config y headers), procesarla para poblar fullMeta
-      if (response && typeof response === 'object' && 'config' in response && 'headers' in response) {
+      if (
+        response &&
+        typeof response === "object" &&
+        "config" in response &&
+        "headers" in response
+      ) {
         return responseProcessor.processResponse(response as any, {
           requestHeaders,
           timing: { requestStart, responseEnd: Date.now() },
-          rawBody: typeof response.data === 'string' ? response.data : ''
+          rawBody: typeof response.data === "string" ? response.data : "",
         }) as ApiResponse<T>;
       }
 
       // Si la respuesta es un ApiResponse plano, agregar fullMeta manualmente
-      if (response && typeof response === 'object' && 'status' in response && 'data' in response) {
+      if (
+        response &&
+        typeof response === "object" &&
+        "status" in response &&
+        "data" in response
+      ) {
         return {
           ...response,
           fullMeta: {
             requestHeaders,
             responseHeaders: {},
             timing: { requestStart, responseEnd: Date.now() },
-            rawBody: typeof response.data === 'string' ? response.data : '',
-            errorDetails: undefined
-          }
+            rawBody: typeof response.data === "string" ? response.data : "",
+            errorDetails: undefined,
+          },
         } as ApiResponse<T>;
       }
 
@@ -106,53 +136,82 @@ export class HttpCore {
   }
 
   // Métodos HTTP simplificados
-  async get<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { ...options, method: 'GET' });
+  async get<T>(
+    endpoint: string,
+    options?: Omit<RequestOptions, "method" | "body">
+  ): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { ...options, method: "GET" });
   }
 
-  async getAll<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
+  async getAll<T>(
+    endpoint: string,
+    options?: Omit<RequestOptions, "method" | "body">
+  ): Promise<ApiResponse<T>> {
     const page = options?.params?.page || 1;
     const limit = options?.params?.limit || 100;
 
     const response = await this.request<T>(endpoint, {
       ...options,
-      method: 'GET',
+      method: "GET",
       params: {
         ...options?.params,
         page,
-        limit
-      }
+        limit,
+      },
     });
 
     // Agregar metadatos de paginación a la respuesta
     if (response.data && Array.isArray(response.data)) {
       response.meta = {
         currentPage: page,
-        totalItems: response.data.length
+        totalItems: response.data.length,
       };
     }
 
     return response;
   }
 
-  async getById<T>(endpoint: string, id: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { ...options, method: 'GET', params: { id } });
+  async getById<T>(
+    endpoint: string,
+    id: string,
+    options?: Omit<RequestOptions, "method" | "body">
+  ): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, {
+      ...options,
+      method: "GET",
+      params: { id },
+    });
   }
 
-  async post<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { ...options, method: 'POST', body });
+  async post<T>(
+    endpoint: string,
+    body?: unknown,
+    options?: Omit<RequestOptions, "method" | "body">
+  ): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { ...options, method: "POST", body });
   }
 
-  async put<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { ...options, method: 'PUT', body });
+  async put<T>(
+    endpoint: string,
+    body?: unknown,
+    options?: Omit<RequestOptions, "method" | "body">
+  ): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { ...options, method: "PUT", body });
   }
 
-  async patch<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { ...options, method: 'PATCH', body });
+  async patch<T>(
+    endpoint: string,
+    body?: unknown,
+    options?: Omit<RequestOptions, "method" | "body">
+  ): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { ...options, method: "PATCH", body });
   }
 
-  async delete<T>(endpoint: string, options?: Omit<RequestOptions, 'method'>): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { ...options, method: 'DELETE' });
+  async delete<T>(
+    endpoint: string,
+    options?: Omit<RequestOptions, "method">
+  ): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { ...options, method: "DELETE" });
   }
 
   /**
@@ -174,11 +233,14 @@ export class HttpCore {
    *
    * // Si alguna respuesta es null, se omite del array final
    */
-  async all<T = any>(urls: string[], options?: Omit<RequestOptions, 'method' | 'body'>): Promise<T[]> {
-    const promesas = urls.map(url => this.get<T>(url, options));
+  async all<T = any>(
+    urls: string[],
+    options?: Omit<RequestOptions, "method" | "body">
+  ): Promise<T[]> {
+    const promesas = urls.map((url) => this.get<T>(url, options));
     const resultados = await Promise.all(promesas);
     // Filtra los null para evitar errores de tipo
-    return resultados.map(r => r.data).filter((d): d is T => d !== null);
+    return resultados.map((r) => r.data).filter((d): d is T => d !== null);
   }
 
   /**
@@ -192,25 +254,34 @@ export class HttpCore {
   async upload<T = any>(
     endpoint: string,
     fields: Record<string, any>,
-    options?: Omit<RequestOptions, 'method' | 'body'> & {
+    options?: Omit<RequestOptions, "method" | "body"> & {
       validateFiles?: boolean;
       maxFileSize?: number;
     }
   ): Promise<ApiResponse<T>> {
     // Node.js
-    if (typeof window === 'undefined') {
-      const { buildNodeFormData } = await import('./server/utils/http-upload.utils');
+    if (typeof window === "undefined") {
+      const { buildNodeFormData } = await import(
+        "./server/utils/http-upload.utils"
+      );
       const { validateFiles, maxFileSize, ...restOptions } = options || {};
       let form, headers;
       try {
-        ({ form, headers } = buildNodeFormData(fields, undefined, { validateFiles, maxFileSize }));
+        ({ form, headers } = buildNodeFormData(fields, undefined, {
+          validateFiles,
+          maxFileSize,
+        }));
       } catch (err) {
         // Devuelvo el error como ApiResponse, no como excepción
-        return { data: null, error: err instanceof Error ? err.message : String(err), status: 0 };
+        return {
+          data: null,
+          error: err instanceof Error ? err.message : String(err),
+          status: 0,
+        };
       }
       return this.post(endpoint, form, {
         ...restOptions,
-        headers: { ...(restOptions.headers || {}), ...headers }
+        headers: { ...(restOptions.headers || {}), ...headers },
       });
     } else {
       // Browser: usar FormData nativo y soportar arrays

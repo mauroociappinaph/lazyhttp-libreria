@@ -36,15 +36,14 @@ export class HttpError extends Error {
   details?: ErrorDetails;
 
   static ERROR_MESSAGES: Record<string, string> = {
-    TIMEOUT: 'La solicitud ha excedido el tiempo de espera',
-    NETWORK: 'Error de conexión con el servidor',
-    UNKNOWN: 'Error desconocido',
-    ABORTED: 'La solicitud fue cancelada por timeout',
-    SESSION_EXPIRED: 'La sesión ha expirado',
-    AXIOS_ERROR: 'Error de conexión con AxiosError',
+    TIMEOUT: "La solicitud ha excedido el tiempo de espera",
+    NETWORK: "Error de conexión con el servidor",
+    UNKNOWN: "Error desconocido",
+    ABORTED: "La solicitud fue cancelada por timeout",
+    SESSION_EXPIRED: "La sesión ha expirado",
+    AXIOS_ERROR: "Error de conexión con AxiosError",
   };
 }
-
 
 export interface ErrorInfo {
   error_type: string;

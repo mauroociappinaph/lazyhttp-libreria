@@ -1,12 +1,12 @@
-import { CacheOptions } from './cache.types';
-import { ProxyConfig } from './proxy.types';
-import { StreamConfig } from './stream.types';
-import { AuthConfig, UserCredentials, AuthInfo } from './auth.types';
+import { AuthConfig, AuthInfo, UserCredentials } from "./auth.types";
+import { CacheOptions } from "./cache.types";
+import { ProxyConfig } from "./proxy.types";
+import { StreamConfig } from "./stream.types";
 
 /**
  * Métodos HTTP soportados
  */
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
 /**
  * Opciones para las peticiones HTTP
@@ -22,8 +22,12 @@ export interface RequestOptions {
   cache?: CacheOptions;
   proxy?: ProxyConfig;
   stream?: StreamConfig;
-  transformRequest?: ((data: unknown, headers?: Record<string, string>) => unknown) | Array<(data: unknown, headers?: Record<string, string>) => unknown>;
-  transformResponse?: ((data: unknown) => unknown) | Array<(data: unknown) => unknown>;
+  transformRequest?:
+    | ((data: unknown, headers?: Record<string, string>) => unknown)
+    | Array<(data: unknown, headers?: Record<string, string>) => unknown>;
+  transformResponse?:
+    | ((data: unknown) => unknown)
+    | Array<(data: unknown) => unknown>;
 }
 
 /**
@@ -116,14 +120,42 @@ export interface HttpErrorHandler {
  * Cliente HTTP - Interfaz pública
  */
 export interface HttpClient {
-  request<T>(endpoint: string, options?: RequestOptions): Promise<ApiResponse<T>>;
-  get<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
-  getAll<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
-  getById<T>(endpoint: string, id: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
-  post<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
-  put<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
-  patch<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
-  delete<T>(endpoint: string, options?: Omit<RequestOptions, 'method'>): Promise<ApiResponse<T>>;
+  request<T>(
+    endpoint: string,
+    options?: RequestOptions
+  ): Promise<ApiResponse<T>>;
+  get<T>(
+    endpoint: string,
+    options?: Omit<RequestOptions, "method" | "body">
+  ): Promise<ApiResponse<T>>;
+  getAll<T>(
+    endpoint: string,
+    options?: Omit<RequestOptions, "method" | "body">
+  ): Promise<ApiResponse<T>>;
+  getById<T>(
+    endpoint: string,
+    id: string,
+    options?: Omit<RequestOptions, "method" | "body">
+  ): Promise<ApiResponse<T>>;
+  post<T>(
+    endpoint: string,
+    body?: unknown,
+    options?: Omit<RequestOptions, "method" | "body">
+  ): Promise<ApiResponse<T>>;
+  put<T>(
+    endpoint: string,
+    body?: unknown,
+    options?: Omit<RequestOptions, "method" | "body">
+  ): Promise<ApiResponse<T>>;
+  patch<T>(
+    endpoint: string,
+    body?: unknown,
+    options?: Omit<RequestOptions, "method" | "body">
+  ): Promise<ApiResponse<T>>;
+  delete<T>(
+    endpoint: string,
+    options?: Omit<RequestOptions, "method">
+  ): Promise<ApiResponse<T>>;
   initialize(config?: Partial<InitConfig>): Promise<void>;
   configureAuth(config: AuthConfig): void;
   login(credentials: UserCredentials): Promise<AuthInfo>;
@@ -131,9 +163,13 @@ export interface HttpClient {
   isAuthenticated(): boolean;
   getAuthenticatedUser(): Promise<any | null>;
   getAccessToken(): string | null;
-  configureCaching(config: import('./cache.types').CacheConfig): void;
+  configureCaching(config: import("./cache.types").CacheConfig): void;
   invalidateCache(pattern: string): void;
   invalidateCacheByTags(tags: string[]): void;
+  configureMetrics(config?: unknown): void;
+  trackActivity(type: string): void;
+  getCurrentMetrics(): unknown;
+  resetMetrics(): void;
 }
 
 /**
@@ -176,18 +212,21 @@ export interface InitConfig {
   retries?: number;
   headers?: Record<string, string>;
   auth?: Partial<AuthConfig>;
-  cache?: Partial<import('./cache.types').CacheConfig>;
-  metrics?: Partial<import('./metrics.types').MetricsConfig>;
+  cache?: Partial<import("./cache.types").CacheConfig>;
+  metrics?: Partial<import("./metrics.types").MetricsConfig>;
   retry?: Partial<RetryConfig>;
   proxy?: ProxyConfig;
-  transformRequest?: ((data: unknown) => unknown) | Array<(data: unknown) => unknown>;
-  transformResponse?: ((data: unknown) => unknown) | Array<(data: unknown) => unknown>;
+  transformRequest?:
+    | ((data: unknown) => unknown)
+    | Array<(data: unknown) => unknown>;
+  transformResponse?:
+    | ((data: unknown) => unknown)
+    | Array<(data: unknown) => unknown>;
 }
 
-export type { AuthConfig, UserCredentials, AuthInfo } from './auth.types';
-export type { ProxyConfig } from './proxy.types';
-export type { StreamConfig } from './stream.types';
-export type { CacheConfig } from './cache.types';
-export type { MetricsConfig } from './metrics.types';
-export type { SessionMetrics } from './metrics.types';
+export type { AuthConfig, AuthInfo, UserCredentials } from "./auth.types";
+export type { CacheConfig } from "./cache.types";
+export type { MetricsConfig, SessionMetrics } from "./metrics.types";
+export type { ProxyConfig } from "./proxy.types";
+export type { StreamConfig } from "./stream.types";
 

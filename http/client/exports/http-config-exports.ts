@@ -15,3 +15,4 @@ export const invalidateCacheByTags = http.invalidateCacheByTags.bind(http);
 export const configureMetrics = http.configureMetrics.bind(http);
 export const trackActivity = http.trackActivity.bind(http);
 export const getCurrentMetrics = http.getCurrentMetrics.bind(http);
+export const resetMetrics = http.resetMetrics.bind(http);

@@ -9,6 +9,6 @@ export interface ProxyConfig {
     username: string;
     password: string;
   };
-  protocol?: 'http' | 'https' | 'socks';
+  protocol?: "http" | "https" | "socks";
   rejectUnauthorized?: boolean;
 }

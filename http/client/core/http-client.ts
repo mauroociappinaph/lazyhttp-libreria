@@ -1,18 +1,19 @@
 import { HttpCore } from '../../http-core';
-import { RequestOptions, ApiResponse, AuthConfig, UserCredentials, AuthInfo, HttpClient as IHttpClient } from '../../types/core.types';
+import { ApiResponse, AuthConfig, AuthInfo, HttpClient as IHttpClient, RequestOptions, UserCredentials } from '../../types/core.types';
 import { ProxyConfig } from '../../types/proxy.types';
 import { StreamConfig } from '../../types/stream.types';
 
 import { interceptorsManager } from '../../interceptors/http-interceptors-manager';
 
 import { httpLogger } from '../../http-logger';
-import { HttpPropertyManager } from '../managers/http-property-manager';
+import { ServiceFactory, type ServiceContainer } from '../../services/index';
+import { buildUrl, createProxyAgent, prepareRequestHeaders } from '../helpers/http-client.helpers';
 import { HttpAuthManager } from '../managers/http-auth-manager';
 import { HttpConfigManager } from '../managers/http-config-manager';
 import { HttpOperationsManager } from '../managers/http-operations-manager';
-import { HttpOperations } from './http-operations';
+import { HttpPropertyManager } from '../managers/http-property-manager';
 import { createResourceAccessor } from '../utils/create-resource-accessor';
-import { buildUrl, prepareRequestHeaders, createProxyAgent } from '../helpers/http-client.helpers';
+import { HttpOperations } from './http-operations';
 
 export class HttpClient implements IHttpClient, HttpOperations {
   private core = new HttpCore();
@@ -20,6 +21,7 @@ export class HttpClient implements IHttpClient, HttpOperations {
   private authManager: HttpAuthManager;
   private configManager: HttpConfigManager;
   private operationsManager: HttpOperationsManager;
+  private services: ServiceContainer;
 
   public readonly get: HttpOperations['get'];
   public readonly getAll: HttpOperations['getAll'];
@@ -35,6 +37,13 @@ export class HttpClient implements IHttpClient, HttpOperations {
     this.authManager = new HttpAuthManager();
     this.configManager = new HttpConfigManager(this.propertyManager);
     this.operationsManager = new HttpOperationsManager(this.core);
+
+    // Inicializar servicios centralizados
+    this.services = ServiceFactory.createNodeServices(
+      this.authManager,
+      this.configManager,
+      {} // metricsConfig - se puede configurar después
+    );
 
     this.get = createResourceAccessor(this.operationsManager.get.bind(this.operationsManager), this) as HttpOperations['get'];
     this.getAll = createResourceAccessor(this.operationsManager.getAll.bind(this.operationsManager), this) as HttpOperations['getAll'];
@@ -77,15 +86,15 @@ export class HttpClient implements IHttpClient, HttpOperations {
   get _responseInterceptors() { return interceptorsManager.getResponseInterceptors(); }
   _setupInterceptors(): void { /* Future implementation */ }
 
-  // Auth methods
-  public configureAuth(config: AuthConfig): void { this.authManager.configureAuth(config); }
-  public async login(credentials: UserCredentials): Promise<AuthInfo> { return this.authManager.login(credentials); }
-  public async logout(): Promise<void> { return this.authManager.logout(); }
-  public isAuthenticated(): boolean { return this.authManager.isAuthenticated(); }
-  public async getAuthenticatedUser(): Promise<unknown | null> { return this.authManager.getAuthenticatedUser(); }
-  public getAccessToken(): string | null { return this.authManager.getAccessToken(); }
-  public async _refreshToken(): Promise<string> { return this.authManager.refreshToken(); }
-  public async _handleRefreshTokenFailure(): Promise<void> { return this.authManager.handleRefreshTokenFailure(); }
+  // Auth methods - delegados a servicios centralizados
+  public configureAuth(config: AuthConfig): void { this.services.authService.configureAuth(config); }
+  public async login(credentials: UserCredentials): Promise<AuthInfo> { return this.services.authService.login(credentials); }
+  public async logout(): Promise<void> { return this.services.authService.logout(); }
+  public isAuthenticated(): boolean { return this.services.authService.isAuthenticated(); }
+  public async getAuthenticatedUser(): Promise<unknown | null> { return this.services.authService.getAuthenticatedUser(); }
+  public getAccessToken(): string | null { return this.services.authService.getAccessToken(); }
+  public async _refreshToken(): Promise<string> { return this.services.authService.refreshToken(); }
+  public async _handleRefreshTokenFailure(): Promise<void> { return this.services.authService.handleRefreshTokenFailure(); }
   public _isTokenExpired(token: string | number): boolean { return this.authManager.isTokenExpired(token); }
   public _storeToken(key: string, value: string): void { this.authManager.storeToken(key, value); }
   public _getToken(key: string): string | null { return this.authManager.getToken(key); }
@@ -96,12 +105,13 @@ export class HttpClient implements IHttpClient, HttpOperations {
   public async initialize(config?: any): Promise<void> {
     await this.configManager.initialize(config);
   }
-  public configureCaching(): void { /* Future implementation */ }
-  public invalidateCache(pattern: string): void { this.configManager.invalidateCache(pattern); }
-  public invalidateCacheByTags(tags: string[]): void { this.configManager.invalidateCacheByTags(tags); }
-  public configureMetrics(): void { /* Future implementation */ }
-  public trackActivity(type: string): void { this.configManager.trackActivity(type); }
-  public getCurrentMetrics() { return { requests: 0, errors: 0, cacheHits: 0, cacheMisses: 0 }; }
+  public configureCaching(config?: unknown): void { this.services.cacheService.configureCaching(config); }
+  public invalidateCache(pattern: string): void { this.services.cacheService.invalidateCache(pattern); }
+  public invalidateCacheByTags(tags: string[]): void { this.services.cacheService.invalidateCacheByTags(tags); }
+  public configureMetrics(config?: unknown): void { this.services.metricsService.configureMetrics(config); }
+  public trackActivity(type: string): void { this.services.metricsService.trackActivity(type); }
+  public getCurrentMetrics() { return this.services.metricsService.getCurrentMetrics(); }
+  public resetMetrics(): void { this.services.metricsService.resetMetrics(); }
   public configureProxy(config: ProxyConfig): void { this.configManager.configureProxy(config); }
 
   // Utility methods

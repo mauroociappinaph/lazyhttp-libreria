@@ -1,5 +1,5 @@
-import FormData from 'form-data';
-import fs from 'fs';
+import FormData from "form-data";
+import fs from "fs";
 
 export interface BuildNodeFormDataOptions {
   validateFiles?: boolean; // default true
@@ -20,22 +20,26 @@ export function buildNodeFormData(
   fields: Record<string, any>,
   _reserved?: any,
   options: BuildNodeFormDataOptions = {}
-): { form: FormData, headers: any } {
+): { form: FormData; headers: any } {
   const { validateFiles = true, maxFileSize } = options;
   const form = new FormData();
   for (const key in fields) {
     const value = fields[key];
     if (Array.isArray(value)) {
       value.forEach((item) => {
-        if (typeof item === 'string') {
+        if (typeof item === "string") {
           if (validateFiles) {
             if (!fs.existsSync(item) || !fs.statSync(item).isFile()) {
-              throw new Error(`El archivo '${item}' no existe o no es un archivo válido (campo '${key}')`);
+              throw new Error(
+                `El archivo '${item}' no existe o no es un archivo válido (campo '${key}')`
+              );
             }
             if (maxFileSize) {
               const stats = fs.statSync(item);
               if (stats.size > maxFileSize) {
-                throw new Error(`Archivo '${item}' excede el tamaño máximo permitido (${maxFileSize} bytes)`);
+                throw new Error(
+                  `Archivo '${item}' excede el tamaño máximo permitido (${maxFileSize} bytes)`
+                );
               }
             }
           }
@@ -44,15 +48,19 @@ export function buildNodeFormData(
           form.append(key, item);
         }
       });
-    } else if (typeof value === 'string') {
+    } else if (typeof value === "string") {
       if (validateFiles) {
         if (!fs.existsSync(value) || !fs.statSync(value).isFile()) {
-          throw new Error(`El archivo '${value}' no existe o no es un archivo válido (campo '${key}')`);
+          throw new Error(
+            `El archivo '${value}' no existe o no es un archivo válido (campo '${key}')`
+          );
         }
         if (maxFileSize) {
           const stats = fs.statSync(value);
           if (stats.size > maxFileSize) {
-            throw new Error(`Archivo '${value}' excede el tamaño máximo permitido (${maxFileSize} bytes)`);
+            throw new Error(
+              `Archivo '${value}' excede el tamaño máximo permitido (${maxFileSize} bytes)`
+            );
           }
         }
       }

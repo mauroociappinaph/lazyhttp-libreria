@@ -1,13 +1,18 @@
-import { AxiosResponse } from 'axios';
-import { DebugLevel, debugConfig } from '../http-config';
+import { AxiosResponse } from "axios";
+import { DebugLevel, debugConfig } from "../http-config";
 
 /**
  * Oculta datos sensibles de los headers (como Authorization)
  */
-function sanitizeHeaders(headers: Record<string, string>): Record<string, string> {
+function sanitizeHeaders(
+  headers: Record<string, string>
+): Record<string, string> {
   const safeHeaders = { ...headers };
   if (safeHeaders.Authorization) {
-    safeHeaders.Authorization = safeHeaders.Authorization.replace(/Bearer .+/, 'Bearer [REDACTED]');
+    safeHeaders.Authorization = safeHeaders.Authorization.replace(
+      /Bearer .+/,
+      "Bearer [REDACTED]"
+    );
   }
   return safeHeaders;
 }
@@ -16,7 +21,11 @@ function sanitizeHeaders(headers: Record<string, string>): Record<string, string
  * Formatea los datos para logging (clonado seguro y pretty print si aplica)
  */
 function formatLogData(data: unknown): unknown {
-  if (debugConfig.prettyPrintJSON && typeof data === 'object' && data !== null) {
+  if (
+    debugConfig.prettyPrintJSON &&
+    typeof data === "object" &&
+    data !== null
+  ) {
     try {
       return JSON.parse(JSON.stringify(data));
     } catch {
@@ -37,7 +46,7 @@ export const logger = {
    */
   error(message: string, data?: unknown): void {
     if (debugConfig.level >= DebugLevel.ERROR) {
-      this._log('error', message, data);
+      this._log("error", message, data);
     }
   },
 
@@ -48,7 +57,7 @@ export const logger = {
    */
   warn(message: string, data?: unknown): void {
     if (debugConfig.level >= DebugLevel.WARNING) {
-      this._log('warning', message, data);
+      this._log("warning", message, data);
     }
   },
 
@@ -59,7 +68,7 @@ export const logger = {
    */
   info(message: string, data?: unknown): void {
     if (debugConfig.level >= DebugLevel.INFO) {
-      this._log('info', message, data);
+      this._log("info", message, data);
     }
   },
 
@@ -70,14 +79,18 @@ export const logger = {
    */
   debug(message: string, data?: unknown): void {
     if (debugConfig.level >= DebugLevel.DEBUG) {
-      this._log('debug', message, data);
+      this._log("debug", message, data);
     }
   },
 
   /**
    * Método interno para registrar mensajes con formato
    */
-  _log(level: 'error' | 'warning' | 'info' | 'debug', message: string, data?: unknown): void {
+  _log(
+    level: "error" | "warning" | "info" | "debug",
+    message: string,
+    data?: unknown
+  ): void {
     const colorStyle = `color: ${debugConfig.colors[level] || debugConfig.colors.default}; font-weight: bold;`;
 
     // Formatear el mensaje
@@ -89,16 +102,16 @@ export const logger = {
 
     // Log de datos adicionales
     if (data !== undefined) {
-      if (debugConfig.prettyPrintJSON && typeof data === 'object') {
-        console.log('%cDatos:', 'font-weight: bold');
+      if (debugConfig.prettyPrintJSON && typeof data === "object") {
+        console.log("%cDatos:", "font-weight: bold");
         console.dir(data, { depth: null, colors: true });
       } else {
-        console.log('%cDatos:', 'font-weight: bold', data);
+        console.log("%cDatos:", "font-weight: bold", data);
       }
     }
 
     console.groupEnd();
-  }
+  },
 };
 
 export { sanitizeHeaders, formatLogData, debugConfig };
@@ -120,7 +133,7 @@ export function logRequest(
 
   logger.info(`${method} ${url}`, {
     headers: sanitizeHeaders(headers),
-    body: formatLogData(body)
+    body: formatLogData(body),
   });
 }
 
@@ -131,12 +144,13 @@ export function logRequest(
 export function logResponse(response: AxiosResponse): void {
   if (!debugConfig.logResponses) return;
 
-  const level = response.status >= 400 ? 'error' : 'info';
-  const logFn = level === 'error' ? logger.error.bind(logger) : logger.info.bind(logger);
+  const level = response.status >= 400 ? "error" : "info";
+  const logFn =
+    level === "error" ? logger.error.bind(logger) : logger.info.bind(logger);
 
   logFn(`Respuesta ${response.status} ${response.config.url}`, {
     status: response.status,
     headers: response.headers,
-    data: response.data
+    data: response.data,
   });
 }

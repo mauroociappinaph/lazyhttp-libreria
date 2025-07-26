@@ -1,10 +1,10 @@
-import { ApiResponse } from './types/core.types';
-import { DebugLevel } from './http-config';
+import { ApiResponse } from "./types/core.types";
+import { DebugLevel } from "./http-config";
 
 export interface LoggerConfig {
   enabled: boolean;
   level: DebugLevel;
-  format?: 'console' | 'json';
+  format?: "console" | "json";
   colors?: boolean;
 }
 
@@ -13,8 +13,8 @@ export class HttpLogger {
   private config: LoggerConfig = {
     enabled: true,
     level: DebugLevel.ERROR,
-    format: 'console',
-    colors: true
+    format: "console",
+    colors: true,
   };
 
   private constructor() {}
@@ -39,14 +39,16 @@ export class HttpLogger {
     const errorInfo = {
       message: error,
       status,
-      details: details ? {
-        description: details.description,
-        cause: details.cause,
-        solution: details.solution
-      } : undefined
+      details: details
+        ? {
+            description: details.description,
+            cause: details.cause,
+            solution: details.solution,
+          }
+        : undefined,
     };
 
-    if (this.config.format === 'json') {
+    if (this.config.format === "json") {
       console.error(JSON.stringify(errorInfo, null, 2));
     } else {
       this.logFormattedError(errorInfo);
@@ -63,8 +65,8 @@ export class HttpLogger {
     };
   }): void {
     const { message, status, details } = errorInfo;
-    const prefix = this.config.colors ? '\x1b[31m' : ''; // Red color
-    const suffix = this.config.colors ? '\x1b[0m' : ''; // Reset color
+    const prefix = this.config.colors ? "\x1b[31m" : ""; // Red color
+    const suffix = this.config.colors ? "\x1b[0m" : ""; // Reset color
 
     console.error(`${prefix}Error (${status}):${suffix} ${message}`);
 

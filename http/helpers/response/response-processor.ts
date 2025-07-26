@@ -1,6 +1,9 @@
-import { AxiosResponse } from 'axios';
-import { ApiResponse, HttpResponseProcessor } from '../../types/core/response.types';
-import { logResponse } from '../logging/logger';
+import { AxiosResponse } from "axios";
+import {
+  ApiResponse,
+  HttpResponseProcessor,
+} from "../../types/core/response.types";
+import { logResponse } from "../logging/logger";
 
 /**
  * Implementación del procesador de respuestas HTTP
@@ -16,8 +19,8 @@ export const responseProcessor: HttpResponseProcessor = {
       ...response,
       config: {
         ...response.config,
-        url: response.config.url ?? ''
-      }
+        url: response.config.url ?? "",
+      },
     });
 
     // Extraer datos y preparar respuesta estandarizada
@@ -28,10 +31,10 @@ export const responseProcessor: HttpResponseProcessor = {
       meta: {
         headers: response.headers,
         url: response.config.url,
-        method: response.config.method?.toUpperCase()
-      }
+        method: response.config.method?.toUpperCase(),
+      },
     };
 
     return apiResponse;
-  }
+  },
 };

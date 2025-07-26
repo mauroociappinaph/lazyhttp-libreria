@@ -1,4 +1,4 @@
-import { setupInterceptors } from '../http-helpers';
+import { setupInterceptors } from "../http-helpers";
 
 /**
  * Clase para gestionar los interceptores de peticiones y respuestas
@@ -12,7 +12,7 @@ export class InterceptorsManager {
    * @param interceptor Función interceptora
    * @param type Tipo de interceptor ('request' | 'response')
    */
-  setupInterceptors(interceptor?: any, type?: 'request' | 'response'): void {
+  setupInterceptors(interceptor?: any, type?: "request" | "response"): void {
     // Si no hay parámetros, reiniciar los arrays
     if (!interceptor && !type) {
       this.requestInterceptors = [];
@@ -22,9 +22,9 @@ export class InterceptorsManager {
     }
 
     // Añadir el interceptor al array apropiado
-    if (type === 'request') {
+    if (type === "request") {
       this.requestInterceptors.push(interceptor);
-    } else if (type === 'response') {
+    } else if (type === "response") {
       this.responseInterceptors.push(interceptor);
     }
 

@@ -36,9 +36,10 @@ export const invalidateCacheByTags = http.invalidateCacheByTags.bind(http);
 export const configureMetrics = http.configureMetrics.bind(http);
 export const trackActivity = http.trackActivity.bind(http);
 export const getCurrentMetrics = http.getCurrentMetrics.bind(http);
+export const resetMetrics = http.resetMetrics.bind(http);
 
 // Versión stub de funciones de servidor para mantener compatibilidad de API
-export const configureProxy = (_config: any) => {
+export const configureProxy = (_config: unknown) => {
   console.warn('Proxy configuration is not supported in browser environments');
   return false;
 };

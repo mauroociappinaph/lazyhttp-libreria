@@ -21,7 +21,7 @@ describe("ensureSuccess", () => {
       throw new Error("No lanzó excepción");
     } catch (err: unknown) {
       expect(err).toBeInstanceOf(Error);
-      if (err && typeof err === 'object') {
+      if (err && typeof err === "object") {
         expect((err as { message?: string }).message).toBe("No autorizado");
         expect((err as { code?: string }).code).toBe("AUTH");
         expect((err as { details?: unknown }).details).toEqual({ foo: 1 });

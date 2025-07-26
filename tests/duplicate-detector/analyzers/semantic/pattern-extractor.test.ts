@@ -1,6 +1,10 @@
 // Tests for pattern extractor
-import { PatternExtractor } from '../../../../duplicate-detector/analyzers/semantic/pattern-extractor';
-import { FunctionNode, ParameterNode, ASTNode } from '../../../../duplicate-detector/types';
+import { PatternExtractor } from "../../../../duplicate-detector/analyzers/semantic/pattern-extractor";
+import {
+  FunctionNode,
+  ParameterNode,
+  ASTNode,
+} from "../../../../duplicate-detector/types";
 
 // Helper function to create mock function nodes for testing
 function createMockFunctionNode(
@@ -11,7 +15,7 @@ function createMockFunctionNode(
   bodyNodes: ASTNode[] = []
 ): FunctionNode {
   return {
-    type: 'FunctionDeclaration',
+    type: "FunctionDeclaration",
     name,
     parameters,
     returnType,
@@ -21,40 +25,47 @@ function createMockFunctionNode(
     children: [],
     position: {
       line: 1,
-      column: 0
-    }
+      column: 0,
+    },
   };
 }
 
 // Helper function to create mock AST nodes
-function createMockASTNode(type: string, children: ASTNode[] = [], value?: unknown): ASTNode {
+function createMockASTNode(
+  type: string,
+  children: ASTNode[] = [],
+  value?: unknown
+): ASTNode {
   return {
     type,
     children,
     value,
     position: {
       line: 1,
-      column: 0
-    }
+      column: 0,
+    },
   };
 }
 
 // Helper function to create mock parameter nodes
-function createMockParameterNode(name: string, parameterType?: string): ParameterNode {
+function createMockParameterNode(
+  name: string,
+  parameterType?: string
+): ParameterNode {
   return {
     name,
     parameterType,
     isOptional: false,
-    type: 'Parameter',
+    type: "Parameter",
     children: [],
     position: {
       line: 1,
-      column: 0
-    }
+      column: 0,
+    },
   };
 }
 
-describe('PatternExtractor', () => {
+describe("PatternExtractor", () => {
   let extractor: PatternExtractor;
   let mockFunctions: FunctionNode[];
 
@@ -65,68 +76,68 @@ describe('PatternExtractor', () => {
     mockFunctions = [
       // Function 1: Simple data processing with conditional and loop
       createMockFunctionNode(
-        'processData',
+        "processData",
         false,
-        [createMockParameterNode('data', 'any[]')],
-        'any[]',
+        [createMockParameterNode("data", "any[]")],
+        "any[]",
         [
-          createMockASTNode('IfStatement', [
-            createMockASTNode('BinaryExpression', [], '==='),
-            createMockASTNode('BlockStatement', [
-              createMockASTNode('ReturnStatement', [
-                createMockASTNode('ArrayExpression')
-              ])
-            ])
+          createMockASTNode("IfStatement", [
+            createMockASTNode("BinaryExpression", [], "==="),
+            createMockASTNode("BlockStatement", [
+              createMockASTNode("ReturnStatement", [
+                createMockASTNode("ArrayExpression"),
+              ]),
+            ]),
           ]),
-          createMockASTNode('ForStatement', [
-            createMockASTNode('BlockStatement', [
-              createMockASTNode('AssignmentExpression'),
-              createMockASTNode('CallExpression')
-            ])
+          createMockASTNode("ForStatement", [
+            createMockASTNode("BlockStatement", [
+              createMockASTNode("AssignmentExpression"),
+              createMockASTNode("CallExpression"),
+            ]),
           ]),
-          createMockASTNode('ReturnStatement', [
-            createMockASTNode('Identifier', [], 'result')
-          ])
+          createMockASTNode("ReturnStatement", [
+            createMockASTNode("Identifier", [], "result"),
+          ]),
         ]
       ),
 
       // Function 2: Async API call with error handling
       createMockFunctionNode(
-        'fetchData',
+        "fetchData",
         true,
-        [createMockParameterNode('url', 'string')],
-        'Promise<any>',
+        [createMockParameterNode("url", "string")],
+        "Promise<any>",
         [
-          createMockASTNode('TryStatement', [
-            createMockASTNode('BlockStatement', [
-              createMockASTNode('AwaitExpression', [
-                createMockASTNode('CallExpression')
+          createMockASTNode("TryStatement", [
+            createMockASTNode("BlockStatement", [
+              createMockASTNode("AwaitExpression", [
+                createMockASTNode("CallExpression"),
               ]),
-              createMockASTNode('ReturnStatement')
+              createMockASTNode("ReturnStatement"),
             ]),
-            createMockASTNode('CatchClause', [
-              createMockASTNode('BlockStatement', [
-                createMockASTNode('ThrowStatement')
-              ])
-            ])
-          ])
+            createMockASTNode("CatchClause", [
+              createMockASTNode("BlockStatement", [
+                createMockASTNode("ThrowStatement"),
+              ]),
+            ]),
+          ]),
         ]
-      )
+      ),
     ];
   });
 
-  describe('extractLogicPattern', () => {
-    it('should extract logic pattern from function node', () => {
+  describe("extractLogicPattern", () => {
+    it("should extract logic pattern from function node", () => {
       const pattern = extractor.extractLogicPattern(mockFunctions[0]);
 
       expect(pattern).toBeDefined();
-      expect(pattern.signature).toContain('fn(1):sync:return');
+      expect(pattern.signature).toContain("fn(1):sync:return");
       expect(pattern.complexity).toBeGreaterThan(1);
-      expect(pattern.operations).toContain('return');
-      expect(pattern.controlFlow).toContain('conditional');
+      expect(pattern.operations).toContain("return");
+      expect(pattern.controlFlow).toContain("conditional");
     });
 
-    it('should extract different patterns for different function structures', () => {
+    it("should extract different patterns for different function structures", () => {
       const pattern1 = extractor.extractLogicPattern(mockFunctions[0]);
       const pattern2 = extractor.extractLogicPattern(mockFunctions[1]);
 
@@ -135,11 +146,11 @@ describe('PatternExtractor', () => {
       expect(pattern1.controlFlow).not.toEqual(pattern2.controlFlow);
     });
 
-    it('should include async information in pattern signature', () => {
+    it("should include async information in pattern signature", () => {
       const pattern = extractor.extractLogicPattern(mockFunctions[1]);
 
-      expect(pattern.signature).toContain('async');
-      expect(pattern.controlFlow).toContain('exception-handling');
+      expect(pattern.signature).toContain("async");
+      expect(pattern.controlFlow).toContain("exception-handling");
     });
   });
 });

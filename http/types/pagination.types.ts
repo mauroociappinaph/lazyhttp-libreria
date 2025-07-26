@@ -1,4 +1,4 @@
-import { ApiResponse } from './core.types';
+import { ApiResponse } from "./core.types";
 
 export interface PaginationMeta {
   currentPage: number;

@@ -1,7 +1,7 @@
 /**
  * Tipos de autenticación soportados
  */
-export type AuthType = 'jwt' | 'oauth2' | 'basic' | 'session';
+export type AuthType = "jwt" | "oauth2" | "basic" | "session";
 
 /**
  * Opciones para la configuración de cookies
@@ -13,13 +13,13 @@ export interface CookieOptions {
   path?: string;
   secure?: boolean;
   httpOnly?: boolean;
-  sameSite?: 'Strict' | 'Lax' | 'None';
+  sameSite?: "Strict" | "Lax" | "None";
 }
 
 /**
  * Tipo de almacenamiento para los tokens de autenticación
  */
-export type StorageType = 'cookie' | 'localStorage' | 'sessionStorage';
+export type StorageType = "cookie" | "localStorage" | "sessionStorage";
 
 /**
  * Configuración de autenticación

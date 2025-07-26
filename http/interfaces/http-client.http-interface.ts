@@ -6,42 +6,70 @@ export interface HttpClient {
   /**
    * Realiza una petición HTTP genérica
    */
-  request<T>(endpoint: string, options?: RequestOptions): Promise<ApiResponse<T>>;
+  request<T>(
+    endpoint: string,
+    options?: RequestOptions
+  ): Promise<ApiResponse<T>>;
 
   /**
    * Realiza una petición GET
    */
-  get<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
+  get<T>(
+    endpoint: string,
+    options?: Omit<RequestOptions, "method" | "body">
+  ): Promise<ApiResponse<T>>;
 
   /**
    * Realiza una petición GET para obtener todos los elementos de una colección
    */
-  getAll<T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
+  getAll<T>(
+    endpoint: string,
+    options?: Omit<RequestOptions, "method" | "body">
+  ): Promise<ApiResponse<T>>;
 
   /**
    * Realiza una petición GET para obtener un elemento por su ID
    */
-  getById<T>(endpoint: string, id: string, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
+  getById<T>(
+    endpoint: string,
+    id: string,
+    options?: Omit<RequestOptions, "method" | "body">
+  ): Promise<ApiResponse<T>>;
 
   /**
    * Realiza una petición POST
    */
-  post<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
+  post<T>(
+    endpoint: string,
+    body?: unknown,
+    options?: Omit<RequestOptions, "method" | "body">
+  ): Promise<ApiResponse<T>>;
 
   /**
    * Realiza una petición PUT
    */
-  put<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
+  put<T>(
+    endpoint: string,
+    body?: unknown,
+    options?: Omit<RequestOptions, "method" | "body">
+  ): Promise<ApiResponse<T>>;
 
   /**
    * Realiza una petición PATCH
    */
-  patch<T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>): Promise<ApiResponse<T>>;
+  patch<T>(
+    endpoint: string,
+    body?: unknown,
+    options?: Omit<RequestOptions, "method" | "body">
+  ): Promise<ApiResponse<T>>;
 
   /**
    * Realiza una petición DELETE
    */
-  delete<T>(endpoint: string, options?: Omit<RequestOptions, 'method'>): Promise<ApiResponse<T>>;
+  delete<T>(
+    endpoint: string,
+    options?: Omit<RequestOptions, "method">
+  ): Promise<ApiResponse<T>>;
 
   /**
    * Inicializa el cliente HTTP
@@ -102,9 +130,33 @@ export interface HttpClient {
    * @param tags Tags para invalidar
    */
   invalidateCacheByTags(tags: string[]): void;
+
+  /**
+   * Configura el sistema de métricas
+   * @param config Configuración de métricas
+   */
+  configureMetrics(config?: unknown): void;
+
+  /**
+   * Registra actividad para métricas
+   * @param type Tipo de actividad a registrar
+   */
+  trackActivity(type: string): void;
+
+  /**
+   * Obtiene las métricas actuales
+   * @returns Datos de métricas actuales
+   */
+  getCurrentMetrics(): any;
+
+  /**
+   * Resetea las métricas
+   */
+  resetMetrics(): void;
 }
 
 // Exporta los tipos utilizados en esta interfaz
-import { RequestOptions, ApiResponse, InitConfig } from '../types/core.types';
-import { AuthConfig, UserCredentials, AuthInfo } from '../types/auth.types';
-import { CacheConfig } from '../types/cache.types';
+import { AuthConfig, AuthInfo, UserCredentials } from "../types/auth.types";
+import { CacheConfig } from "../types/cache.types";
+import { ApiResponse, InitConfig, RequestOptions } from "../types/core.types";
+

@@ -1,7 +1,7 @@
-import { HttpResponseProcessor } from '../types/core.types';
-import { AxiosResponse } from 'axios';
-import { ApiResponse } from '../types/core/response.types';
-import { FullResponseMetadata } from '../types/core/response.types';
+import { HttpResponseProcessor } from "../types/core.types";
+import { AxiosResponse } from "axios";
+import { ApiResponse } from "../types/core/response.types";
+import { FullResponseMetadata } from "../types/core/response.types";
 
 /**
  * Implementación del procesador de respuestas HTTP
@@ -27,39 +27,47 @@ export const responseProcessor: HttpResponseProcessor = {
     // Detectar si hay metadatos de paginación en los headers
     const meta: Record<string, any> = {};
 
-    if (headers['x-total-count']) {
-      meta.totalItems = parseInt(headers['x-total-count'], 10);
+    if (headers["x-total-count"]) {
+      meta.totalItems = parseInt(headers["x-total-count"], 10);
     }
-    if (headers['x-page']) {
-      meta.currentPage = parseInt(headers['x-page'], 10);
+    if (headers["x-page"]) {
+      meta.currentPage = parseInt(headers["x-page"], 10);
     }
-    if (headers['x-per-page']) {
-      meta.perPage = parseInt(headers['x-per-page'], 10);
+    if (headers["x-per-page"]) {
+      meta.perPage = parseInt(headers["x-per-page"], 10);
     }
-    if (headers['x-total-pages']) {
-      meta.totalPages = parseInt(headers['x-total-pages'], 10);
+    if (headers["x-total-pages"]) {
+      meta.totalPages = parseInt(headers["x-total-pages"], 10);
     }
 
     // Normalizar headers recibidos a Record<string, string>
     const normalizedResponseHeaders: Record<string, string> = {};
     Object.entries(headers).forEach(([key, value]) => {
-      if (typeof value === 'string') normalizedResponseHeaders[key] = value;
-      else if (Array.isArray(value)) normalizedResponseHeaders[key] = value.join(', ');
-      else if (value !== undefined && value !== null) normalizedResponseHeaders[key] = String(value);
+      if (typeof value === "string") normalizedResponseHeaders[key] = value;
+      else if (Array.isArray(value))
+        normalizedResponseHeaders[key] = value.join(", ");
+      else if (value !== undefined && value !== null)
+        normalizedResponseHeaders[key] = String(value);
     });
 
     // Construir metadatos completos
-    const timing: FullResponseMetadata['timing'] = {
+    const timing: FullResponseMetadata["timing"] = {
       requestStart: metaOpcional?.timing?.requestStart ?? Date.now(),
-      responseEnd: metaOpcional?.timing?.responseEnd ?? Date.now()
+      responseEnd: metaOpcional?.timing?.responseEnd ?? Date.now(),
     };
-    let rawBody: string | Buffer = '';
+    let rawBody: string | Buffer = "";
     if (metaOpcional?.rawBody) {
-      if (typeof Buffer !== 'undefined' && metaOpcional.rawBody instanceof Uint8Array) {
+      if (
+        typeof Buffer !== "undefined" &&
+        metaOpcional.rawBody instanceof Uint8Array
+      ) {
         rawBody = Buffer.from(metaOpcional.rawBody);
-      } else if (typeof metaOpcional.rawBody === 'string') {
+      } else if (typeof metaOpcional.rawBody === "string") {
         rawBody = metaOpcional.rawBody;
-      } else if (typeof Buffer !== 'undefined' && metaOpcional.rawBody instanceof Buffer) {
+      } else if (
+        typeof Buffer !== "undefined" &&
+        metaOpcional.rawBody instanceof Buffer
+      ) {
         rawBody = metaOpcional.rawBody;
       } else {
         rawBody = String(metaOpcional.rawBody);
@@ -70,7 +78,7 @@ export const responseProcessor: HttpResponseProcessor = {
       responseHeaders: normalizedResponseHeaders,
       timing,
       rawBody,
-      errorDetails: undefined
+      errorDetails: undefined,
     };
 
     // Construir respuesta estándar
@@ -79,7 +87,7 @@ export const responseProcessor: HttpResponseProcessor = {
       error: null,
       status: status,
       ...(Object.keys(meta).length > 0 ? { meta } : {}),
-      fullMeta
+      fullMeta,
     } as ApiResponse<T>;
-  }
+  },
 };

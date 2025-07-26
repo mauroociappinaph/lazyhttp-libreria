@@ -1,5 +1,5 @@
-import { debugConfig } from '../http-config';
-import { SessionMetrics, MetricsConfig } from '../types/core.types';
+import { debugConfig } from "../http-config";
+import { SessionMetrics, MetricsConfig } from "../types/core.types";
 
 /**
  * Módulo de gestión de estado
@@ -12,12 +12,12 @@ const StateManager = (() => {
       enabled: false,
       reportingInterval: 0,
       trackRoutes: false,
-      trackEvents: []
+      trackEvents: [],
     } as MetricsConfig,
     metrics: null as SessionMetrics | null,
     intervals: {
-      reporting: null as NodeJS.Timeout | null
-    }
+      reporting: null as NodeJS.Timeout | null,
+    },
   };
 
   // API
@@ -39,7 +39,7 @@ const StateManager = (() => {
     setReportingInterval: (interval: NodeJS.Timeout | null) => {
       state.intervals.reporting = interval;
     },
-    isEnabled: () => state.config.enabled && state.metrics !== null
+    isEnabled: () => state.config.enabled && state.metrics !== null,
   };
 })();
 
@@ -49,7 +49,7 @@ const StateManager = (() => {
  */
 const IdGenerator = {
   generateSessionId: () =>
-    Date.now().toString(36) + Math.random().toString(36).substring(2)
+    Date.now().toString(36) + Math.random().toString(36).substring(2),
 };
 
 /**
@@ -58,12 +58,12 @@ const IdGenerator = {
  */
 const TimeTracker = {
   updateActivityTime: () => {
-    StateManager.updateMetrics(metrics => {
+    StateManager.updateMetrics((metrics) => {
       const now = Date.now();
       metrics.activeTime += now - metrics.lastActivity;
       metrics.lastActivity = now;
     });
-  }
+  },
 };
 
 /**
@@ -78,7 +78,7 @@ const NotificationService = {
     if (config.onMetricsUpdate && metrics) {
       config.onMetricsUpdate({ ...metrics });
     }
-  }
+  },
 };
 
 /**
@@ -87,24 +87,25 @@ const NotificationService = {
  */
 const ActivityTracker = {
   setupTracking: () => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     // Eventos de actividad básica
-    const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+    const events = ["mousemove", "keydown", "click", "scroll", "touchstart"];
     const trackActivity = () => {
       TimeTracker.updateActivityTime();
       NotificationService.notifyMetricsUpdate();
     };
 
-    events.forEach(event => window.addEventListener(event, trackActivity));
+    events.forEach((event) => window.addEventListener(event, trackActivity));
 
     // Eventos personalizados
     const config = StateManager.getConfig();
     if (config.trackEvents?.length) {
-      config.trackEvents.forEach(eventType => {
+      config.trackEvents.forEach((eventType) => {
         window.addEventListener(eventType, () => {
-          StateManager.updateMetrics(metrics => {
-            metrics.activities[eventType] = (metrics.activities[eventType] || 0) + 1;
+          StateManager.updateMetrics((metrics) => {
+            metrics.activities[eventType] =
+              (metrics.activities[eventType] || 0) + 1;
           });
         });
       });
@@ -114,7 +115,7 @@ const ActivityTracker = {
   trackSpecificActivity: (type: string) => {
     if (!StateManager.isEnabled()) return;
 
-    StateManager.updateMetrics(metrics => {
+    StateManager.updateMetrics((metrics) => {
       metrics.activities[type] = (metrics.activities[type] || 0) + 1;
       metrics.lastActivity = Date.now();
     });
@@ -123,14 +124,14 @@ const ActivityTracker = {
   trackRequest: (endpoint: string) => {
     if (!StateManager.isEnabled()) return;
 
-    StateManager.updateMetrics(metrics => {
+    StateManager.updateMetrics((metrics) => {
       metrics.requestCount++;
       metrics.lastActivity = Date.now();
     });
 
     // Registrar también como ruta si es apropiado
     RouteTracker.trackRouteVisit(endpoint);
-  }
+  },
 };
 
 /**
@@ -139,7 +140,7 @@ const ActivityTracker = {
  */
 const RouteTracker = {
   setupTracking: () => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     const config = StateManager.getConfig();
     if (!config.trackRoutes) return;
@@ -154,21 +155,21 @@ const RouteTracker = {
     trackRoute();
 
     // Escuchar cambios de ruta
-    window.addEventListener('popstate', trackRoute);
+    window.addEventListener("popstate", trackRoute);
   },
 
   trackRouteVisit: (path: string) => {
     if (!StateManager.isEnabled()) return;
 
     const config = StateManager.getConfig();
-    if (!config.trackRoutes || !path.startsWith('/')) return;
+    if (!config.trackRoutes || !path.startsWith("/")) return;
 
-    StateManager.updateMetrics(metrics => {
+    StateManager.updateMetrics((metrics) => {
       if (!metrics.visitedRoutes.includes(path)) {
         metrics.visitedRoutes.push(path);
       }
     });
-  }
+  },
 };
 
 /**
@@ -185,7 +186,11 @@ const MetricsReporter = {
 
     // Configurar nuevo intervalo si está habilitado
     const config = StateManager.getConfig();
-    if (config.enabled && config.reportingInterval && config.reportingInterval > 0) {
+    if (
+      config.enabled &&
+      config.reportingInterval &&
+      config.reportingInterval > 0
+    ) {
       const interval = setInterval(
         MetricsReporter.sendMetricsToServer,
         config.reportingInterval
@@ -205,9 +210,9 @@ const MetricsReporter = {
       TimeTracker.updateActivityTime();
 
       const response = await fetch(config.endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(metrics)
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(metrics),
       });
 
       if (!response.ok) {
@@ -215,12 +220,12 @@ const MetricsReporter = {
       }
 
       if (debugConfig.logRequests) {
-        console.log('[HTTP:METRICS] Métricas enviadas al servidor', metrics);
+        console.log("[HTTP:METRICS] Métricas enviadas al servidor", metrics);
       }
     } catch (error) {
-      console.error('[HTTP:METRICS] Error al enviar métricas', error);
+      console.error("[HTTP:METRICS] Error al enviar métricas", error);
     }
-  }
+  },
 };
 
 /**
@@ -240,7 +245,7 @@ const SessionManager = {
       requestCount: 0,
       activities: {},
       visitedRoutes: [],
-      sessionId: IdGenerator.generateSessionId()
+      sessionId: IdGenerator.generateSessionId(),
     });
 
     // Configurar seguimiento
@@ -248,7 +253,10 @@ const SessionManager = {
     RouteTracker.setupTracking();
 
     if (debugConfig.logRequests) {
-      console.log('[HTTP:METRICS] Iniciado seguimiento de sesión', StateManager.getMetrics());
+      console.log(
+        "[HTTP:METRICS] Iniciado seguimiento de sesión",
+        StateManager.getMetrics()
+      );
     }
   },
 
@@ -258,7 +266,7 @@ const SessionManager = {
     // Actualizar tiempos finales
     TimeTracker.updateActivityTime();
 
-    StateManager.updateMetrics(metrics => {
+    StateManager.updateMetrics((metrics) => {
       metrics.logoutTime = Date.now();
     });
 
@@ -269,7 +277,10 @@ const SessionManager = {
     await MetricsReporter.sendMetricsToServer();
 
     if (debugConfig.logRequests) {
-      console.log('[HTTP:METRICS] Finalizado seguimiento de sesión', finalMetrics);
+      console.log(
+        "[HTTP:METRICS] Finalizado seguimiento de sesión",
+        finalMetrics
+      );
     }
 
     // Limpiar estado
@@ -283,7 +294,7 @@ const SessionManager = {
 
     TimeTracker.updateActivityTime();
     return { ...StateManager.getMetrics()! };
-  }
+  },
 };
 
 /**
@@ -296,7 +307,10 @@ const MetricsController = {
     MetricsReporter.setupReporting();
 
     if (StateManager.getConfig().enabled) {
-      console.log('[HTTP:METRICS] Sistema de métricas configurado', StateManager.getConfig());
+      console.log(
+        "[HTTP:METRICS] Sistema de métricas configurado",
+        StateManager.getConfig()
+      );
     }
   },
 
@@ -318,7 +332,7 @@ const MetricsController = {
 
   trackActivity: (type: string): void => {
     ActivityTracker.trackSpecificActivity(type);
-  }
+  },
 };
 
 // Exportación pública
@@ -328,7 +342,7 @@ export const metricsManager = {
   stopTracking: MetricsController.stopTracking,
   trackRequest: MetricsController.trackRequest,
   trackActivity: MetricsController.trackActivity,
-  getCurrentMetrics: MetricsController.getCurrentMetrics
+  getCurrentMetrics: MetricsController.getCurrentMetrics,
 };
 
 export { NotificationService };

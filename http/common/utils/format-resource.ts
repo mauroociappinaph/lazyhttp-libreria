@@ -1,4 +1,4 @@
-import pluralize from 'pluralize';
+import pluralize from "pluralize";
 
 /**
  * Formatea el nombre de un recurso para estandarizarlo en rutas RESTful.
@@ -15,7 +15,8 @@ export function formatResource(resourceName: string): string {
   }
 
   // Convertir la primera letra a minúscula si está en PascalCase
-  let formattedName = resourceName.charAt(0).toLowerCase() + resourceName.slice(1);
+  let formattedName =
+    resourceName.charAt(0).toLowerCase() + resourceName.slice(1);
 
   // Pluralizar usando la librería pluralize
   formattedName = pluralize(formattedName);

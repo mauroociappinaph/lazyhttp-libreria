@@ -1,19 +1,23 @@
-import { ApiResponse } from './core.types';
+import { ApiResponse } from "./core.types";
 
 /**
  * Estrategias de caché soportadas
  */
 export type CacheStrategy =
-  | 'cache-first'
-  | 'network-first'
-  | 'stale-while-revalidate'
-  | 'network-only'
-  | 'cache-only';
+  | "cache-first"
+  | "network-first"
+  | "stale-while-revalidate"
+  | "network-only"
+  | "cache-only";
 
 /**
  * Modos de almacenamiento de caché
  */
-export type CacheStorageType = 'memory' | 'localStorage' | 'sessionStorage' | 'indexedDB';
+export type CacheStorageType =
+  | "memory"
+  | "localStorage"
+  | "sessionStorage"
+  | "indexedDB";
 
 /**
  * Opciones de caché para una petición

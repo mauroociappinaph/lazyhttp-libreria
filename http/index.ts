@@ -6,26 +6,34 @@
  */
 
 // Tipos principales
-import * as HttpTypes from './types';
+import * as HttpTypes from "./types";
 export { HttpTypes };
 
 // Funcionalidades principales
-import * as HttpCore from './http-core';
+import * as HttpCore from "./http-core";
 
-import * as HttpCache from './client/managers/http-cache-manager';
-import * as HttpInterceptors from './http-interceptors';
-import * as HttpStreaming from './http-streaming';
-import * as HttpErrors from './http-errors';
-import * as HttpCookies from './http-cookies';
-import * as HttpConfig from './http-config';
+import * as HttpCache from "./client/managers/http-cache-manager";
+import * as HttpInterceptors from "./http-interceptors";
+import * as HttpStreaming from "./http-streaming";
+import * as HttpErrors from "./http-errors";
+import * as HttpCookies from "./http-cookies";
+import * as HttpConfig from "./http-config";
 
 // Exportar módulos con namespace para evitar colisiones
-export { HttpCore, HttpCache, HttpInterceptors, HttpStreaming, HttpErrors, HttpCookies, HttpConfig };
+export {
+  HttpCore,
+  HttpCache,
+  HttpInterceptors,
+  HttpStreaming,
+  HttpErrors,
+  HttpCookies,
+  HttpConfig,
+};
 
 // Exportar módulos de logging
-export { Logger } from './logging/logger';
-export { ConsoleLoggerAdapter } from './logging/adapters/console.adapter';
-export { LoggingInterceptor } from './logging/interceptors/logging.interceptor';
+export { Logger } from "./logging/logger";
+export { ConsoleLoggerAdapter } from "./logging/adapters/console.adapter";
+export { LoggingInterceptor } from "./logging/interceptors/logging.interceptor";
 
 // Exportar utilidades específicas de helpers
 export {
@@ -39,7 +47,7 @@ export {
   buildUrl,
   addQueryParams,
   normalizePath,
-  joinPaths
-} from './helpers';
+  joinPaths,
+} from "./helpers";
 
-export * from './utils';
+export * from "./utils";

@@ -13,37 +13,37 @@
  */
 
 // Creación de símbolos para entidades comunes
-export const User = Symbol('User');
-export const Product = Symbol('Product');
-export const Category = Symbol('Category');
-export const Order = Symbol('Order');
-export const Customer = Symbol('Customer');
-export const Post = Symbol('Post');
-export const Comment = Symbol('Comment');
-export const File = Symbol('File');
-export const Tag = Symbol('Tag');
-export const Role = Symbol('Role');
-export const Permission = Symbol('Permission');
-export const Group = Symbol('Group');
-export const Setting = Symbol('Setting');
-export const Notification = Symbol('Notification');
-export const Message = Symbol('Message');
-export const Event = Symbol('Event');
-export const Task = Symbol('Task');
-export const Project = Symbol('Project');
-export const Team = Symbol('Team');
-export const Payment = Symbol('Payment');
-export const Subscription = Symbol('Subscription');
-export const Invoice = Symbol('Invoice');
-export const Address = Symbol('Address');
-export const Review = Symbol('Review');
-export const Feedback = Symbol('Feedback');
-export const Metric = Symbol('Metric');
-export const Log = Symbol('Log');
-export const Report = Symbol('Report');
-export const Dashboard = Symbol('Dashboard');
-export const Profile = Symbol('Profile');
-export const Account = Symbol('Account');
+export const User = Symbol("User");
+export const Product = Symbol("Product");
+export const Category = Symbol("Category");
+export const Order = Symbol("Order");
+export const Customer = Symbol("Customer");
+export const Post = Symbol("Post");
+export const Comment = Symbol("Comment");
+export const File = Symbol("File");
+export const Tag = Symbol("Tag");
+export const Role = Symbol("Role");
+export const Permission = Symbol("Permission");
+export const Group = Symbol("Group");
+export const Setting = Symbol("Setting");
+export const Notification = Symbol("Notification");
+export const Message = Symbol("Message");
+export const Event = Symbol("Event");
+export const Task = Symbol("Task");
+export const Project = Symbol("Project");
+export const Team = Symbol("Team");
+export const Payment = Symbol("Payment");
+export const Subscription = Symbol("Subscription");
+export const Invoice = Symbol("Invoice");
+export const Address = Symbol("Address");
+export const Review = Symbol("Review");
+export const Feedback = Symbol("Feedback");
+export const Metric = Symbol("Metric");
+export const Log = Symbol("Log");
+export const Report = Symbol("Report");
+export const Dashboard = Symbol("Dashboard");
+export const Profile = Symbol("Profile");
+export const Account = Symbol("Account");
 
 /**
  * Registro de símbolos para uso interno
@@ -79,7 +79,7 @@ export const resourceSymbols = {
   Report,
   Dashboard,
   Profile,
-  Account
+  Account,
 };
 
 /**

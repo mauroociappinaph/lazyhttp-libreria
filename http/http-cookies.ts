@@ -39,7 +39,7 @@ export interface CookieOptions {
   /**
    * Política de SameSite para la cookie
    */
-  sameSite?: 'Strict' | 'Lax' | 'None';
+  sameSite?: "Strict" | "Lax" | "None";
 }
 
 /**
@@ -72,11 +72,11 @@ export class CookieManager {
     }
 
     if (options.secure) {
-      cookie += '; Secure';
+      cookie += "; Secure";
     }
 
     if (options.httpOnly) {
-      cookie += '; HttpOnly';
+      cookie += "; HttpOnly";
     }
 
     if (options.sameSite) {
@@ -92,10 +92,10 @@ export class CookieManager {
    * @returns Valor de la cookie o null si no existe
    */
   static get(name: string): string | null {
-    const cookies = document.cookie.split(';');
+    const cookies = document.cookie.split(";");
 
     for (const cookie of cookies) {
-      const [cookieName, cookieValue] = cookie.trim().split('=');
+      const [cookieName, cookieValue] = cookie.trim().split("=");
 
       if (decodeURIComponent(cookieName) === name) {
         return decodeURIComponent(cookieValue);
@@ -110,11 +110,14 @@ export class CookieManager {
    * @param name Nombre de la cookie
    * @param options Opciones adicionales para la eliminación
    */
-  static remove(name: string, options: Pick<CookieOptions, 'domain' | 'path'> = {}): void {
-    this.set(name, '', {
+  static remove(
+    name: string,
+    options: Pick<CookieOptions, "domain" | "path"> = {}
+  ): void {
+    this.set(name, "", {
       ...options,
       maxAge: 0,
-      expires: new Date(0)
+      expires: new Date(0),
     });
   }
 
@@ -135,8 +138,8 @@ export class CookieManager {
     const cookies: Record<string, string> = {};
 
     if (document.cookie) {
-      document.cookie.split(';').forEach(cookie => {
-        const [name, value] = cookie.trim().split('=');
+      document.cookie.split(";").forEach((cookie) => {
+        const [name, value] = cookie.trim().split("=");
         cookies[decodeURIComponent(name)] = decodeURIComponent(value);
       });
     }
