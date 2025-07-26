@@ -1,8 +1,8 @@
-import axios, { AxiosResponse } from 'axios';
-import { HttpRequestExecutor } from '../../types/core/request.types';
-import { HttpMethod } from '../../types/core/http-methods.types';
-import { API_URL } from '../../http-config';
-import { logRequest } from '../logging/logger';
+import axios, { AxiosResponse } from "axios";
+import { HttpRequestExecutor } from "../../types/core/request.types";
+import { HttpMethod } from "../../types/core/http-methods.types";
+import { API_URL } from "../../http-config";
+import { logRequest } from "../logging/logger";
 
 /**
  * Implementación del ejecutor de peticiones HTTP
@@ -25,7 +25,8 @@ export const requestExecutor: HttpRequestExecutor = {
     signal: AbortSignal
   ): Promise<AxiosResponse<T>> {
     // Comprobar si el endpoint ya es una URL completa
-    const isFullUrl = endpoint.startsWith('http://') || endpoint.startsWith('https://');
+    const isFullUrl =
+      endpoint.startsWith("http://") || endpoint.startsWith("https://");
 
     // Usar el endpoint directamente si es una URL completa, o añadir API_URL si es una ruta relativa
     const url = isFullUrl ? endpoint : `${API_URL}${endpoint}`;
@@ -40,5 +41,5 @@ export const requestExecutor: HttpRequestExecutor = {
       withCredentials: true,
       signal,
     });
-  }
+  },
 };

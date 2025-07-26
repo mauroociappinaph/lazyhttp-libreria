@@ -1,11 +1,11 @@
-import { HttpRetryHandler } from '../../types/core/request.types';
-import { ApiResponse } from '../../types/core/response.types';
-import { HttpMethod } from '../../types/core/http-methods.types';
-import { errorHandler } from '../error/error-handler';
-import { requestExecutor } from '../request/request-executor';
-import { responseProcessor } from '../response/response-processor';
-import { isAxiosError } from 'axios';
-import { logger } from '../logging/logger';
+import { HttpRetryHandler } from "../../types/core/request.types";
+import { ApiResponse } from "../../types/core/response.types";
+import { HttpMethod } from "../../types/core/http-methods.types";
+import { errorHandler } from "../error/error-handler";
+import { requestExecutor } from "../request/request-executor";
+import { responseProcessor } from "../response/response-processor";
+import { isAxiosError } from "axios";
+import { logger } from "../logging/logger";
 
 /**
  * Implementación del manejador de reintentos HTTP
@@ -58,7 +58,15 @@ export const retryHandler: HttpRetryHandler = {
       // Intentar reintento si es necesario
       return this.handleRetry<T>(
         error,
-        () => this.executeWithRetry(endpoint, method, headers, body, timeout, retriesLeft - 1),
+        () =>
+          this.executeWithRetry(
+            endpoint,
+            method,
+            headers,
+            body,
+            timeout,
+            retriesLeft - 1
+          ),
         retriesLeft
       );
     }
@@ -78,7 +86,10 @@ export const retryHandler: HttpRetryHandler = {
   ): Promise<ApiResponse<T>> {
     // Si quedan reintentos y el error es recuperable
     if (retriesLeft > 0 && this.isRetryableError(error)) {
-      logger.warn(`Reintentando petición... (${retriesLeft} intentos restantes)`, { error });
+      logger.warn(
+        `Reintentando petición... (${retriesLeft} intentos restantes)`,
+        { error }
+      );
       await this.waitForRetry(retriesLeft);
       return retryCallback();
     }
@@ -108,6 +119,6 @@ export const retryHandler: HttpRetryHandler = {
   async waitForRetry(retriesLeft: number): Promise<void> {
     // Espera exponencial (500ms, 1000ms, 2000ms, etc.)
     const delay = 500 * Math.pow(2, 3 - retriesLeft);
-    return new Promise(resolve => setTimeout(resolve, delay));
-  }
+    return new Promise((resolve) => setTimeout(resolve, delay));
+  },
 };

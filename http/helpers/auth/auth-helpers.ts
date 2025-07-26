@@ -15,7 +15,7 @@ export function prepareHeaders(
   getTokenFn?: () => string | null
 ): Record<string, string> {
   const defaultHeaders: Record<string, string> = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
     ...headers,
   };
 
@@ -26,15 +26,15 @@ export function prepareHeaders(
     } else {
       try {
         // Intentar importar dinámicamente para evitar dependencias circulares
-        const auth = require('../../http-auth');
+        const auth = require("../../http-auth");
         token = auth.getAccessToken();
       } catch {
         // Fallback al comportamiento anterior
-        token = localStorage.getItem('token');
+        token = localStorage.getItem("token");
       }
     }
     if (token) {
-      defaultHeaders['Authorization'] = `Bearer ${token}`;
+      defaultHeaders["Authorization"] = `Bearer ${token}`;
     }
   }
 
@@ -47,7 +47,7 @@ export function prepareHeaders(
  */
 export async function refreshToken(): Promise<string> {
   // Implementación a completar
-  return Promise.resolve('');
+  return Promise.resolve("");
 }
 
 /**

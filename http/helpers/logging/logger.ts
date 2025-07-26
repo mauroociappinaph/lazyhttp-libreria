@@ -1,4 +1,4 @@
-import { DebugLevel, debugConfig } from '../../http-config';
+import { DebugLevel, debugConfig } from "../../http-config";
 
 /**
  * Sistema de logging avanzado para la biblioteca httplazy
@@ -11,7 +11,7 @@ export const logger = {
    */
   error(message: string, data?: unknown): void {
     if (debugConfig.level >= DebugLevel.ERROR) {
-      this._log('error', message, data);
+      this._log("error", message, data);
     }
   },
 
@@ -22,7 +22,7 @@ export const logger = {
    */
   warn(message: string, data?: unknown): void {
     if (debugConfig.level >= DebugLevel.WARNING) {
-      this._log('warning', message, data);
+      this._log("warning", message, data);
     }
   },
 
@@ -33,7 +33,7 @@ export const logger = {
    */
   info(message: string, data?: unknown): void {
     if (debugConfig.level >= DebugLevel.INFO) {
-      this._log('info', message, data);
+      this._log("info", message, data);
     }
   },
 
@@ -44,14 +44,18 @@ export const logger = {
    */
   debug(message: string, data?: unknown): void {
     if (debugConfig.level >= DebugLevel.DEBUG) {
-      this._log('debug', message, data);
+      this._log("debug", message, data);
     }
   },
 
   /**
    * Método interno para registrar mensajes con formato
    */
-  _log(level: 'error' | 'warning' | 'info' | 'debug', message: string, data?: unknown): void {
+  _log(
+    level: "error" | "warning" | "info" | "debug",
+    message: string,
+    data?: unknown
+  ): void {
     const colorStyle = `color: ${debugConfig.colors[level] || debugConfig.colors.default}; font-weight: bold;`;
 
     // Formatear el mensaje
@@ -63,16 +67,16 @@ export const logger = {
 
     // Log de datos adicionales
     if (data !== undefined) {
-      if (debugConfig.prettyPrintJSON && typeof data === 'object') {
-        console.log('%cDatos:', 'font-weight: bold');
+      if (debugConfig.prettyPrintJSON && typeof data === "object") {
+        console.log("%cDatos:", "font-weight: bold");
         console.dir(data, { depth: null, colors: true });
       } else {
-        console.log('%cDatos:', 'font-weight: bold', data);
+        console.log("%cDatos:", "font-weight: bold", data);
       }
     }
 
     console.groupEnd();
-  }
+  },
 };
 
 /**
@@ -89,12 +93,18 @@ export function logRequest(
   // Ocultar tokens y datos sensibles
   const safeHeaders = { ...headers };
   if (safeHeaders.Authorization) {
-    safeHeaders.Authorization = safeHeaders.Authorization.replace(/Bearer .+/, 'Bearer [REDACTED]');
+    safeHeaders.Authorization = safeHeaders.Authorization.replace(
+      /Bearer .+/,
+      "Bearer [REDACTED]"
+    );
   }
 
   logger.info(`${method} ${url}`, {
     headers: safeHeaders,
-    body: body && debugConfig.prettyPrintJSON ? JSON.parse(JSON.stringify(body)) : body
+    body:
+      body && debugConfig.prettyPrintJSON
+        ? JSON.parse(JSON.stringify(body))
+        : body,
   });
 }
 
@@ -108,12 +118,13 @@ export interface HttpResponseLog {
 export function logResponse(response: HttpResponseLog): void {
   if (!debugConfig.logResponses) return;
 
-  const level = response.status >= 400 ? 'error' : 'info';
-  const logFn = level === 'error' ? logger.error.bind(logger) : logger.info.bind(logger);
+  const level = response.status >= 400 ? "error" : "info";
+  const logFn =
+    level === "error" ? logger.error.bind(logger) : logger.info.bind(logger);
 
   logFn(`Respuesta ${response.status} ${response.config.url}`, {
     status: response.status,
     headers: response.headers,
-    data: response.data
+    data: response.data,
   });
 }
