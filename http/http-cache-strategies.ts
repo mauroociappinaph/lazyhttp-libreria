@@ -1,6 +1,6 @@
-import { ApiResponse, RequestOptions } from './types/core.types';
-import { CacheOptions } from './types/cache.types';
-import { httpCacheManager as cache } from './client/managers/http-cache-manager';
+import { ApiResponse, RequestOptions } from "./types/core.types";
+import { CacheOptions } from "./types/cache.types";
+import { httpCacheManager as cache } from "./client/managers/http-cache-manager";
 
 /**
  * Tipo para una función de red que obtiene datos
@@ -36,7 +36,7 @@ export async function cacheFirst<T>(
     return {
       data: null,
       error: `Error obteniendo datos: ${error instanceof Error ? error.message : String(error)}`,
-      status: 0
+      status: 0,
     };
   }
 }
@@ -70,8 +70,8 @@ export async function networkFirst<T>(
         meta: {
           ...(cachedResponse.meta || {}),
           fromCache: true,
-          networkError: String(error)
-        }
+          networkError: String(error),
+        },
       };
     }
 
@@ -79,7 +79,7 @@ export async function networkFirst<T>(
     return {
       data: null,
       error: `Error obteniendo datos: ${error instanceof Error ? error.message : String(error)}`,
-      status: 0
+      status: 0,
     };
   }
 }
@@ -121,8 +121,8 @@ export async function staleWhileRevalidate<T>(
       meta: {
         ...(cachedResponse.meta || {}),
         fromCache: true,
-        refreshing: true
-      }
+        refreshing: true,
+      },
     };
   }
 
@@ -140,7 +140,7 @@ export async function staleWhileRevalidate<T>(
     return {
       data: null,
       error: `Error obteniendo datos: ${error instanceof Error ? error.message : String(error)}`,
-      status: 0
+      status: 0,
     };
   }
 }
@@ -168,7 +168,7 @@ export async function networkOnly<T>(
     return {
       data: null,
       error: `Error obteniendo datos: ${error instanceof Error ? error.message : String(error)}`,
-      status: 0
+      status: 0,
     };
   }
 }
@@ -177,9 +177,7 @@ export async function networkOnly<T>(
  * Ejecuta una estrategia cache-only
  * Solo usa la caché, nunca la red
  */
-export async function cacheOnly<T>(
-  cacheKey: string
-): Promise<ApiResponse<T>> {
+export async function cacheOnly<T>(cacheKey: string): Promise<ApiResponse<T>> {
   // Intentar obtener de caché
   const cachedResponse = cache.get<T>(cacheKey);
 
@@ -190,8 +188,8 @@ export async function cacheOnly<T>(
   // Si no hay datos en caché, devolver error
   return {
     data: null,
-    error: 'No hay datos en caché',
-    status: 404
+    error: "No hay datos en caché",
+    status: 404,
   };
 }
 
@@ -206,19 +204,19 @@ export async function executeWithCacheStrategy<T>(
   const strategy = cache.getStrategy(options);
 
   switch (strategy) {
-    case 'cache-first':
+    case "cache-first":
       return cacheFirst(cacheKey, networkFetcher, options?.cache);
 
-    case 'network-first':
+    case "network-first":
       return networkFirst(cacheKey, networkFetcher, options?.cache);
 
-    case 'stale-while-revalidate':
+    case "stale-while-revalidate":
       return staleWhileRevalidate(cacheKey, networkFetcher, options?.cache);
 
-    case 'network-only':
+    case "network-only":
       return networkOnly(cacheKey, networkFetcher, options?.cache);
 
-    case 'cache-only':
+    case "cache-only":
       return cacheOnly(cacheKey);
 
     default:

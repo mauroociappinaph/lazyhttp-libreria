@@ -1,11 +1,11 @@
-import { CacheConfig } from './types/cache.types';
-import { MetricsConfig } from './types/metrics.types';
-import { ProxyConfig } from './types/proxy.types';
-import { StreamConfig } from './types/stream.types';
-import { initialize as initializeHelper } from './http-helpers';
-import { httpCacheManager } from './client/managers/http-cache-manager';
-import { metricsManager } from './metrics/http-metrics-index';
-import { streamingManager } from './http-streaming';
+import { CacheConfig } from "./types/cache.types";
+import { MetricsConfig } from "./types/metrics.types";
+import { ProxyConfig } from "./types/proxy.types";
+import { StreamConfig } from "./types/stream.types";
+import { initialize as initializeHelper } from "./http-helpers";
+import { httpCacheManager } from "./client/managers/http-cache-manager";
+import { metricsManager } from "./metrics/http-metrics-index";
+import { streamingManager } from "./http-streaming";
 
 /**
  * Clase para manejar la configuración centralizada del cliente HTTP
@@ -26,16 +26,16 @@ export class HttpConfiguration {
    * Inicializa el cliente HTTP con la configuración proporcionada
    */
   async initialize(config?: {
-    baseUrl?: string,
-    frontendUrl?: string,
-    suggestionService?: { enabled: boolean, url: string },
-    cache?: CacheConfig,
-    metrics?: MetricsConfig,
-    timeout?: number,
-    retries?: number,
-    headers?: Record<string, string>,
-    proxy?: ProxyConfig,
-    stream?: StreamConfig
+    baseUrl?: string;
+    frontendUrl?: string;
+    suggestionService?: { enabled: boolean; url: string };
+    cache?: CacheConfig;
+    metrics?: MetricsConfig;
+    timeout?: number;
+    retries?: number;
+    headers?: Record<string, string>;
+    proxy?: ProxyConfig;
+    stream?: StreamConfig;
   }): Promise<void> {
     // Configuración básica
     if (config?.baseUrl) {
@@ -132,7 +132,7 @@ export class HttpConfiguration {
 
     // Configurar también en el streaming manager
     streamingManager.configure({
-      proxyConfig: config
+      proxyConfig: config,
     });
   }
 
@@ -144,7 +144,7 @@ export class HttpConfiguration {
 
     // Configurar también en el streaming manager
     streamingManager.configure({
-      streamConfig: config
+      streamConfig: config,
     });
   }
 }
