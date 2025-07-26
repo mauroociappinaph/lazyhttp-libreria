@@ -1,4 +1,4 @@
-import { FullResponseMetadata } from '../types/core/response.types';
+import { FullResponseMetadata } from "../types/core/response.types";
 
 interface GenerateCurlOptions {
   method: string;
@@ -14,7 +14,7 @@ export function generateCurl(
   options: GenerateCurlOptions,
   meta?: FullResponseMetadata
 ): string {
-  const method = options.method?.toUpperCase() || 'GET';
+  const method = options.method?.toUpperCase() || "GET";
   const url = options.url;
   const headers = meta?.requestHeaders || options.headers || {};
   const body = options.body;
@@ -28,7 +28,7 @@ export function generateCurl(
 
   // Add body
   if (body) {
-    const isJson = typeof body === 'object' && !(body instanceof Buffer);
+    const isJson = typeof body === "object" && !(body instanceof Buffer);
     const data = isJson ? JSON.stringify(body) : String(body);
     curl += ` --data '${data}'`;
   }
