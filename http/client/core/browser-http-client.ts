@@ -1,7 +1,8 @@
-import { BaseHttpClient } from '../../common/core/base-http-client';
-import { HttpMethod, ApiResponse, RequestOptions, AuthInfo, UserCredentials, InitConfig } from '../../types/core.types';
-import { HttpUtils } from '../../common/utils/http-utils';
 import axios, { isAxiosError } from 'axios';
+import { BaseHttpClient } from '../../common/core/base-http-client';
+import { HttpUtils } from '../../common/utils/http-utils';
+import { ServiceFactory, type ServiceContainer } from '../../services/index';
+import { ApiResponse, AuthInfo, HttpMethod, InitConfig, RequestOptions, UserCredentials } from '../../types/core.types';
 import { AuthManager } from '../managers/auth.manager';
 import { httpCacheManager } from '../managers/http-cache-manager';
 
@@ -11,7 +12,8 @@ import { httpCacheManager } from '../managers/http-cache-manager';
  */
 export class BrowserHttpClient extends BaseHttpClient {
   private authManager: AuthManager;
-  
+  private services: ServiceContainer;
+
 
   constructor(config: Partial<InitConfig>) {
     super();
@@ -29,6 +31,13 @@ export class BrowserHttpClient extends BaseHttpClient {
     };
     this.initialize(safeConfig);
     this.authManager = new AuthManager(this.authConfig, this);
+
+    // Inicializar servicios centralizados
+    this.services = ServiceFactory.createBrowserServices(
+      this.authManager,
+      httpCacheManager,
+      this.metricsConfig
+    );
   }
 
   /**
@@ -120,109 +129,72 @@ export class BrowserHttpClient extends BaseHttpClient {
 
   // Implementaciones específicas para navegador
 
+  // ========================================
+  // Métodos delegados a servicios centralizados
+  // ========================================
+
   /**
    * Inicia sesión con las credenciales proporcionadas
    */
   async login(credentials: UserCredentials): Promise<AuthInfo> {
-    return this.authManager.login(credentials);
+    return this.services.authService.login(credentials);
   }
 
   /**
    * Cierra la sesión eliminando tokens
    */
   async logout(): Promise<void> {
-    return this.authManager.logout();
+    return this.services.authService.logout();
   }
 
   /**
    * Verifica si el usuario está autenticado
    */
   isAuthenticated(): boolean {
-    return this.authManager.isAuthenticated();
+    return this.services.authService.isAuthenticated();
   }
 
   /**
    * Obtiene el usuario autenticado
    */
   async getAuthenticatedUser(): Promise<AuthInfo | null> {
-    return this.authManager.getAuthenticatedUser();
+    return this.services.authService.getAuthenticatedUser();
   }
 
   /**
    * Obtiene el token de acceso
    */
   getAccessToken(): string | null {
-    return this.authManager.getAccessToken();
+    return this.services.authService.getAccessToken();
   }
 
   /**
    * Invalida caché por patrón
    */
   invalidateCache(pattern: string): void {
-    httpCacheManager.invalidate(pattern);
+    this.services.cacheService.invalidateCache(pattern);
   }
 
   /**
    * Invalida caché por tags
    */
   invalidateCacheByTags(tags: string[]): void {
-    httpCacheManager.invalidateByTags(tags);
+    this.services.cacheService.invalidateCacheByTags(tags);
   }
 
   /**
    * Registra actividad para métricas
    */
   trackActivity(type: string): void {
-    if (!this.metricsConfig.enabled) return;
-
-    // Implementación básica, almacenar en localStorage
-    try {
-      const metricsKey = 'http_metrics';
-      const currentMetrics = this.getCurrentMetrics();
-
-      // Actualizar métricas según el tipo
-      if (type === 'request') {
-        currentMetrics.requests = (currentMetrics.requests || 0) + 1;
-      } else if (type === 'error') {
-        currentMetrics.errors = (currentMetrics.errors || 0) + 1;
-      } else if (type === 'cache_hit') {
-        currentMetrics.cacheHits = (currentMetrics.cacheHits || 0) + 1;
-      } else if (type === 'cache_miss') {
-        currentMetrics.cacheMisses = (currentMetrics.cacheMisses || 0) + 1;
-      }
-
-      // Guardar métricas actualizadas
-      localStorage.setItem(metricsKey, JSON.stringify(currentMetrics));
-    } catch {
-      // Ignorar errores en métricas
-    }
+    this.services.metricsService.trackActivity(type);
   }
 
   /**
    * Obtiene las métricas actuales
    */
   getCurrentMetrics(): { requests: number; errors: number; cacheHits: number; cacheMisses: number } {
-    try {
-      const metricsKey = 'http_metrics';
-      const metricsData = localStorage.getItem(metricsKey);
-
-      if (metricsData) {
-        return JSON.parse(metricsData);
-      }
-    } catch {
-      // Ignorar errores
-    }
-
-    // Métricas por defecto
-    return {
-      requests: 0,
-      errors: 0,
-      cacheHits: 0,
-      cacheMisses: 0
-    };
+    return this.services.metricsService.getCurrentMetrics();
   }
-
-
 }
 
 
