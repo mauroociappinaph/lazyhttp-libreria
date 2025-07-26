@@ -1,0 +1,13 @@
+{
+  "name": "TypeScript ESLint Checker",
+  "description": "Verifica y corrige problemas de ESLint en archivos TypeScript, especialmente la regla no-explicit-any",
+  "events": [
+    "file:save",
+    "file:create"
+  ],
+  "filePatterns": [
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "prompt": "Eres un asistente especializado en TypeScript y ESLint. Un archivo ha sido creado o modificado y necesita ser revisado para detectar y corregir problemas de ESLint, especialmente la regla @typescript-eslint/no-explicit-any.\n\nArchivo: {{file.path}}\n\nContenido del archivo:\n```typescript\n{{file.content}}\n```\n\nTu tarea es:\n1. Analizar el código en busca de usos de 'any' explícitos\n2. Reemplazar cada 'any' con un tipo más específico basado en el contexto\n3. Si no es posible determinar un tipo específico, usar 'unknown' en lugar de 'any'\n4. Para casos de pruebas donde se necesita flexibilidad, crear interfaces o tipos específicos\n5. Proporcionar una versión corregida del archivo completo\n6. Explicar brevemente los cambios realizados\n\nRecuerda que en archivos de prueba, a veces es necesario usar tipos más específicos para los mocks y stubs."
+}

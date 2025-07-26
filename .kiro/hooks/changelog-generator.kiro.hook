@@ -1,0 +1,18 @@
+{
+  "name": "Changelog Auto-Generator",
+  "description": "Automatically updates CHANGELOG.md with commit information following conventional commit standards",
+  "trigger": {
+    "type": "gitCommit",
+    "patterns": ["**/*"],
+    "excludePatterns": ["**/node_modules/**", "**/dist/**", "**/coverage/**"]
+  },
+  "agent": {
+    "prompt": "Analyze the recent git commit and update the CHANGELOG.md file following these guidelines:\n\n1. **Commit Analysis**: Parse the commit message and changed files to understand the nature of changes\n2. **Categorization**: Classify changes into:\n   - 🚀 **Added**: New features or functionality\n   - 🔧 **Changed**: Modifications to existing functionality\n   - 🐛 **Fixed**: Bug fixes\n   - 🗑️ **Removed**: Removed features or functionality\n   - 📚 **Documentation**: Documentation changes\n   - 🔒 **Security**: Security-related changes\n\n3. **Version Management**: \n   - If no version exists for today, create a new [Unreleased] section\n   - Use semantic versioning principles\n   - Add date in YYYY-MM-DD format\n\n4. **Entry Format**: \n   - Use clear, user-friendly descriptions\n   - Reference commit hash when relevant\n   - Group related changes together\n\n5. **Maintain Structure**: Keep the existing CHANGELOG format and add new entries at the top\n\nOnly add meaningful changes that affect users. Skip trivial commits like formatting or internal refactoring unless they have user impact.",
+    "includeContext": ["gitDiff", "commitMessage", "#CHANGELOG.md"]
+  },
+  "settings": {
+    "autoRun": true,
+    "debounceMs": 1000,
+    "maxFilesPerTrigger": 20
+  }
+}

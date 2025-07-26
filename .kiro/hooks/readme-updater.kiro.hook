@@ -1,0 +1,26 @@
+{
+  "name": "README Auto-Updater",
+  "description": "Automatically updates README.md when API or functionality changes are detected in the codebase",
+  "trigger": {
+    "type": "fileChange",
+    "patterns": ["**/*.ts", "**/*.js", "**/package.json", "index.ts", "index.js"],
+    "excludePatterns": [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/coverage/**",
+      "**/*.test.ts",
+      "**/*.test.js",
+      "**/*.spec.ts",
+      "**/*.spec.js"
+    ]
+  },
+  "agent": {
+    "prompt": "Analyze the changed files to detect API or functionality modifications that should be reflected in the README.md. Focus on:\n\n1. **New Functions/Methods**: Detect newly added public functions, classes, or methods\n2. **API Changes**: Identify modifications to existing public APIs, parameter changes, or return types\n3. **New Features**: Spot new functionality or capabilities added to the project\n4. **Configuration Changes**: Check for new configuration options or environment variables\n5. **Dependencies**: Notice new dependencies that might affect usage\n\nIf significant changes are detected:\n- Read the current README.md\n- Update relevant sections (Installation, Usage, API Reference, Examples)\n- Maintain the existing structure and tone\n- Add new examples if needed\n- Keep the documentation accurate and up-to-date\n\nOnly update the README if there are meaningful changes that users should know about. Preserve all existing content that's still relevant.",
+    "includeContext": ["changedFiles", "gitDiff", "#README.md"]
+  },
+  "settings": {
+    "autoRun": false,
+    "debounceMs": 3000,
+    "maxFilesPerTrigger": 10
+  }
+}

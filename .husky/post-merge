@@ -1,6 +1,45 @@
-#!/bin/sh
-# Compara el package.json de la rama anterior y la nueva
-if ! cmp -s "HEAD@{1}:package.json" "HEAD:package.json"; then
-  echo " El archivo package.json ha cambiado. Ejecutando 'pnpm install'..."
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔄 Post-merge: Verificando cambios y actualizando proyecto..."
+
+# Verificar si package.json o archivos de lock cambiaron
+if git diff HEAD@{1} --name-only | grep -q "package.json\|pnpm-lock.yaml\|package-lock.json"; then
+  echo "📦 Detectados cambios en dependencias, ejecutando pnpm install..."
   pnpm install
+
+  if [ $? -eq 0 ]; then
+    echo "✅ Dependencias actualizadas correctamente"
+  else
+    echo "⚠️ Hubo un problema actualizando las dependencias"
+  fi
+else
+  echo "📦 No se detectaron cambios en dependencias"
 fi
+
+# Limpiar cache automáticamente
+echo "🧹 Limpiando cache y archivos temporales..."
+
+# Limpiar directorios de cache comunes
+rm -rf .cache 2>/dev/null || true
+rm -rf dist 2>/dev/null || true
+rm -rf coverage 2>/dev/null || true
+rm -rf .nyc_output 2>/dev/null || true
+
+# Limpiar cache de ESLint
+rm -rf .eslintcache 2>/dev/null || true
+
+# Limpiar cache de TypeScript
+rm -rf .tsbuildinfo 2>/dev/null || true
+
+# Limpiar archivos temporales de tests
+rm -rf jest_* 2>/dev/null || true
+
+echo "✅ Cache limpiado correctamente"
+
+# Verificar si hay cambios en archivos de configuración importantes
+if git diff HEAD@{1} --name-only | grep -q "tsconfig.json\|jest.config.js\|rollup.config.js\|.eslintrc"; then
+  echo "⚙️ Detectados cambios en configuración - considera ejecutar 'pnpm run verify' para validar el proyecto"
+fi
+
+echo "🎉 Post-merge completado exitosamente"

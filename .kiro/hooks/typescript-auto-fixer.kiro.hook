@@ -1,0 +1,8 @@
+{
+  "name": "TypeScript Auto Fixer",
+  "description": "Corrige automáticamente errores de tipos TypeScript y problemas de ESLint sin intervención manual",
+  "events": ["file:save", "file:create"],
+  "filePatterns": ["**/*.ts", "**/*.tsx"],
+  "autoApply": true,
+  "prompt": "Eres un asistente especializado en TypeScript y ESLint que corrige automáticamente errores sin intervención del usuario. Un archivo ha sido creado o modificado y necesita ser corregido automáticamente.\n\nArchivo: {{file.path}}\n\nContenido del archivo:\n```typescript\n{{file.content}}\n```\n\nTu tarea es:\n1. Analizar el código en busca de errores de tipos TypeScript y problemas de ESLint\n2. Corregir automáticamente todos los errores encontrados\n3. Enfocarte especialmente en eliminar usos de 'any' explícitos, reemplazándolos con tipos específicos\n4. Proporcionar la versión corregida del archivo completo sin explicaciones adicionales\n\nReglas para correcciones automáticas:\n- Reemplazar 'any' con tipos específicos o interfaces cuando sea posible\n- En archivos de prueba, crear interfaces para los mocks\n- Usar type assertions adecuadas para acceder a propiedades privadas en pruebas\n- Corregir errores de tipos sin cambiar la funcionalidad del código\n\nNo incluyas explicaciones ni comentarios sobre los cambios realizados, solo proporciona el código corregido."
+}

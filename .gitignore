@@ -76,3 +76,11 @@ __pycache__/
 
 # ML Suggestions logs
 ml-suggestions/log.txt
+# =============================
+# Tokens y credenciales
+# =============================
+.github-token
+.env.local
+.env.production
+*.key
+*.pem
