@@ -27,12 +27,12 @@ export function deepFindLazy<T = unknown>(
   }
 
   // Marcar como visitado si es un objeto o array
-  if (typeof data === 'object') {
+  if (typeof data === "object") {
     visited.add(data);
   }
 
   // Recorrer si es un objeto
-  if (typeof data === 'object' && data !== null && !Array.isArray(data)) {
+  if (typeof data === "object" && data !== null && !Array.isArray(data)) {
     for (const key in data) {
       // Asegurarse de que es una propiedad propia del objeto
       if (Object.prototype.hasOwnProperty.call(data, key)) {
