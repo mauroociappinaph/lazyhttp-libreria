@@ -11,13 +11,17 @@ export class HttpUtils {
    */
   static buildUrl(baseUrl: string, endpoint: string): string {
     // Si el endpoint ya es una URL completa, devolverlo tal cual
-    if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+    if (endpoint.startsWith("http://") || endpoint.startsWith("https://")) {
       return endpoint;
     }
 
     // Normalizar URL base y endpoint para evitar barras duplicadas
-    const normalizedBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-    const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    const normalizedBase = baseUrl.endsWith("/")
+      ? baseUrl.slice(0, -1)
+      : baseUrl;
+    const normalizedEndpoint = endpoint.startsWith("/")
+      ? endpoint
+      : `/${endpoint}`;
 
     return `${normalizedBase}${normalizedEndpoint}`;
   }
@@ -48,18 +52,21 @@ export class HttpUtils {
     if (!params) return url;
 
     // Filtrar valores nulos o indefinidos
-    const validParams = Object.entries(params).filter(([_, value]) =>
-      value !== undefined && value !== null
+    const validParams = Object.entries(params).filter(
+      ([_, value]) => value !== undefined && value !== null
     );
 
     if (validParams.length === 0) return url;
 
     const queryString = validParams
-      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
-      .join('&');
+      .map(
+        ([key, value]) =>
+          `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`
+      )
+      .join("&");
 
     // Añadir el separador adecuado (? o &)
-    const separator = url.includes('?') ? '&' : '?';
+    const separator = url.includes("?") ? "&" : "?";
 
     return `${url}${separator}${queryString}`;
   }
@@ -74,12 +81,12 @@ export class HttpUtils {
   static generateCacheKey(method: string, url: string, data?: any): string {
     const normalizedMethod = method.toUpperCase();
 
-    if (!data || ['GET', 'HEAD', 'OPTIONS'].includes(normalizedMethod)) {
+    if (!data || ["GET", "HEAD", "OPTIONS"].includes(normalizedMethod)) {
       return `${normalizedMethod}:${url}`;
     }
 
     // Para métodos con cuerpo, incluir un hash del cuerpo en la clave
-    const dataString = typeof data === 'string' ? data : JSON.stringify(data);
+    const dataString = typeof data === "string" ? data : JSON.stringify(data);
     const dataHash = this.hashString(dataString);
 
     return `${normalizedMethod}:${url}:${dataHash}`;
@@ -94,7 +101,7 @@ export class HttpUtils {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convertir a entero de 32 bits
     }
     return Math.abs(hash).toString(16);
@@ -106,7 +113,7 @@ export class HttpUtils {
    */
   static isNodeEnvironment(): boolean {
     return (
-      typeof process !== 'undefined' &&
+      typeof process !== "undefined" &&
       process.versions != null &&
       process.versions.node != null
     );
@@ -118,9 +125,9 @@ export class HttpUtils {
    * @returns Mensaje de error legible
    */
   static parseErrorMessage(error: any): string {
-    if (!error) return 'Error desconocido';
+    if (!error) return "Error desconocido";
 
-    if (typeof error === 'string') return error;
+    if (typeof error === "string") return error;
 
     if (error.message) return error.message;
 
@@ -131,7 +138,7 @@ export class HttpUtils {
     try {
       return JSON.stringify(error);
     } catch {
-      return 'Error inesperado';
+      return "Error inesperado";
     }
   }
 }
