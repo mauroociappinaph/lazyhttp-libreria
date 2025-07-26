@@ -1,11 +1,14 @@
-import { TypeScriptASTParser } from '../../../duplicate-detector/core/ast-parser';
-import { DuplicateDetectionError, ErrorType } from '../../../duplicate-detector/types/index';
-import * as fs from 'fs/promises';
-import * as path from 'path';
+import { TypeScriptASTParser } from "../../../duplicate-detector/core/ast-parser";
+import {
+  DuplicateDetectionError,
+  ErrorType,
+} from "../../../duplicate-detector/types/index";
+import * as fs from "fs/promises";
+import * as path from "path";
 
-describe('TypeScriptASTParser', () => {
+describe("TypeScriptASTParser", () => {
   let parser: TypeScriptASTParser;
-  const testFilesDir = path.join(__dirname, '../../fixtures/ast-test-files');
+  const testFilesDir = path.join(__dirname, "../../fixtures/ast-test-files");
 
   beforeAll(async () => {
     parser = new TypeScriptASTParser();
@@ -26,59 +29,69 @@ describe('TypeScriptASTParser', () => {
     }
   });
 
-  describe('parseFile', () => {
-    it('should parse a simple TypeScript file', async () => {
-      const filePath = path.join(testFilesDir, 'simple.ts');
+  describe("parseFile", () => {
+    it("should parse a simple TypeScript file", async () => {
+      const filePath = path.join(testFilesDir, "simple.ts");
       const ast = await parser.parseFile(filePath);
 
       expect(ast).toBeDefined();
       expect(ast.sourceFile).toBe(filePath);
       expect(ast.root).toBeDefined();
       expect(ast.nodeCount).toBeGreaterThan(0);
-      expect(ast.root.type).toBe('SourceFile');
+      expect(ast.root.type).toBe("SourceFile");
     });
 
-    it('should parse a file with functions', async () => {
-      const filePath = path.join(testFilesDir, 'functions.ts');
+    it("should parse a file with functions", async () => {
+      const filePath = path.join(testFilesDir, "functions.ts");
       const ast = await parser.parseFile(filePath);
 
       expect(ast).toBeDefined();
       expect(ast.nodeCount).toBeGreaterThan(10);
 
       // Should contain function declarations
-      const hasFunctionDeclaration = containsNodeType(ast.root, 'FunctionDeclaration');
+      const hasFunctionDeclaration = containsNodeType(
+        ast.root,
+        "FunctionDeclaration"
+      );
       expect(hasFunctionDeclaration).toBe(true);
     });
 
-    it('should parse a file with classes', async () => {
-      const filePath = path.join(testFilesDir, 'classes.ts');
+    it("should parse a file with classes", async () => {
+      const filePath = path.join(testFilesDir, "classes.ts");
       const ast = await parser.parseFile(filePath);
 
       expect(ast).toBeDefined();
 
       // Should contain class declarations
-      const hasClassDeclaration = containsNodeType(ast.root, 'ClassDeclaration');
+      const hasClassDeclaration = containsNodeType(
+        ast.root,
+        "ClassDeclaration"
+      );
       expect(hasClassDeclaration).toBe(true);
     });
 
-    it('should handle JavaScript files', async () => {
-      const filePath = path.join(testFilesDir, 'simple.js');
+    it("should handle JavaScript files", async () => {
+      const filePath = path.join(testFilesDir, "simple.js");
       const ast = await parser.parseFile(filePath);
 
       expect(ast).toBeDefined();
       expect(ast.sourceFile).toBe(filePath);
-      expect(ast.root.type).toBe('SourceFile');
+      expect(ast.root.type).toBe("SourceFile");
     });
 
-    it('should throw error for non-existent file', async () => {
-      const filePath = path.join(testFilesDir, 'non-existent.ts');
+    it("should throw error for non-existent file", async () => {
+      const filePath = path.join(testFilesDir, "non-existent.ts");
 
-      await expect(parser.parseFile(filePath)).rejects.toThrow(DuplicateDetectionError);
-      await expect(parser.parseFile(filePath)).rejects.toThrow(ErrorType.PARSE_ERROR);
+      await expect(parser.parseFile(filePath)).rejects.toThrow(
+        DuplicateDetectionError
+      );
+      await expect(parser.parseFile(filePath)).rejects.toThrow(
+        ErrorType.PARSE_ERROR
+      );
     });
 
-    it('should handle files with syntax errors gracefully', async () => {
-      const filePath = path.join(testFilesDir, 'syntax-error.ts');
+    it("should handle files with syntax errors gracefully", async () => {
+      const filePath = path.join(testFilesDir, "syntax-error.ts");
 
       // TypeScript compiler is quite forgiving, so this might not throw
       // but if it does, it should be a proper error
@@ -91,24 +104,26 @@ describe('TypeScriptASTParser', () => {
     });
   });
 
-  describe('normalizeAST', () => {
-    it('should normalize AST by removing position information', async () => {
-      const filePath = path.join(testFilesDir, 'simple.ts');
+  describe("normalizeAST", () => {
+    it("should normalize AST by removing position information", async () => {
+      const filePath = path.join(testFilesDir, "simple.ts");
       const ast = await parser.parseFile(filePath);
       const normalizedAST = parser.normalizeAST(ast);
 
       expect(normalizedAST.normalized).toBe(true);
       expect(normalizedAST.hash).toBeDefined();
-      expect(typeof normalizedAST.hash).toBe('string');
+      expect(typeof normalizedAST.hash).toBe("string");
 
       // All positions should be normalized to (0, 0)
-      const allPositionsNormalized = checkAllPositionsNormalized(normalizedAST.root);
+      const allPositionsNormalized = checkAllPositionsNormalized(
+        normalizedAST.root
+      );
       expect(allPositionsNormalized).toBe(true);
     });
 
-    it('should generate consistent hashes for identical normalized ASTs', async () => {
-      const filePath1 = path.join(testFilesDir, 'identical1.ts');
-      const filePath2 = path.join(testFilesDir, 'identical2.ts');
+    it("should generate consistent hashes for identical normalized ASTs", async () => {
+      const filePath1 = path.join(testFilesDir, "identical1.ts");
+      const filePath2 = path.join(testFilesDir, "identical2.ts");
 
       const ast1 = await parser.parseFile(filePath1);
       const ast2 = await parser.parseFile(filePath2);
@@ -119,9 +134,9 @@ describe('TypeScriptASTParser', () => {
       expect(normalized1.hash).toBe(normalized2.hash);
     });
 
-    it('should generate different hashes for different ASTs', async () => {
-      const filePath1 = path.join(testFilesDir, 'simple.ts');
-      const filePath2 = path.join(testFilesDir, 'functions.ts');
+    it("should generate different hashes for different ASTs", async () => {
+      const filePath1 = path.join(testFilesDir, "simple.ts");
+      const filePath2 = path.join(testFilesDir, "functions.ts");
 
       const ast1 = await parser.parseFile(filePath1);
       const ast2 = await parser.parseFile(filePath2);
@@ -133,9 +148,9 @@ describe('TypeScriptASTParser', () => {
     });
   });
 
-  describe('extractMetadata', () => {
-    it('should extract function metadata', async () => {
-      const filePath = path.join(testFilesDir, 'functions.ts');
+  describe("extractMetadata", () => {
+    it("should extract function metadata", async () => {
+      const filePath = path.join(testFilesDir, "functions.ts");
       const ast = await parser.parseFile(filePath);
       const metadata = parser.extractMetadata(ast);
 
@@ -147,12 +162,12 @@ describe('TypeScriptASTParser', () => {
       expect(func.name).toBeDefined();
       expect(func.parameters).toBeDefined();
       expect(func.body).toBeDefined();
-      expect(typeof func.isAsync).toBe('boolean');
-      expect(typeof func.isExported).toBe('boolean');
+      expect(typeof func.isAsync).toBe("boolean");
+      expect(typeof func.isExported).toBe("boolean");
     });
 
-    it('should extract class metadata', async () => {
-      const filePath = path.join(testFilesDir, 'classes.ts');
+    it("should extract class metadata", async () => {
+      const filePath = path.join(testFilesDir, "classes.ts");
       const ast = await parser.parseFile(filePath);
       const metadata = parser.extractMetadata(ast);
 
@@ -163,11 +178,11 @@ describe('TypeScriptASTParser', () => {
       expect(cls.name).toBeDefined();
       expect(cls.methods).toBeDefined();
       expect(cls.properties).toBeDefined();
-      expect(typeof cls.isExported).toBe('boolean');
+      expect(typeof cls.isExported).toBe("boolean");
     });
 
-    it('should extract import/export metadata', async () => {
-      const filePath = path.join(testFilesDir, 'imports-exports.ts');
+    it("should extract import/export metadata", async () => {
+      const filePath = path.join(testFilesDir, "imports-exports.ts");
       const ast = await parser.parseFile(filePath);
       const metadata = parser.extractMetadata(ast);
 
@@ -178,19 +193,19 @@ describe('TypeScriptASTParser', () => {
         const imp = metadata.imports[0];
         expect(imp.source).toBeDefined();
         expect(imp.imports).toBeDefined();
-        expect(typeof imp.isDefault).toBe('boolean');
+        expect(typeof imp.isDefault).toBe("boolean");
       }
 
       if (metadata.exports.length > 0) {
         const exp = metadata.exports[0];
         expect(exp.name).toBeDefined();
-        expect(typeof exp.isDefault).toBe('boolean');
-        expect(['function', 'class', 'variable', 'type']).toContain(exp.type);
+        expect(typeof exp.isDefault).toBe("boolean");
+        expect(["function", "class", "variable", "type"]).toContain(exp.type);
       }
     });
 
-    it('should calculate line and token counts', async () => {
-      const filePath = path.join(testFilesDir, 'functions.ts');
+    it("should calculate line and token counts", async () => {
+      const filePath = path.join(testFilesDir, "functions.ts");
       const ast = await parser.parseFile(filePath);
       const metadata = parser.extractMetadata(ast);
 
@@ -200,37 +215,43 @@ describe('TypeScriptASTParser', () => {
     });
   });
 
-  describe('error handling', () => {
-    it('should handle parsing errors gracefully', async () => {
-      const filePath = path.join(testFilesDir, 'non-existent.ts');
+  describe("error handling", () => {
+    it("should handle parsing errors gracefully", async () => {
+      const filePath = path.join(testFilesDir, "non-existent.ts");
 
-      await expect(parser.parseFile(filePath)).rejects.toThrow(DuplicateDetectionError);
+      await expect(parser.parseFile(filePath)).rejects.toThrow(
+        DuplicateDetectionError
+      );
     });
 
-    it('should handle normalization errors gracefully', () => {
+    it("should handle normalization errors gracefully", () => {
       const invalidAST = {
         nodeCount: 1,
         root: null as any,
-        sourceFile: 'test.ts'
+        sourceFile: "test.ts",
       };
 
-      expect(() => parser.normalizeAST(invalidAST)).toThrow(DuplicateDetectionError);
+      expect(() => parser.normalizeAST(invalidAST)).toThrow(
+        DuplicateDetectionError
+      );
     });
 
-    it('should handle metadata extraction errors gracefully', () => {
+    it("should handle metadata extraction errors gracefully", () => {
       const invalidAST = {
         nodeCount: 1,
         root: null as any,
-        sourceFile: 'test.ts'
+        sourceFile: "test.ts",
       };
 
-      expect(() => parser.extractMetadata(invalidAST)).toThrow(DuplicateDetectionError);
+      expect(() => parser.extractMetadata(invalidAST)).toThrow(
+        DuplicateDetectionError
+      );
     });
   });
 
-  describe('complex scenarios', () => {
-    it('should handle large files efficiently', async () => {
-      const filePath = path.join(testFilesDir, 'large-file.ts');
+  describe("complex scenarios", () => {
+    it("should handle large files efficiently", async () => {
+      const filePath = path.join(testFilesDir, "large-file.ts");
 
       const startTime = Date.now();
       const ast = await parser.parseFile(filePath);
@@ -240,13 +261,15 @@ describe('TypeScriptASTParser', () => {
       expect(parseTime).toBeLessThan(5000); // Should parse within 5 seconds
     });
 
-    it('should handle files with complex nested structures', async () => {
-      const filePath = path.join(testFilesDir, 'complex-nested.ts');
+    it("should handle files with complex nested structures", async () => {
+      const filePath = path.join(testFilesDir, "complex-nested.ts");
       const ast = await parser.parseFile(filePath);
       const metadata = parser.extractMetadata(ast);
 
       expect(ast.nodeCount).toBeGreaterThan(50);
-      expect(metadata.functions.length + metadata.classes.length).toBeGreaterThan(0);
+      expect(
+        metadata.functions.length + metadata.classes.length
+      ).toBeGreaterThan(0);
     });
   });
 });
@@ -287,15 +310,15 @@ function checkAllPositionsNormalized(node: any): boolean {
 // Create test files
 async function createTestFiles() {
   const testFiles = {
-    'simple.ts': `
+    "simple.ts": `
 const message = "Hello, World!";
 console.log(message);
 `,
-    'simple.js': `
+    "simple.js": `
 const message = "Hello, World!";
 console.log(message);
 `,
-    'functions.ts': `
+    "functions.ts": `
 function add(a: number, b: number): number {
   return a + b;
 }
@@ -316,7 +339,7 @@ export function divide(a: number, b: number): number {
   return a / b;
 }
 `,
-    'classes.ts': `
+    "classes.ts": `
 export class Calculator {
   private history: number[] = [];
 
@@ -351,7 +374,7 @@ interface Serializable {
   serialize(): string;
 }
 `,
-    'imports-exports.ts': `
+    "imports-exports.ts": `
 import { Calculator } from './classes';
 import * as utils from './utils';
 import defaultExport from './default';
@@ -367,22 +390,22 @@ export default class MathUtils {
 
 export { Calculator as Calc };
 `,
-    'syntax-error.ts': `
+    "syntax-error.ts": `
 function broken(
   // Missing closing parenthesis and body
 `,
-    'identical1.ts': `
+    "identical1.ts": `
 function test() {
   return 42;
 }
 `,
-    'identical2.ts': `
+    "identical2.ts": `
 function test() {
   return 42;
 }
 `,
-    'large-file.ts': generateLargeFile(),
-    'complex-nested.ts': `
+    "large-file.ts": generateLargeFile(),
+    "complex-nested.ts": `
 namespace MyNamespace {
   export class OuterClass {
     private innerInstance = new InnerClass();
@@ -417,10 +440,10 @@ namespace MyNamespace {
     }
   }
 }
-`
+`,
   };
 
-  const testFilesDir = path.join(__dirname, '../../fixtures/ast-test-files');
+  const testFilesDir = path.join(__dirname, "../../fixtures/ast-test-files");
 
   for (const [filename, content] of Object.entries(testFiles)) {
     const filePath = path.join(testFilesDir, filename);
@@ -429,7 +452,7 @@ namespace MyNamespace {
 }
 
 function generateLargeFile(): string {
-  let content = '';
+  let content = "";
 
   // Generate many functions
   for (let i = 0; i < 100; i++) {
@@ -459,7 +482,7 @@ export class LargeClass {
 `;
   }
 
-  content += '}';
+  content += "}";
 
   return content;
 }
