@@ -3,7 +3,7 @@
  *
  * @module http/server/core/httplazy-server
  */
-import express, { Request, Response, Express } from 'express';
+import express, { Request, Response, Express } from "express";
 
 /**
  * Servidor HTTP Express minimalista para pruebas y prototipos.
