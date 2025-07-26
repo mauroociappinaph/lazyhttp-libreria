@@ -1,6 +1,6 @@
-import { ApiResponse } from './response.types';
-import { HttpMethod } from './http-methods.types';
-import { AxiosResponse } from 'axios';
+import { ApiResponse } from "./response.types";
+import { HttpMethod } from "./http-methods.types";
+import { AxiosResponse } from "axios";
 
 /**
  * Ejecutor de peticiones HTTP

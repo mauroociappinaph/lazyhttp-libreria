@@ -1,12 +1,12 @@
 /**
  * Métodos HTTP soportados por la biblioteca
  */
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
 // Interfaces referenciadas que se definen en otros archivos
 // Declaraciones preliminares
-import { CacheOptions } from '../cache/cache.types';
-import { StreamConfig } from '../streaming/streaming.types';
+import { CacheOptions } from "../cache/cache.types";
+import { StreamConfig } from "../streaming/streaming.types";
 
 interface ProxyConfig {
   url: string;
@@ -14,7 +14,7 @@ interface ProxyConfig {
     username: string;
     password: string;
   };
-  protocol?: 'http' | 'https' | 'socks';
+  protocol?: "http" | "https" | "socks";
   rejectUnauthorized?: boolean;
 }
 
