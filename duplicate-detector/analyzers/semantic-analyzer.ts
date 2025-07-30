@@ -5,14 +5,14 @@ import {
   LogicPattern,
   PatternGroup,
   ClassNode
-} from '../types';
+} from '../types/index.js';
 
 import {
   PatternExtractor,
   PatternCategorizer,
   PatternGrouper,
   ClassAnalyzer
-} from './semantic';
+} from './semantic/index.js';
 
 export interface SemanticAnalyzer {
   detectSimilarLogic(functions: FunctionNode[]): LogicPattern[];

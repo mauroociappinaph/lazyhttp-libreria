@@ -1,9 +1,9 @@
 // Pattern grouping module for semantic analyzer
 
 import { v4 as uuidv4 } from 'uuid';
-import { LogicPattern, PatternGroup } from '../../types';
-import { SimilarityCalculator } from './similarity-calculator';
-import { RefactoringGenerator } from './refactoring-generator';
+import { LogicPattern, PatternGroup } from '../../types/index.js';
+import { SimilarityCalculator } from './similarity-calculator.js';
+import { RefactoringGenerator } from './refactoring-generator.js';
 
 /**
  * Groups similar patterns together

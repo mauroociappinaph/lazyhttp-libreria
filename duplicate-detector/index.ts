@@ -28,14 +28,14 @@ export type {
   ReportGenerator as IReportGenerator,
   FileDiscoveryEngine as IFileDiscoveryEngine,
   ASTParser as IASTParser
-} from './types/index';
+} from './types/index.js';
 
 export {
   DuplicationType,
   OutputFormat,
   ErrorType,
   DuplicateDetectionError
-} from './types/index';
+} from './types/index.js';
 
 // Export configuration
 export {
@@ -44,31 +44,31 @@ export {
   mergeConfig,
   validateAndMergeConfig,
   loadConfigFromFile
-} from './config/index';
+} from './config/index.js';
 
 export type {
   ConfigValidationResult,
   ConfigValidationError,
   ConfigValidationWarning
-} from './config/index';
+} from './config/index.js';
 
 // Export core implementations
-export { DuplicateDetector } from './core/duplicate-detector';
-export { SimilarityCalculator } from './core/similarity-calculator';
-export { PatternAnalyzer } from './core/pattern-analyzer';
-export { ReportGenerator } from './core/report-generator';
-export { FileDiscoveryEngine } from './core/file-discovery';
-export { ASTParser } from './core/ast-parser';
+export { DuplicateDetector } from './core/duplicate-detector.js';
+export { SimilarityCalculator } from './core/similarity-calculator.js';
+export { PatternAnalyzer } from './core/pattern-analyzer.js';
+export { ReportGenerator } from './core/report-generator.js';
+export { FileDiscoveryEngine } from './core/file-discovery.js';
+export { ASTParser } from './core/ast-parser.js';
 
 // Export analyzers
-export { DefaultSyntacticAnalyzer } from './analyzers/syntactic-analyzer';
-export { DefaultSemanticAnalyzer } from './analyzers/semantic-analyzer';
-export { DefaultStructuralAnalyzer } from './analyzers/structural-analyzer';
+export { DefaultSyntacticAnalyzer } from './analyzers/syntactic-analyzer.js';
+export { DefaultSemanticAnalyzer } from './analyzers/semantic-analyzer.js';
+export { DefaultStructuralAnalyzer } from './analyzers/structural-analyzer.js';
 
 // Export analyzer interfaces
-export type { SyntacticAnalyzer } from './analyzers/syntactic-analyzer';
-export type { SemanticAnalyzer } from './analyzers/semantic-analyzer';
-export type { StructuralAnalyzer } from './analyzers/structural-analyzer';
+export type { SyntacticAnalyzer } from './analyzers/syntactic-analyzer.js';
+export type { SemanticAnalyzer } from './analyzers/semantic-analyzer.js';
+export type { StructuralAnalyzer } from './analyzers/structural-analyzer.js';
 
 // Export utilities
 export {
@@ -102,4 +102,4 @@ export {
   measureSync,
   debounce,
   throttle
-} from './utils/index';
+} from './utils/index.js';

@@ -7,12 +7,12 @@ import {
   DuplicationType,
   CodeInstance,
   ASTNode
-} from '../types';
-import { SimilarityCalculator } from '../core/similarity-calculator';
+} from '../types/index.js';
+import { SimilarityCalculator } from '../core/similarity-calculator.js';
 import {
   generateHash,
   generateNormalizedCodeHash
-} from '../utils/hash-utils';
+} from '../utils/hash-utils.js';
 
 export interface SyntacticAnalyzer {
   detectExactDuplicates(asts: AST[]): Duplication[];

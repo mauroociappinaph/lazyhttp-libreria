@@ -1,7 +1,7 @@
 // Utility functions for duplicate code detection
 
-export * from './hash-utils';
-export * from './file-utils';
-export * from './validation-utils';
-export * from './performance-utils';
-export * from './performance-monitor-factory';
+export * from './hash-utils.js';
+export * from './file-utils.js';
+export * from './validation-utils.js';
+export * from './performance-utils.js';
+export * from './performance-monitor-factory.js';

@@ -9,10 +9,10 @@ import {
   ASTNode,
   DuplicateDetectionError,
   ErrorType
-} from '../types/index';
-import { ASTNodeConverter } from './ast-parser/ast-node-converter';
-import { ASTNormalizer } from './ast-parser/ast-normalizer';
-import { MetadataExtractor } from './ast-parser/metadata-extractor';
+} from '../types/index.js';
+import { ASTNodeConverter } from './ast-parser/ast-node-converter.js';
+import { ASTNormalizer } from './ast-parser/ast-normalizer.js';
+import { MetadataExtractor } from './ast-parser/metadata-extractor.js';
 
 /**
  * TypeScript AST Parser and Normalizer

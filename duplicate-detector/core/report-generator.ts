@@ -5,7 +5,7 @@ import {
   Duplication,
   DuplicationReport,
   OutputFormat
-} from '../types';
+} from '../types/index.js';
 
 export class ReportGenerator implements IReportGenerator {
   generateReport(duplications: Duplication[]): DuplicationReport {

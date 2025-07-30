@@ -1,7 +1,7 @@
-import { ASTNode, FileMetadata } from '../../types/index';
-import { FunctionExtractor } from './node-extractors/function-extractor';
-import { ClassExtractor } from './node-extractors/class-extractor';
-import { ImportExportExtractor } from './node-extractors/import-export-extractor';
+import { ASTNode, FileMetadata } from '../../types/index.js';
+import { FunctionExtractor } from './node-extractors/function-extractor.js';
+import { ClassExtractor } from './node-extractors/class-extractor.js';
+import { ImportExportExtractor } from './node-extractors/import-export-extractor.js';
 
 /**
  * Extracts metadata from AST nodes
