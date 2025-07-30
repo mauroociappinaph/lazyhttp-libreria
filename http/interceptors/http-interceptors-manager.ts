@@ -5,7 +5,7 @@ import { setupInterceptors } from "../http-helpers";
  */
 export class InterceptorsManager {
   private requestInterceptors: Array<(config: any) => any> = [];
-  private responseInterceptors: Array<(response: any) => any> = [];
+  private responseInterceptors: Array<(response: any) => unknown> = [];
 
   /**
    * Configura o añade un interceptor
