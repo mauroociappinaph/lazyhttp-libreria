@@ -5,7 +5,7 @@ import {
   SimilarityScore,
   DuplicateDetectionError,
   ErrorType
-} from '../types/index';
+} from '../types/index.js';
 
 /**
  * Tree Edit Distance Calculator using APTED algorithm

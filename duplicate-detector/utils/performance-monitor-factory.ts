@@ -1,6 +1,6 @@
 // Factory pattern for creating performance monitors
 
-import { PerformanceTimer, MemoryMonitor } from './performance-utils';
+import { PerformanceTimer, MemoryMonitor } from './performance-utils.js';
 
 export interface PerformanceMonitor {
   start(): void;

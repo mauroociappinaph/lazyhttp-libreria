@@ -10,7 +10,7 @@ import {
   DuplicateDetectionError,
   ErrorType,
   FileStats
-} from '../types';
+} from '../types/index.js';
 
 export class FileDiscoveryEngine implements IFileDiscoveryEngine {
   private readonly supportedExtensions = ['.ts', '.tsx', '.js', '.jsx'];

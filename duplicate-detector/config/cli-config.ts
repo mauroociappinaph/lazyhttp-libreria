@@ -1,7 +1,7 @@
 // CLI configuration parsing and management
 
 import { DetectionConfig, PartialDetectionConfig } from '../types';
-import { validateAndMergeConfig, loadConfigFromFile } from './index';
+import { validateAndMergeConfig, loadConfigFromFile } from './index.js';
 
 export interface CLIOptions {
   config?: string;

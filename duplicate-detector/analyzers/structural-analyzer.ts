@@ -10,8 +10,8 @@ import {
   PropertyNode,
   RefactoringSuggestion,
   SimilarityScore
-} from '../types';
-import { generateHash } from '../utils/hash-utils';
+} from '../types/index.js';
+import { generateHash } from '../utils/hash-utils.js';
 
 export interface StructuralAnalyzer {
   detectStructuralDuplicates(classes: ClassNode[]): Duplication[];

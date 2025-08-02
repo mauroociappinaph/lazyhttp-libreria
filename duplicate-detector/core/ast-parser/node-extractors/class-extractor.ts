@@ -1,5 +1,5 @@
-import { ASTNode, ClassNode, FunctionNode, PropertyNode } from '../../../types/index';
-import { FunctionExtractor } from './function-extractor';
+import { ASTNode, ClassNode, FunctionNode, PropertyNode } from '../../../types/index.js';
+import { FunctionExtractor } from './function-extractor.js';
 
 /**
  * Extracts class-related information from AST nodes

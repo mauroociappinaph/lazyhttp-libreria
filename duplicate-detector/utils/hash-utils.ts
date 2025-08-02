@@ -1,7 +1,7 @@
 // Hash utility functions
 
 import { createHash } from 'crypto';
-import { isNonEmptyString } from './validation-utils';
+import { isNonEmptyString } from './validation-utils.js';
 
 /**
  * Generates a SHA-256 hash for the given content

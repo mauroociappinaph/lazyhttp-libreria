@@ -6,7 +6,7 @@ import {
   DuplicationReport,
   ErrorType,
   DuplicateDetectionError
-} from '../types';
+} from '../types/index.js';
 
 export class DuplicateDetector implements IDuplicateDetector {
   private config: DetectionConfig;
@@ -42,8 +42,9 @@ export class DuplicateDetector implements IDuplicateDetector {
     } catch (error) {
       throw new DuplicateDetectionError(
         ErrorType.ANALYSIS_TIMEOUT,
-        undefined,
-        { message: error instanceof Error ? error.message : 'Unknown error' }
+        undefined, // message
+        undefined, // file
+        { message: error instanceof Error ? error.message : 'Unknown error' } // details
       );
     }
   }

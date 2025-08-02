@@ -1,8 +1,8 @@
 // Class analysis module for semantic analyzer
 
-import { ClassNode, FunctionNode, PatternGroup } from '../../types';
-import { PatternExtractor } from './pattern-extractor';
-import { SimilarityCalculator } from './similarity-calculator';
+import { ClassNode, FunctionNode, PatternGroup } from '../../types/index.js';
+import { PatternExtractor } from './pattern-extractor.js';
+import { SimilarityCalculator } from './similarity-calculator.js';
 
 /**
  * Analyzes patterns in classes to detect similar implementations

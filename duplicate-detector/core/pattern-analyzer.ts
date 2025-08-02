@@ -8,7 +8,7 @@ import {
 } from '../types';
 
 export class PatternAnalyzer implements IPatternAnalyzer {
-  detectPatterns(functions: FunctionNode[]): PatternGroup[] {
+  detectPatterns(_functions: FunctionNode[]): PatternGroup[] {
     // This will be implemented in later tasks
     // For now, return empty array to satisfy the interface
     return [];

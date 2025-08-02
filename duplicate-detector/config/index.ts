@@ -405,4 +405,4 @@ export function validateAndMergeConfig(userConfig: PartialDetectionConfig): Dete
 }
 
 // Re-export CLI configuration utilities
-export { CLIConfigParser, type CLIOptions } from './cli-config';
+export { CLIConfigParser, type CLIOptions } from './cli-config.js';
