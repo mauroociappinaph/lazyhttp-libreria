@@ -52,12 +52,47 @@ async function build() {
     format: "esm",
   });
 
-  // Copiar archivos de declaración (.d.ts) generados por tsc
+  // Generar archivos de declaración (.d.ts) con tsc en un directorio temporal
   // esbuild no genera .d.ts, así que tsc sigue siendo necesario para eso
-  console.log("Copiando archivos de declaración...");
-  execSync("tsc --emitDeclarationOnly --outDir " + DIST_DIR, {
+  const TEMP_TYPES_DIR = join(__dirname, "..", "dist-temp-types");
+  fs.rmSync(TEMP_TYPES_DIR, { recursive: true, force: true }); // Limpiar por si acaso
+  console.log("Generando archivos de declaración en directorio temporal...");
+  execSync(`tsc --emitDeclarationOnly --outDir ${TEMP_TYPES_DIR}`, {
     stdio: "inherit",
   });
+
+  console.log("Moviendo archivos de declaración a sus ubicaciones finales...");
+
+  // Asegurarse de que los directorios de destino existan
+  fs.mkdirSync(join(DIST_DIR, "client"), { recursive: true });
+  fs.mkdirSync(join(DIST_DIR, "server"), { recursive: true });
+
+  // Mover index.d.ts principal
+  fs.copyFileSync(
+    join(TEMP_TYPES_DIR, "http", "index.d.ts"),
+    join(DIST_DIR, "index.d.ts")
+  );
+
+  // Mover client/index.d.ts
+  fs.copyFileSync(
+    join(TEMP_TYPES_DIR, "http", "client", "index.d.ts"),
+    join(DIST_DIR, "client", "index.d.ts")
+  );
+
+  // Mover server/index.d.ts
+  fs.copyFileSync(
+    join(TEMP_TYPES_DIR, "http", "server", "index.d.ts"),
+    join(DIST_DIR, "server", "index.d.ts")
+  );
+
+  // Copiar el resto de los archivos .d.ts de http/ a dist/http/
+  fs.cpSync(join(TEMP_TYPES_DIR, "http"), join(DIST_DIR, "http"), {
+    recursive: true,
+    force: true,
+  });
+
+  // Limpiar el directorio temporal
+  fs.rmSync(TEMP_TYPES_DIR, { recursive: true, force: true });
 
   console.log("Construcción con esbuild finalizada.");
 }
