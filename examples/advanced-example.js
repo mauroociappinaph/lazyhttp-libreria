@@ -1,55 +1,57 @@
 // Ejemplo avanzado de uso de LazyHTTP
 const { http } = require("../");
 
-// Ejemplo de uso con reintentos y tiempo de espera personalizado
+// Constantes para valores comunes
+const BASE_URL = "https://jsonplaceholder.typicode.com";
+const TIMEOUT = 5000; // 5 segundos
+const RETRIES = 3;
+const CUSTOM_HEADER = "LazyHTTP-Example";
+
+// Función para realizar una petición con reintentos
 async function fetchWithRetries() {
   console.log("Realizando petición con reintentos...");
 
-  // Definir opciones avanzadas
   const options = {
-    timeout: 5000, // 5 segundos de timeout
-    retries: 3, // Hasta 3 reintentos
+    timeout: TIMEOUT,
+    retries: RETRIES,
     headers: {
-      "X-Custom-Header": "LazyHTTP-Example",
+      "X-Custom-Header": CUSTOM_HEADER,
     },
   };
 
-  const response = await http.get(
-    "https://jsonplaceholder.typicode.com/posts",
-    options
-  );
+  const response = await http.get(`${BASE_URL}/posts`, options);
 
   if (response.error) {
     console.error("Error después de reintentos:", response.error);
     return;
   }
 
-  console.log(`✅ Datos obtenidos después de reintentos exitosos`);
+  console.log("✅ Datos obtenidos después de reintentos exitosos");
 }
 
-// Ejemplo de manejo de errores avanzado
+// Función para manejar errores avanzados
 async function handleErrors() {
   console.log("Probando manejo de errores...");
 
-  // URL inexistente para provocar un error
-  const response = await http.get(
-    "https://jsonplaceholder.typicode.com/nonexistent"
-  );
+  const response = await http.get(`${BASE_URL}/nonexistent`);
 
-  // Comprobar el error y su tipo
   if (response.error) {
     console.log("✅ Error detectado correctamente:", {
       mensaje: response.error,
       código: response.status,
     });
 
-    // El código status puede ayudar a identificar el tipo de error
-    if (response.status === 404) {
-      console.log("Recurso no encontrado");
-    } else if (response.status >= 500) {
-      console.log("Error del servidor");
-    } else if (response.status === 0) {
-      console.log("Error de red o conexión");
+    switch (response.status) {
+      case 404:
+        console.log("Recurso no encontrado");
+        break;
+      case 0:
+        console.log("Error de red o conexión");
+        break;
+      default:
+        if (response.status >= 500) {
+          console.log("Error del servidor");
+        }
     }
 
     return;
@@ -58,28 +60,21 @@ async function handleErrors() {
   console.log("Respuesta inesperada:", response);
 }
 
-// Ejemplo con autenticación
+// Función para realizar una petición autenticada
 async function authenticatedRequest() {
   console.log("Realizando petición autenticada...");
 
-  // Definir opciones con autenticación
   const options = {
-    withAuth: true, // Esto añadirá el token automáticamente
+    withAuth: true,
     headers: {
       "X-Custom-Header": "LazyHTTP-Auth-Example",
     },
   };
 
-  // Simulación: normalmente establecerías el token con localStorage
-  // En este ejemplo solo mostramos el concepto
   localStorage.setItem("token", "mi-token-jwt-simulado");
 
-  const response = await http.get(
-    "https://jsonplaceholder.typicode.com/user/me",
-    options
-  );
+  const response = await http.get(`${BASE_URL}/user/me`, options);
 
-  // Limpiar después del ejemplo
   localStorage.removeItem("token");
 
   if (response.error) {
@@ -90,10 +85,9 @@ async function authenticatedRequest() {
   console.log("✅ Respuesta de petición autenticada:", response.data);
 }
 
-// Ejecutar los ejemplos
+// Función principal para ejecutar los ejemplos
 async function runAdvancedExamples() {
   try {
-    // Inicializar antes de usar
     await http.initialize();
 
     await fetchWithRetries();
